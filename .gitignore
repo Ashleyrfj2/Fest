@@ -1,0 +1,19 @@
+# Node
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+
+# Claude Code local settings (may contain API tokens)
+.claude/settings.json
+.claude/settings.local.json
+CLAUDE.local.md
