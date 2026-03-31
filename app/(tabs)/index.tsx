@@ -6,9 +6,19 @@
 
 import { View, Text, ScrollView, StyleSheet, Pressable, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Icon } from '@/components/Icon';
+import { EmailPromptBanner } from '@/components/EmailPromptBanner';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { colors, typography, spacing, borderRadius, shadows } from '@/lib/tokens';
+import { Database } from '@/lib/database.types';
+
+type Trip = Database['public']['Tables']['trips']['Row'] & {
+  member_role?: string;
+  member_count?: number;
+};
 
 // Mock data
 const festivals = [
@@ -99,6 +109,73 @@ const appUpdates = [
 ];
 
 export default function HomeScreen() {
+  const { shouldPromptForEmail, userProfile } = useAuth();
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadTrips();
+  }, [userProfile]);
+
+  async function loadTrips() {
+    if (!userProfile) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // Get trips where user is a member
+      const { data: memberData, error: memberError } = await supabase
+        .from('group_members')
+        .select('trip_id, role')
+        .eq('user_id', userProfile.id);
+
+      if (memberError) throw memberError;
+
+      if (!memberData || memberData.length === 0) {
+        setTrips([]);
+        setIsLoading(false);
+        return;
+      }
+
+      const tripIds = memberData.map((m) => m.trip_id);
+
+      // Get trip details
+      const { data: tripData, error: tripError } = await supabase
+        .from('trips')
+        .select('*')
+        .in('id', tripIds)
+        .order('start_date', { ascending: true });
+
+      if (tripError) throw tripError;
+
+      // Enrich with member info
+      const enrichedTrips = await Promise.all(
+        tripData.map(async (trip) => {
+          const member = memberData.find((m) => m.trip_id === trip.id);
+
+          // Get member count
+          const { count } = await supabase
+            .from('group_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('trip_id', trip.id);
+
+          return {
+            ...trip,
+            member_role: member?.role,
+            member_count: count || 0,
+          };
+        })
+      );
+
+      setTrips(enrichedTrips);
+    } catch (error) {
+      console.error('Error loading trips:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -121,12 +198,36 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {/* Email Prompt Banner (after 5+ min usage) */}
+        {shouldPromptForEmail && <EmailPromptBanner />}
+
         {/* Festival Cards Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>YOUR FESTIVALS</Text>
-          {festivals.map((festival) => (
-            <FestivalCard key={festival.id} festival={festival} />
-          ))}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionLabel}>YOUR FESTIVALS</Text>
+            <Pressable
+              style={styles.createButton}
+              onPress={() => router.push('/trips/create')}
+            >
+              <Icon name="plus" size={20} color={colors.accent.gold} />
+              <Text style={styles.createButtonText}>Create Trip</Text>
+            </Pressable>
+          </View>
+
+          {isLoading ? (
+            <Text style={styles.loadingText}>Loading trips...</Text>
+          ) : trips.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyTitle}>No trips yet</Text>
+              <Text style={styles.emptySubtitle}>
+                Create a trip or join one via invite link
+              </Text>
+            </View>
+          ) : (
+            trips.map((trip) => (
+              <TripCard key={trip.id} trip={trip} />
+            ))
+          )}
         </View>
 
         {/* Community Posts Section */}
@@ -151,6 +252,100 @@ export default function HomeScreen() {
         <View style={{ height: 20 }} />
       </ScrollView>
     </View>
+  );
+}
+
+function TripCard({ trip }: { trip: Trip }) {
+  // Calculate days until trip
+  const daysUntil = Math.ceil(
+    (new Date(trip.start_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+  );
+
+  // Format dates
+  const startDate = new Date(trip.start_date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+  const endDate = new Date(trip.end_date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
+  // Festival-specific gradient colors (fallback to generic if unknown)
+  const gradientColors =
+    trip.festival_name.toLowerCase().includes('forest')
+      ? ['#0A4D3A', '#12785A', '#28C896']
+      : trip.festival_name.toLowerCase().includes('dance')
+      ? ['#3B1578', '#6D30CC', '#B47AFF']
+      : trip.festival_name.toLowerCase().includes('beyond')
+      ? ['#7A1048', '#C42070', '#F280B0']
+      : ['#1C1829', '#252033', '#C9A84C']; // Generic
+
+  const finalColors = [...gradientColors, 'transparent'];
+
+  return (
+    <Pressable
+      style={styles.festivalCard}
+      onPress={() => router.push(`/trips/${trip.id}`)}
+    >
+      {/* Layered gradient wash background */}
+      <LinearGradient
+        colors={finalColors as any}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.festivalGradient}
+      />
+
+      {/* Radial glow effect */}
+      <LinearGradient
+        colors={[gradientColors[1] + '20', 'transparent']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.festivalGlow}
+      />
+
+      {/* Content */}
+      <View style={styles.festivalContent}>
+        {/* Header row */}
+        <View style={styles.festivalHeader}>
+          <View style={styles.festivalTitleRow}>
+            <Text style={styles.festivalName} numberOfLines={1}>
+              {trip.name}
+            </Text>
+            <View style={[styles.roleBadge, { backgroundColor: colors.surface.level3 }]}>
+              <Text style={styles.roleBadgeText}>
+                {trip.member_role || 'viewer'}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Festival Name */}
+        <Text style={styles.festivalDates}>{trip.festival_name}</Text>
+
+        {/* Dates */}
+        <Text style={styles.festivalDates}>
+          {startDate} – {endDate}
+        </Text>
+
+        {/* Countdown */}
+        {daysUntil > 0 && (
+          <View style={styles.countdownRow}>
+            <Icon name="clock" size={14} color={colors.text.dim} />
+            <Text style={styles.countdownText}>{daysUntil} days until arrival</Text>
+          </View>
+        )}
+
+        {/* Crew count */}
+        <View style={styles.crewRow}>
+          <Icon name="users" size={16} color={colors.text.dim} />
+          <Text style={styles.crewCount}>
+            {trip.member_count} {trip.member_count === 1 ? 'member' : 'members'}
+          </Text>
+        </View>
+      </View>
+    </Pressable>
   );
 }
 
@@ -336,6 +531,53 @@ const styles = StyleSheet.create({
     letterSpacing: typography.letterSpacing.wide,
     marginBottom: spacing.md,
     textTransform: 'uppercase',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  createButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.surface.level1,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    borderColor: colors.border.medium,
+  },
+  createButtonText: {
+    fontSize: typography.size.meta,
+    fontWeight: typography.weight.label,
+    color: colors.accent.gold,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  loadingText: {
+    fontSize: typography.size.body,
+    fontWeight: typography.weight.body,
+    color: colors.text.dim,
+    textAlign: 'center',
+    paddingVertical: spacing.xl,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: spacing.xxxl,
+  },
+  emptyTitle: {
+    fontSize: typography.size.cardTitle,
+    fontWeight: typography.weight.cardTitle,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
+  },
+  emptySubtitle: {
+    fontSize: typography.size.body,
+    fontWeight: typography.weight.body,
+    color: colors.text.dim,
+    textAlign: 'center',
   },
   festivalCard: {
     backgroundColor: colors.surface.level1,

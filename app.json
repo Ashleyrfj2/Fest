@@ -14,14 +14,34 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.festnest.app"
+      "bundleIdentifier": "com.festnest.app",
+      "associatedDomains": ["applinks:festnest.app", "applinks:www.festnest.app"]
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0E0C16"
       },
-      "package": "com.festnest.app"
+      "package": "com.festnest.app",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "festnest.app",
+              "pathPrefix": "/join"
+            },
+            {
+              "scheme": "https",
+              "host": "www.festnest.app",
+              "pathPrefix": "/join"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",
