@@ -17,3 +17,6 @@ web-build/
 .claude/settings.json
 .claude/settings.local.json
 CLAUDE.local.md
+
+# Supabase local CLI temp artifacts
+supabase/.temp/
