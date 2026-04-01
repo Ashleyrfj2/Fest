@@ -16,7 +16,6 @@ import {
   Platform,
   ActivityIndicator,
   ScrollView,
-  InteractionManager,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Mail, Lock, ArrowLeft } from 'lucide-react-native';
@@ -32,10 +31,18 @@ export default function RegisterScreen() {
   const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
-    const task = InteractionManager.runAfterInteractions(() => {
-      inputRef.current?.focus();
-    });
-    return () => task.cancel();
+    // Use requestIdleCallback if available, fallback to setImmediate for React Native
+    if (typeof requestIdleCallback !== 'undefined') {
+      const id = requestIdleCallback(() => {
+        inputRef.current?.focus();
+      });
+      return () => cancelIdleCallback(id);
+    } else {
+      const id = setImmediate(() => {
+        inputRef.current?.focus();
+      });
+      return () => clearImmediate(id);
+    }
   }, []);
 
   const handleRegister = async () => {

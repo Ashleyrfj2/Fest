@@ -6,7 +6,7 @@
  * Design: Deep indigo background, burnished gold accent
  */
 
-import React, { useState, useRef, useEffect } from 'react'; // ADDED: useRef, useEffect
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  InteractionManager, // ADDED: InteractionManager
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -48,13 +47,20 @@ export default function SetProfileScreen() {
   // Create a ref for the input
   const inputRef = useRef<TextInput>(null);
 
-  // Focus the input only after navigation animations are done
+  // Focus the input after higher-priority tasks complete
   useEffect(() => {
-    const task = InteractionManager.runAfterInteractions(() => {
-      inputRef.current?.focus();
-    });
-    
-    return () => task.cancel();
+    // Use requestIdleCallback if available, fallback to setImmediate for React Native
+    if (typeof requestIdleCallback !== 'undefined') {
+      const id = requestIdleCallback(() => {
+        inputRef.current?.focus();
+      });
+      return () => cancelIdleCallback(id);
+    } else {
+      const id = setImmediate(() => {
+        inputRef.current?.focus();
+      });
+      return () => clearImmediate(id);
+    }
   }, []);
 
   // Navigate only after profile is confirmed updated in context
