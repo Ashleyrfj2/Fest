@@ -102,8 +102,8 @@ You should see all 17 tables:
 - **group_members** — User-trip relationship with roles
 
 ### Camp Module (2 tables)
-- **camp_grids** — Campsite dimensions
-- **camp_items** — Placed objects (tents, cars, etc.)
+- **camp_grids** — Shared campsite dimensions, cell scale, and selected preset
+- **camp_items** — Shared placed objects (tents, cars, tables, canopies, fire pits, paths, custom items)
 
 ### Supplies & Food (5 tables)
 - **supply_items** — Claimable supplies
@@ -178,11 +178,17 @@ Enable realtime for collaborative features:
 
 ```sql
 -- Enable realtime for key tables
+ALTER PUBLICATION supabase_realtime ADD TABLE camp_grids;
 ALTER PUBLICATION supabase_realtime ADD TABLE camp_items;
 ALTER PUBLICATION supabase_realtime ADD TABLE supply_items;
 ALTER PUBLICATION supabase_realtime ADD TABLE artist_votes;
 ALTER PUBLICATION supabase_realtime ADD TABLE activity_logs;
 ```
+
+Current app behavior:
+- The camp grid screen loads the newer of the local SQLite snapshot or the shared Supabase snapshot
+- `Save Layout` publishes the current local camp layout into `camp_grids` and `camp_items`
+- The client does not yet subscribe to live realtime updates for camp layouts, so group changes appear on the next reload/open rather than instantly
 
 ## Troubleshooting
 
@@ -235,8 +241,15 @@ GROUP BY status;
 SELECT
   cg.width_ft,
   cg.height_ft,
+  cg.cell_size_ft,
+  cg.festival_preset,
   ci.item_type,
   ci.label,
+  ci.real_width_ft,
+  ci.real_height_ft,
+  ci.x,
+  ci.y,
+  ci.color,
   u.display_name AS assigned_to
 FROM camp_grids cg
 LEFT JOIN camp_items ci ON cg.trip_id = ci.grid_id

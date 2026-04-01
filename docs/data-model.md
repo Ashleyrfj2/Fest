@@ -17,13 +17,16 @@
 
 ### Camp
 
-**CampGrid** — Campsite dimensions + scale; one per trip; offline-first.
+**CampGrid** — Campsite dimensions + scale; one per trip; shared through Supabase and cached locally for offline reopen.
 - `trip_id` (FK), `width_ft`, `height_ft`, `cell_size_ft` (e.g. 1 cell = 2ft), `festival_preset` (optional)
+- Current client decision: measurement unit preference is also stored in local SQLite for rendering, even though it is not part of the shared Supabase table today
 
 **CampItem** — Individual placed objects with x/y position + real dimensions.
 - `id` (uuid PK), `grid_id` (FK), `item_type`: tent | car | table | canopy | fire_pit | path | custom
 - `x`, `y` (grid position), `width_cells`, `height_cells`, `real_width_ft`, `real_height_ft`
 - `label`, `assigned_to` (FK User), `color`
+- Current product behavior: rotation is represented by swapping width/height before save; no separate rotation column exists yet
+- Current sync decision: local SQLite remains the offline cache, while Supabase becomes the shared group layout when users press Save Layout
 
 ### Supplies + Food
 
@@ -101,3 +104,5 @@
 6. **BudgetEntry stores amounts in cents (integer)** — avoids floating-point math bugs.
 7. **VehiclePassenger stores pickup_waypoint_index** — enables "pick up along the route" flow.
 8. **FlightDetail links to Vehicle** — direct airport-to-car pickup coordination.
+9. **CampGrid uses dual persistence** — local SQLite supports offline reopen and unsaved drafts; Supabase stores the shared group version after explicit save.
+10. **CampItem rotation is dimension-based for now** — rotating an item swaps width/height instead of introducing a dedicated angle field.

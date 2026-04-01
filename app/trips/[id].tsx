@@ -16,6 +16,7 @@ import {
   Alert,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import {
   ArrowLeft,
   Settings,
@@ -278,7 +279,14 @@ export default function TripDashboardScreen() {
               <TouchableOpacity
                 key={module.id}
                 style={styles.moduleCard}
-                onPress={() => {
+                onPress={async () => {
+                  if (module.id === 'camp_grid') {
+                    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE).catch(() => {
+                      // Keep navigation responsive if orientation lock is unavailable.
+                    });
+                    router.push(`/trips/${id}/camp-grid`);
+                    return;
+                  }
                   Alert.alert(module.name, `${module.name} coming soon`);
                 }}
                 activeOpacity={0.8}

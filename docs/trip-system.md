@@ -34,7 +34,7 @@ Per-trip view showing:
 - Crew list with roles and avatar colors
 - Share invite button (native share sheet)
 - Settings menu (leader only)
-- 8 module cards (placeholder - coming soon)
+- 8 module cards, with Camp Grid wired as the first live module and the others still showing coming soon placeholders
 
 **Modules displayed:**
 - Camp Grid - Design campsite layout

@@ -80,6 +80,11 @@ export default function CreateTripScreen() {
       return;
     }
 
+    if (!userProfile || !userProfile.id) {
+      setError('User profile not loaded. Please try again.');
+      return;
+    }
+
     setError('');
     setIsLoading(true);
 
@@ -96,7 +101,7 @@ export default function CreateTripScreen() {
           festival_name: festivalName.trim(),
           start_date: startDate,
           end_date: endDate,
-          leader_id: userProfile!.id,
+          leader_id: userProfile.id,
           invite_code: inviteCode,
           invite_expires_at: inviteExpiry,
         })
@@ -104,10 +109,11 @@ export default function CreateTripScreen() {
         .single();
 
       if (tripError) throw tripError;
+      if (!trip) throw new Error('Failed to create trip: no data returned from database');
 
       // Add creator as leader in group_members
       const { error: memberError } = await supabase.from('group_members').insert({
-        user_id: userProfile!.id,
+        user_id: userProfile.id,
         trip_id: trip.id,
         role: 'leader',
         module_permissions: null, // Leader has full access
@@ -118,11 +124,11 @@ export default function CreateTripScreen() {
       // Log activity
       await supabase.from('activity_logs').insert({
         trip_id: trip.id,
-        user_id: userProfile!.id,
+        user_id: userProfile.id,
         action_type: 'trip_created',
         module: null,
         target_id: trip.id,
-        description: `${userProfile!.display_name} created this trip`,
+        description: `${userProfile.display_name} created this trip`,
       });
 
       // Navigate to trip dashboard

@@ -8,12 +8,18 @@
 
 - Set campsite dimensions (e.g. 20ft × 30ft) — grid auto-scales to screen
 - Drag-and-drop item library: tents, canopies, cars, tables, coolers, fire pits, pathways
+- Sidebar items support both tap-to-add and drag-to-place onto the grid
+- Placed items can be dragged to new snapped positions after placement
+- Rotate library items before placement and rotate placed items after selection
+- Users can create custom items with a label, dimensions, color, and starting orientation
 - Each item has real-world dimensions shown on grid
 - Festival presets (e.g. "Electric Forest Camp A" pre-loads known lot dimensions)
 - Assign items to people (e.g. Riley's 2-person tent)
-- Grid snapping and collision detection
-- Export layout as PNG to share with the group
+- Grid snapping is implemented; collision detection is still planned
+- Layout can be explicitly saved to the shared group database via a Save Layout action
+- Export layout as PNG to share with the group is still planned
 - **Must work offline — no cell signal at most festivals**
+- Current persistence decision: keep a local SQLite copy for offline reopen, then sync shared layouts through Supabase when the user saves
 
 ### 2. Collaboration + Permissions (P1)
 
