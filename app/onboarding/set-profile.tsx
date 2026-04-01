@@ -6,7 +6,7 @@
  * Design: Deep indigo background, burnished gold accent
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react'; // ADDED: useRef, useEffect
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  InteractionManager, // ADDED: InteractionManager
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -41,6 +42,30 @@ export default function SetProfileScreen() {
   const [selectedColor, setSelectedColor] = useState(AVATAR_COLORS[0].hex);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [shouldNavigate, setShouldNavigate] = useState(false);
+  const [navigationTarget, setNavigationTarget] = useState<string | null>(null);
+
+  // Create a ref for the input
+  const inputRef = useRef<TextInput>(null);
+
+  // Focus the input only after navigation animations are done
+  useEffect(() => {
+    const task = InteractionManager.runAfterInteractions(() => {
+      inputRef.current?.focus();
+    });
+    
+    return () => task.cancel();
+  }, []);
+
+  // Navigate only after profile is confirmed updated in context
+  useEffect(() => {
+    if (shouldNavigate && navigationTarget) {
+      // Verify profile is updated before navigating
+      if (userProfile?.display_name === displayName.trim()) {
+        router.replace(navigationTarget);
+      }
+    }
+  }, [shouldNavigate, navigationTarget, userProfile?.display_name, displayName]);
 
   const handleSaveProfile = async () => {
     if (!displayName.trim()) {
@@ -100,16 +125,17 @@ export default function SetProfileScreen() {
           description: `${displayName.trim()} joined the trip`,
         });
 
-        // Navigate to trip dashboard
-        router.replace(`/trips/${tripData.id}`);
+        // Trigger navigation via useEffect
+        setNavigationTarget(`/trips/${tripData.id}`);
+        setShouldNavigate(true);
       } else {
-        // Navigate to main app
-        router.replace('/(tabs)');
+        // Trigger navigation via useEffect (only navigate after profile confirmed updated)
+        setNavigationTarget('/(tabs)');
+        setShouldNavigate(true);
       }
     } catch (err) {
       console.error('Profile save error:', err);
       setError('Failed to save profile. Please try again.');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -132,12 +158,13 @@ export default function SetProfileScreen() {
         <View style={styles.inputSection}>
           <Text style={styles.label}>Display Name</Text>
           <TextInput
+            ref={inputRef} // ADDED: Attach the ref to the TextInput
             style={styles.input}
             value={displayName}
             onChangeText={setDisplayName}
             placeholder="Enter your name"
-            placeholderTextColor={colors.text.dim}
-            autoFocus
+            placeholderTextColor={colors.text.faint}
+            // autoFocus  <-- REMOVED: This was causing the bridge disconnect
             autoCapitalize="words"
             autoCorrect={false}
             maxLength={30}

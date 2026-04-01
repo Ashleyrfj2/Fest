@@ -5,7 +5,7 @@
  * Flow: Email/password → redirect to profile setup → main app
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import {
   Platform,
   ActivityIndicator,
   ScrollView,
+  InteractionManager,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Mail, Lock, ArrowLeft } from 'lucide-react-native';
@@ -28,6 +29,14 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const inputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    const task = InteractionManager.runAfterInteractions(() => {
+      inputRef.current?.focus();
+    });
+    return () => task.cancel();
+  }, []);
 
   const handleRegister = async () => {
     // Validation
@@ -62,6 +71,13 @@ export default function RegisterScreen() {
       });
 
       if (signUpError) throw signUpError;
+
+      // If email confirmation is required, data.session will be null
+      // and the user must confirm before they can sign in
+      if (!data.session) {
+        setError('Check your email and click the confirmation link, then sign in.');
+        return;
+      }
 
       // Database trigger will create user profile automatically
       // Navigate to profile setup to set name + color
@@ -112,15 +128,15 @@ export default function RegisterScreen() {
               style={styles.inputIcon}
             />
             <TextInput
+              ref={inputRef}
               style={styles.input}
               value={email}
               onChangeText={setEmail}
               placeholder="your@email.com"
-              placeholderTextColor={colors.text.dim}
+              placeholderTextColor={colors.text.primary}
               autoCapitalize="none"
               keyboardType="email-address"
               autoComplete="email"
-              autoFocus
             />
           </View>
         </View>
@@ -131,7 +147,7 @@ export default function RegisterScreen() {
           <View style={styles.inputContainer}>
             <Lock
               size={20}
-              color={colors.text.dim}
+              color={colors.text.primary}
               strokeWidth={2}
               style={styles.inputIcon}
             />
@@ -140,7 +156,7 @@ export default function RegisterScreen() {
               value={password}
               onChangeText={setPassword}
               placeholder="Min 6 characters"
-              placeholderTextColor={colors.text.dim}
+              placeholderTextColor={colors.base}
               secureTextEntry
               autoComplete="password-new"
             />
@@ -153,7 +169,7 @@ export default function RegisterScreen() {
           <View style={styles.inputContainer}>
             <Lock
               size={20}
-              color={colors.text.dim}
+              color={colors.text.primary}
               strokeWidth={2}
               style={styles.inputIcon}
             />
@@ -162,7 +178,7 @@ export default function RegisterScreen() {
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               placeholder="Re-enter password"
-              placeholderTextColor={colors.text.dim}
+              placeholderTextColor={colors.text.primary}
               secureTextEntry
               autoComplete="password-new"
               returnKeyType="done"
