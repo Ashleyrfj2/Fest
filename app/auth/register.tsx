@@ -5,7 +5,7 @@
  * Flow: Email/password → redirect to profile setup → main app
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import {
   Platform,
   ActivityIndicator,
   ScrollView,
+  Keyboard,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Mail, Lock, ArrowLeft } from 'lucide-react-native';
@@ -28,22 +29,6 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const inputRef = useRef<TextInput>(null);
-
-  useEffect(() => {
-    // Use requestIdleCallback if available, fallback to setImmediate for React Native
-    if (typeof requestIdleCallback !== 'undefined') {
-      const id = requestIdleCallback(() => {
-        inputRef.current?.focus();
-      });
-      return () => cancelIdleCallback(id);
-    } else {
-      const id = setImmediate(() => {
-        inputRef.current?.focus();
-      });
-      return () => clearImmediate(id);
-    }
-  }, []);
 
   const handleRegister = async () => {
     // Validation
@@ -88,6 +73,7 @@ export default function RegisterScreen() {
 
       // Database trigger will create user profile automatically
       // Navigate to profile setup to set name + color
+      Keyboard.dismiss();
       router.replace('/onboarding/set-profile');
     } catch (err: any) {
       console.error('Registration error:', err);
@@ -135,7 +121,6 @@ export default function RegisterScreen() {
               style={styles.inputIcon}
             />
             <TextInput
-              ref={inputRef}
               style={styles.input}
               value={email}
               onChangeText={setEmail}
@@ -143,7 +128,7 @@ export default function RegisterScreen() {
               placeholderTextColor={colors.text.primary}
               autoCapitalize="none"
               keyboardType="email-address"
-              autoComplete="email"
+              autoComplete="off"
             />
           </View>
         </View>
@@ -165,7 +150,11 @@ export default function RegisterScreen() {
               placeholder="Min 6 characters"
               placeholderTextColor={colors.base}
               secureTextEntry
-              autoComplete="password-new"
+              autoComplete="off"
+              textContentType="oneTimeCode"
+              importantForAutofill="no"
+              autoCorrect={false}
+              spellCheck={false}
             />
           </View>
         </View>
@@ -187,7 +176,11 @@ export default function RegisterScreen() {
               placeholder="Re-enter password"
               placeholderTextColor={colors.text.primary}
               secureTextEntry
-              autoComplete="password-new"
+              autoComplete="off"
+              textContentType="oneTimeCode"
+              importantForAutofill="no"
+              autoCorrect={false}
+              spellCheck={false}
               returnKeyType="done"
               onSubmitEditing={handleRegister}
             />

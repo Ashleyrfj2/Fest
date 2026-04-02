@@ -6,7 +6,7 @@
  * Design: Deep indigo background, burnished gold accent
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -44,24 +45,12 @@ export default function SetProfileScreen() {
   const [shouldNavigate, setShouldNavigate] = useState(false);
   const [navigationTarget, setNavigationTarget] = useState<string | null>(null);
 
-  // Create a ref for the input
-  const inputRef = useRef<TextInput>(null);
-
-  // Focus the input after higher-priority tasks complete
+  // Prefill display name when profile data arrives, but never overwrite typed input.
   useEffect(() => {
-    // Use requestIdleCallback if available, fallback to setImmediate for React Native
-    if (typeof requestIdleCallback !== 'undefined') {
-      const id = requestIdleCallback(() => {
-        inputRef.current?.focus();
-      });
-      return () => cancelIdleCallback(id);
-    } else {
-      const id = setImmediate(() => {
-        inputRef.current?.focus();
-      });
-      return () => clearImmediate(id);
+    if (!displayName.trim() && userProfile?.display_name) {
+      setDisplayName(userProfile.display_name);
     }
-  }, []);
+  }, [userProfile?.display_name, displayName]);
 
   // Navigate only after profile is confirmed updated in context
   useEffect(() => {
@@ -151,7 +140,11 @@ export default function SetProfileScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>What should we call you?</Text>
@@ -164,16 +157,16 @@ export default function SetProfileScreen() {
         <View style={styles.inputSection}>
           <Text style={styles.label}>Display Name</Text>
           <TextInput
-            ref={inputRef} // ADDED: Attach the ref to the TextInput
             style={styles.input}
             value={displayName}
             onChangeText={setDisplayName}
             placeholder="Enter your name"
             placeholderTextColor={colors.text.faint}
-            // autoFocus  <-- REMOVED: This was causing the bridge disconnect
             autoCapitalize="words"
             autoCorrect={false}
             maxLength={30}
+            returnKeyType="done"
+            editable={!isLoading}
           />
         </View>
 
@@ -224,7 +217,7 @@ export default function SetProfileScreen() {
         <Text style={styles.infoText}>
           You can update this anytime in your profile
         </Text>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -234,8 +227,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.base,
   },
-  content: {
+  scrollView: {
     flex: 1,
+  },
+  content: {
+    flexGrow: 1,
     paddingHorizontal: spacing.xxl,
     paddingTop: 80,
     paddingBottom: 40,

@@ -95,12 +95,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setAuthUser(session?.user ?? null);
 
       if (session?.user) {
-        await loadUserProfile(session.user.id);
+        // Do not await Supabase calls inside this callback. It can block
+        // other client requests during auth transitions.
+        void loadUserProfile(session.user.id);
       } else {
         setUserProfile(null);
       }

@@ -105,8 +105,7 @@ export default function SignInScreen() {
               placeholderTextColor={colors.text.dim}
               autoCapitalize="none"
               keyboardType="email-address"
-              autoComplete="email"
-              autoFocus
+              autoComplete="off"
             />
           </View>
         </View>
@@ -128,7 +127,11 @@ export default function SignInScreen() {
               placeholder="Enter your password"
               placeholderTextColor={colors.text.dim}
               secureTextEntry
-              autoComplete="password"
+              autoComplete="off"
+              textContentType="oneTimeCode"
+              importantForAutofill="no"
+              autoCorrect={false}
+              spellCheck={false}
               returnKeyType="done"
               onSubmitEditing={handleSignIn}
             />
