@@ -162,7 +162,7 @@ export function AddEditSupplyModal({
             {/* Duplicate Warning */}
             {duplicates.length > 0 && !editItem && (
               <View style={styles.duplicateWarning}>
-                <AlertCircle size={20} color={colors.status.warning} strokeWidth={2} />
+                <AlertCircle size={20} color={colors.warning} strokeWidth={2} />
                 <View style={styles.duplicateContent}>
                   <Text style={styles.duplicateTitle}>Similar items found:</Text>
                   {duplicates.slice(0, 3).map((dup) => (
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border.subtle,
   },
   title: {
-    fontSize: typography.size.headline,
+    fontSize: typography.size.appTitle,
     fontWeight: typography.weight.headline,
     color: colors.text.primary,
   },
@@ -304,11 +304,11 @@ const styles = StyleSheet.create({
   duplicateWarning: {
     flexDirection: 'row',
     gap: spacing.sm,
-    backgroundColor: `${colors.status.warning}20`,
+    backgroundColor: `${colors.warning}20`,
     borderRadius: borderRadius.md,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.status.warning,
+    borderColor: colors.warning,
   },
   duplicateContent: {
     flex: 1,
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
   duplicateTitle: {
     fontSize: typography.size.body,
     fontWeight: typography.weight.label,
-    color: colors.status.warning,
+    color: colors.warning,
   },
   duplicateItem: {
     fontSize: typography.size.meta,
