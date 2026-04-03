@@ -31,7 +31,7 @@ interface AuthContextType {
   updateProfile: (data: {
     display_name?: string;
     avatar_color?: string;
-    phone?: string;
+    phone?: string | null;
   }) => Promise<void>;
 
   // Account upgrade (ghost → permanent)
@@ -240,7 +240,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function updateProfile(profileData: {
     display_name?: string;
     avatar_color?: string;
-    phone?: string;
+    phone?: string | null;
   }) {
     if (!authUser) throw new Error('No authenticated user');
 

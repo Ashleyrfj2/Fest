@@ -34,6 +34,21 @@
 - Leader can set a group outfit theme (Fantasy, Space, Y2K, etc.)
 - Lives within the Travel module
 
+## Account & Settings
+
+- Dedicated settings entry now exists from the Home screen gear.
+- Settings is structured as a nested route tree so each category can own its own page.
+- Privacy & Account should own email upgrade, sign out, and the future secure delete-account flow.
+- Help & Support can stay mostly static with FAQ, feedback, support contact, and app version/build info.
+- Notifications and Appearance can be scaffolded in the UI now, but need real persistence and app-wide state before they should be treated as finished features.
+
+## Current Session Learnings
+
+- Expo SDK 55 compatibility required updating several Expo packages plus `lucide-react-native`.
+- `expo-router` required `expo-constants` to satisfy peer dependencies.
+- The Metro warning about `unstable_workerThreads` was caused by a generated config field, not app code, and was removed locally in `metro.config.js`.
+- Route guards in the root layout must explicitly allow the settings subtree or the app will bounce back to tabs.
+
 ## UX Decisions
 
 ### Onboarding Friction

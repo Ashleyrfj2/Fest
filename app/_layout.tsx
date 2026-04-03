@@ -16,6 +16,7 @@ function RootLayoutNav() {
     const inTabs = segments[0] === '(tabs)';
     const inTrips = segments[0] === 'trips';
     const inJoin = segments[0] === 'join';
+    const inSettings = segments[0] === 'settings';
 
     // Allow /join/[code] route without session (for invite preview)
     if (inJoin) {
@@ -37,7 +38,7 @@ function RootLayoutNav() {
       }
     } else {
       // User has session + profile, ensure they're in the main app
-      if (!inTabs && !inTrips && !inAuth) {
+      if (!inTabs && !inTrips && !inAuth && !inSettings) {
         router.replace('/(tabs)');
       }
     }
@@ -60,6 +61,7 @@ function RootLayoutNav() {
         <Stack.Screen name="trips/create" />
         <Stack.Screen name="trips/[id]" />
         <Stack.Screen name="trips/[id]/camp-grid" />
+        <Stack.Screen name="settings/index" />
         <Stack.Screen name="join/[code]" />
         <Stack.Screen name="(tabs)" />
       </Stack>

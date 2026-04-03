@@ -192,7 +192,12 @@ export default function HomeScreen() {
                 <Text style={styles.testButtonText}>Test DB</Text>
               </Pressable>
             </Link>
-            <Pressable style={styles.settingsButton}>
+            <Pressable
+              style={styles.settingsButton}
+              onPress={() => router.push('/settings')}
+              accessibilityRole="button"
+              accessibilityLabel="Open settings"
+            >
               <Icon name="settings" size={24} color={colors.text.mid} />
             </Pressable>
           </View>

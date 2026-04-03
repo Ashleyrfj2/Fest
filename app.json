@@ -15,7 +15,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.festnest.app",
-      "associatedDomains": ["applinks:festnest.app", "applinks:www.festnest.app"]
+      "associatedDomains": [
+        "applinks:festnest.app",
+        "applinks:www.festnest.app"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -39,7 +42,10 @@
               "pathPrefix": "/join"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -51,7 +57,8 @@
     "plugins": [
       "expo-router",
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      "expo-sqlite"
     ]
   }
 }

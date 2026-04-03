@@ -22,24 +22,13 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { colors, borderRadius, spacing, typography } from '@/lib/tokens';
-
-// Preset avatar colors (8 options)
-const AVATAR_COLORS = [
-  { name: 'Gold', hex: '#C9A84C' },
-  { name: 'Electric Green', hex: '#28C896' },
-  { name: 'Violet', hex: '#6D30CC' },
-  { name: 'Hot Pink', hex: '#F280B0' },
-  { name: 'Sky Blue', hex: '#4A9EFF' },
-  { name: 'Coral', hex: '#FF6B6B' },
-  { name: 'Amber', hex: '#FFB84D' },
-  { name: 'Lavender', hex: '#B47AFF' },
-];
+import { AVATAR_COLORS } from '@/lib/constants/avatarColors';
 
 export default function SetProfileScreen() {
   const { tripCode } = useLocalSearchParams<{ tripCode?: string }>();
   const { updateProfile, userProfile } = useAuth();
   const [displayName, setDisplayName] = useState('');
-  const [selectedColor, setSelectedColor] = useState(AVATAR_COLORS[0].hex);
+  const [selectedColor, setSelectedColor] = useState<string>(AVATAR_COLORS[0].hex);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [shouldNavigate, setShouldNavigate] = useState(false);
