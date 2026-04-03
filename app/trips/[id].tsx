@@ -1,8 +1,13 @@
 /**
  * Trip Dashboard (Level 2)
- * Per-trip view with module grid, progress, crew activity
+ * Per-trip operational command center
  *
- * Modules: Camp Grid, Supply List, Food Planner, Travel, Lineup, Packing, Safety, Budget
+ * Hierarchy:
+ * 1. Where am I? → Trip identity + countdown
+ * 2. What should I do next? → Quick stats + primary module
+ * 3. Who is here with me? → Crew list
+ * 4. Where can I go? → Module grid
+ * 5. What's happening? → Activity feed
  */
 
 import React, { useEffect, useState } from 'react';
@@ -21,14 +26,6 @@ import {
   ArrowLeft,
   Settings,
   Share2,
-  MapPin,
-  ShoppingCart,
-  UtensilsCrossed,
-  Car,
-  Music,
-  Backpack,
-  Shield,
-  DollarSign,
   Calendar,
 } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -36,85 +33,28 @@ import { supabase } from '@/lib/supabase';
 import { generateInviteUrl } from '@/lib/invites/invite-utils';
 import { colors, borderRadius, spacing, typography } from '@/lib/tokens';
 import { Database } from '@/lib/database.types';
+import {
+  QuickStatsHeader,
+  ActivityFeed,
+  ModuleCard,
+  CrewSection,
+} from './[id]/_components';
+import { MODULES } from './[id]/modules';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
 type GroupMember = Database['public']['Tables']['group_members']['Row'] & {
   user: Database['public']['Tables']['users']['Row'];
 };
-
-// Module definitions
-const MODULES = [
-  {
-    id: 'camp_grid',
-    name: 'Camp Grid',
-    description: 'Design your campsite layout',
-    icon: MapPin,
-    color: '#28C896',
-    priority: 'P1',
-  },
-  {
-    id: 'supply_list',
-    name: 'Supply List',
-    description: "Who's bringing what",
-    icon: ShoppingCart,
-    color: '#C9A84C',
-    priority: 'P1',
-  },
-  {
-    id: 'food',
-    name: 'Food Planner',
-    description: 'Plan your meals',
-    icon: UtensilsCrossed,
-    color: '#6D30CC',
-    priority: 'P2',
-  },
-  {
-    id: 'travel',
-    name: 'Travel',
-    description: 'Rides & meetup plans',
-    icon: Car,
-    color: '#4A9EFF',
-    priority: 'P1',
-  },
-  {
-    id: 'lineup',
-    name: 'Lineup',
-    description: 'Vote on artists',
-    icon: Music,
-    color: '#F280B0',
-    priority: 'P2',
-  },
-  {
-    id: 'packing',
-    name: 'Packing',
-    description: 'Track what you packed',
-    icon: Backpack,
-    color: '#FFB84D',
-    priority: 'P2',
-  },
-  {
-    id: 'safety',
-    name: 'Safety',
-    description: 'Emergency info',
-    icon: Shield,
-    color: '#FF6B6B',
-    priority: 'P1',
-  },
-  {
-    id: 'budget',
-    name: 'Budget',
-    description: 'Track & split expenses',
-    icon: DollarSign,
-    color: '#B47AFF',
-    priority: 'P2',
-  },
-];
+type ActivityLog = Database['public']['Tables']['activity_logs']['Row'] & {
+  user?: Database['public']['Tables']['users']['Row'];
+};
 
 export default function TripDashboardScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { userProfile } = useAuth();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [members, setMembers] = useState<GroupMember[]>([]);
+  const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -141,6 +81,17 @@ export default function TripDashboardScreen() {
 
       if (membersError) throw membersError;
       setMembers(membersData as any);
+
+      // Load recent activity
+      const { data: activityData, error: activityError } = await supabase
+        .from('activity_logs')
+        .select('*, user:users(*)')
+        .eq('trip_id', id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (activityError) throw activityError;
+      setActivities(activityData as any);
     } catch (error) {
       console.error('Error loading trip:', error);
       Alert.alert('Error', 'Failed to load trip data');
@@ -164,24 +115,73 @@ export default function TripDashboardScreen() {
     }
   }
 
+  function handleModulePress(moduleId: string) {
+    if (moduleId === 'camp_grid') {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE).catch(() => {
+        // Keep navigation responsive if orientation lock is unavailable
+      });
+      router.push(`/trips/${id}/camp-grid`);
+      return;
+    }
+
+    if (moduleId === 'supply_list') {
+      router.push(`/trips/${id}/supply-list`);
+      return;
+    }
+
+    if (moduleId === 'safety') {
+      router.push(`/trips/${id}/safety-profile?tripId=${id}`);
+      return;
+    }
+
+    // Other modules not yet implemented
+    const module = MODULES.find((m) => m.id === moduleId);
+    Alert.alert(module?.name || 'Coming Soon', `${module?.name} coming soon`);
+  }
+
   function calculateDaysUntil(): number {
     if (!trip) return 0;
     const now = new Date();
     const start = new Date(trip.start_date);
     const diffTime = start.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    return Math.max(0, diffDays);
   }
 
-  if (isLoading || !trip) {
+  function calculateCompletionPercent(): number {
+    // Calculate based on implemented modules
+    // For now, return 0% since only Camp Grid is available
+    // TODO: Implement proper progress calculation based on module completion
+    return 0;
+  }
+
+  // Loading state
+  if (isLoading) {
     return (
       <View style={[styles.container, styles.centered]}>
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.loadingText}>Loading trip...</Text>
+      </View>
+    );
+  }
+
+  // Error state - trip not found
+  if (!trip) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <Text style={styles.errorText}>Trip not found</Text>
+        <TouchableOpacity
+          style={styles.backToHomeButton}
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.backToHomeText}>Back to Home</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
   const daysUntil = calculateDaysUntil();
+  const completionPercent = calculateCompletionPercent();
   const currentMember = members.find((m) => m.user_id === userProfile?.id);
   const isLeader = currentMember?.role === 'leader';
 
@@ -213,7 +213,6 @@ export default function TripDashboardScreen() {
               <TouchableOpacity
                 style={styles.iconButton}
                 onPress={() => {
-                  // TODO: Navigate to settings
                   Alert.alert('Settings', 'Trip settings coming soon');
                 }}
                 activeOpacity={0.7}
@@ -224,86 +223,73 @@ export default function TripDashboardScreen() {
           </View>
         </View>
 
-        {/* Trip Info */}
-        <View style={styles.tripInfo}>
+        {/* Trip Identity */}
+        <View style={styles.tripIdentity}>
           <Text style={styles.tripName}>{trip.name}</Text>
           <Text style={styles.festivalName}>{trip.festival_name}</Text>
-          <View style={styles.tripMeta}>
-            <View style={styles.metaItem}>
-              <Calendar size={16} color={colors.text.dim} strokeWidth={2} />
-              <Text style={styles.metaText}>
-                {new Date(trip.start_date).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                })}
-                {' – '}
-                {new Date(trip.end_date).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                })}
-              </Text>
-            </View>
-            {daysUntil > 0 && (
-              <Text style={styles.countdown}>{daysUntil} days until arrival</Text>
-            )}
+          <View style={styles.tripDates}>
+            <Calendar size={16} color={colors.text.dim} strokeWidth={2} />
+            <Text style={styles.datesText}>
+              {new Date(trip.start_date).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+              })}
+              {' – '}
+              {new Date(trip.end_date).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </Text>
           </View>
+        </View>
+
+        {/* Quick Stats */}
+        <QuickStatsHeader
+          daysUntil={daysUntil}
+          crewSize={members.length}
+          completionPercent={completionPercent}
+        />
+
+        {/* Primary Module: Camp Grid */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>GET STARTED</Text>
+          <ModuleCard
+            module={MODULES[0]} // Camp Grid is first and marked as primary
+            onPress={() => handleModulePress(MODULES[0].id)}
+          />
         </View>
 
         {/* Crew */}
-        <View style={styles.crewSection}>
-          <Text style={styles.sectionLabel}>CREW ({members.length})</Text>
-          <View style={styles.crewList}>
-            {members.map((member) => (
-              <View key={member.user_id} style={styles.crewMember}>
-                <View
-                  style={[
-                    styles.crewAvatar,
-                    { backgroundColor: member.user.avatar_color },
-                  ]}
-                />
-                <View style={styles.crewInfo}>
-                  <Text style={styles.crewName}>{member.user.display_name}</Text>
-                  <Text style={styles.crewRole}>{member.role}</Text>
-                </View>
-              </View>
+        <View style={styles.section}>
+          <CrewSection
+            members={members}
+            isLeader={isLeader}
+            onInvite={handleShareInvite}
+          />
+        </View>
+
+        {/* Other Modules */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>ALL MODULES</Text>
+          <View style={styles.modulesGrid}>
+            {MODULES.slice(1).map((module) => (
+              <ModuleCard
+                key={module.id}
+                module={module}
+                onPress={() => handleModulePress(module.id)}
+              />
             ))}
           </View>
         </View>
 
-        {/* Modules Grid */}
-        <View style={styles.modulesSection}>
-          <Text style={styles.sectionLabel}>MODULES</Text>
-          <View style={styles.modulesGrid}>
-            {MODULES.map((module) => (
-              <TouchableOpacity
-                key={module.id}
-                style={styles.moduleCard}
-                onPress={async () => {
-                  if (module.id === 'camp_grid') {
-                    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE).catch(() => {
-                      // Keep navigation responsive if orientation lock is unavailable.
-                    });
-                    router.push(`/trips/${id}/camp-grid`);
-                    return;
-                  }
-                  Alert.alert(module.name, `${module.name} coming soon`);
-                }}
-                activeOpacity={0.8}
-              >
-                <View
-                  style={[
-                    styles.moduleIconContainer,
-                    { backgroundColor: `${module.color}20` },
-                  ]}
-                >
-                  <module.icon size={24} color={module.color} strokeWidth={2} />
-                </View>
-                <Text style={styles.moduleName}>{module.name}</Text>
-                <Text style={styles.moduleDescription}>{module.description}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+        {/* Activity Feed */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>RECENT ACTIVITY</Text>
+          <ActivityFeed
+            activities={activities}
+            emptyMessage="No activity yet. Start by setting up your camp!"
+          />
         </View>
       </ScrollView>
     </View>
@@ -320,9 +306,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   loadingText: {
-    fontSize: typography.size.body,
+    fontSize: typography.size.cardTitle,
     fontWeight: typography.weight.body,
     color: colors.text.mid,
+  },
+  errorText: {
+    fontSize: typography.size.cardTitle,
+    fontWeight: typography.weight.cardTitle,
+    color: colors.text.primary,
+    marginBottom: spacing.lg,
+  },
+  backToHomeButton: {
+    backgroundColor: colors.surface.level1,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
+  },
+  backToHomeText: {
+    fontSize: typography.size.body,
+    fontWeight: typography.weight.label,
+    color: colors.accent.gold,
   },
   scrollView: {
     flex: 1,
@@ -358,8 +363,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tripInfo: {
-    marginBottom: spacing.xxxl,
+  tripIdentity: {
+    marginBottom: spacing.xl,
   },
   tripName: {
     fontSize: typography.size.appTitle,
@@ -372,27 +377,19 @@ const styles = StyleSheet.create({
     fontSize: typography.size.cardTitle,
     fontWeight: typography.weight.cardTitle,
     color: colors.accent.gold,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
-  tripMeta: {
-    gap: spacing.sm,
-  },
-  metaItem: {
+  tripDates: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
   },
-  metaText: {
+  datesText: {
     fontSize: typography.size.body,
     fontWeight: typography.weight.body,
     color: colors.text.mid,
   },
-  countdown: {
-    fontSize: typography.size.body,
-    fontWeight: typography.weight.label,
-    color: colors.accent.gold,
-  },
-  crewSection: {
+  section: {
     marginBottom: spacing.xxxl,
   },
   sectionLabel: {
@@ -403,65 +400,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     textTransform: 'uppercase',
   },
-  crewList: {
-    gap: spacing.md,
-  },
-  crewMember: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  crewAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: borderRadius.sm,
-    borderWidth: 2,
-    borderColor: colors.surface.level1,
-  },
-  crewInfo: {
-    flex: 1,
-  },
-  crewName: {
-    fontSize: typography.size.body,
-    fontWeight: typography.weight.label,
-    color: colors.text.primary,
-  },
-  crewRole: {
-    fontSize: typography.size.meta,
-    fontWeight: typography.weight.body,
-    color: colors.text.dim,
-    textTransform: 'capitalize',
-  },
-  modulesSection: {
-    marginBottom: spacing.xxxl,
-  },
   modulesGrid: {
     gap: spacing.md,
-  },
-  moduleCard: {
-    backgroundColor: colors.surface.level1,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border.subtle,
-  },
-  moduleIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: borderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.md,
-  },
-  moduleName: {
-    fontSize: typography.size.cardTitle,
-    fontWeight: typography.weight.cardTitle,
-    color: colors.text.primary,
-    marginBottom: spacing.xs,
-  },
-  moduleDescription: {
-    fontSize: typography.size.body,
-    fontWeight: typography.weight.body,
-    color: colors.text.dim,
   },
 });
