@@ -75,10 +75,10 @@ export function useTravel(tripId: string) {
         .from('outfit_posts')
         .select(`
           *,
-          user:users(id, display_name, avatar_color),
+          user:users!outfit_posts_user_id_fkey(id, display_name, avatar_color),
           votes:outfit_votes(
             *,
-            user:users(id, display_name, avatar_color)
+            user:users!outfit_votes_user_id_fkey(id, display_name, avatar_color)
           )
         `)
         .eq('trip_id', tripId)
@@ -367,27 +367,35 @@ export function useTravel(tripId: string) {
   // ============================================================================
 
   const addOrUpdateFlight = useCallback(
-    async (flightData: Omit<FlightDetailInsert, 'trip_id' | 'user_id'>) => {
+    async (
+      flightData: Omit<FlightDetailInsert, 'trip_id' | 'user_id'>,
+      flightId?: string
+    ) => {
       if (!userProfile?.id) {
         return { data: null, error: 'User not authenticated' };
       }
 
       try {
-        // Check if flight already exists for this user
-        const { data: existing } = await supabase
-          .from('flight_details')
-          .select('id')
-          .eq('trip_id', tripId)
-          .eq('user_id', userProfile.id)
-          .single();
-
         let data;
-        if (existing) {
+        let existingFlightId = flightId;
+
+        if (!existingFlightId) {
+          const { data: existing } = await supabase
+            .from('flight_details')
+            .select('id')
+            .eq('trip_id', tripId)
+            .eq('user_id', userProfile.id)
+            .single();
+
+          existingFlightId = existing?.id || undefined;
+        }
+
+        if (existingFlightId) {
           // Update existing
           const { data: updated, error: updateError } = await supabase
             .from('flight_details')
             .update(flightData)
-            .eq('id', existing.id)
+            .eq('id', existingFlightId)
             .select(`
               *,
               user:users(id, display_name, avatar_color),
@@ -421,10 +429,10 @@ export function useTravel(tripId: string) {
         await supabase.from('activity_logs').insert({
           trip_id: tripId,
           user_id: userProfile.id,
-          action_type: existing ? 'flight_updated' : 'flight_created',
+          action_type: existingFlightId ? 'flight_updated' : 'flight_created',
           module: 'travel',
           target_id: data.id,
-          description: `${existing ? 'Updated' : 'Added'} flight details`,
+          description: `${existingFlightId ? 'Updated' : 'Added'} flight details`,
         });
 
         return { data: data as FlightDetail, error: null };
@@ -490,7 +498,7 @@ export function useTravel(tripId: string) {
           })
           .select(`
             *,
-            user:users(id, display_name, avatar_color)
+            user:users!outfit_posts_user_id_fkey(id, display_name, avatar_color)
           `)
           .single();
 

@@ -54,6 +54,7 @@ export default function TravelScreen() {
     progress,
     isLoading,
     error,
+    refetch,
     addVehicle,
     updateVehicle,
     deleteVehicle,
@@ -110,12 +111,18 @@ export default function TravelScreen() {
       const result = await updateVehicle(editingVehicle.id, data);
       if (result.error) {
         Alert.alert('Error', result.error);
+        return false;
       }
+      await refetch();
+      return true;
     } else {
       const result = await addVehicle(data);
       if (result.error) {
         Alert.alert('Error', result.error);
+        return false;
       }
+      await refetch();
+      return true;
     }
   }
 
@@ -166,10 +173,13 @@ export default function TravelScreen() {
   }
 
   async function handleSaveFlight(data: FlightFormData) {
-    const result = await addOrUpdateFlight(data);
+    const result = await addOrUpdateFlight(data, editingFlight?.id);
     if (result.error) {
       Alert.alert('Error', result.error);
+      return false;
     }
+    await refetch();
+    return true;
   }
 
   async function handleDeleteFlight(flightId: string) {
@@ -400,6 +410,7 @@ export default function TravelScreen() {
         onClose={handleCloseFlightModal}
         onSave={handleSaveFlight}
         editFlight={editingFlight}
+        vehicles={vehicles}
       />
     </View>
   );

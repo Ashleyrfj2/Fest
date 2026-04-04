@@ -21,7 +21,7 @@ import { Vehicle } from '@/lib/travelTypes';
 interface VehicleFormModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (data: VehicleFormData) => Promise<void>;
+  onSave: (data: VehicleFormData) => Promise<boolean>;
   editVehicle?: Vehicle | null;
 }
 
@@ -39,7 +39,7 @@ export function VehicleFormModal({
   editVehicle,
 }: VehicleFormModalProps) {
   const [makeModel, setMakeModel] = useState('');
-  const [capacity, setCapacity] = useState('4');
+  const [availableSpots, setAvailableSpots] = useState('3');
   const [departureCity, setDepartureCity] = useState('');
   const [departureTime, setDepartureTime] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -48,7 +48,7 @@ export function VehicleFormModal({
   useEffect(() => {
     if (editVehicle) {
       setMakeModel(editVehicle.make_model || '');
-      setCapacity(String(editVehicle.capacity));
+      setAvailableSpots(String(Math.max(0, editVehicle.capacity - 1)));
       setDepartureCity(editVehicle.departure_city || '');
       setDepartureTime(
         editVehicle.departure_time
@@ -58,29 +58,33 @@ export function VehicleFormModal({
     } else {
       // Reset form
       setMakeModel('');
-      setCapacity('4');
+      setAvailableSpots('3');
       setDepartureCity('');
       setDepartureTime('');
     }
   }, [editVehicle, visible]);
 
   async function handleSave() {
-    const capacityNum = parseInt(capacity, 10);
+    const spotsNum = parseInt(availableSpots, 10);
 
-    if (isNaN(capacityNum) || capacityNum < 1 || capacityNum > 20) {
-      alert('Please enter a valid capacity (1-20)');
+    if (isNaN(spotsNum) || spotsNum < 0 || spotsNum > 19) {
+      alert('Please enter available spots between 0 and 19');
       return;
     }
 
+    const capacityNum = spotsNum + 1;
+
     setIsSaving(true);
     try {
-      await onSave({
+      const wasSaved = await onSave({
         make_model: makeModel.trim() || null,
         capacity: capacityNum,
         departure_city: departureCity.trim() || null,
         departure_time: departureTime || null,
       });
-      onClose();
+      if (wasSaved) {
+        onClose();
+      }
     } catch (error) {
       console.error('Error saving vehicle:', error);
     } finally {
@@ -132,17 +136,17 @@ export function VehicleFormModal({
 
             {/* Capacity */}
             <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Passenger Capacity</Text>
+              <Text style={styles.label}>Available Passenger Spots</Text>
               <TextInput
                 style={styles.input}
-                value={capacity}
-                onChangeText={setCapacity}
-                placeholder="4"
+                value={availableSpots}
+                onChangeText={setAvailableSpots}
+                placeholder="3"
                 placeholderTextColor={colors.text.dim}
                 keyboardType="number-pad"
               />
               <Text style={styles.hint}>
-                Total seats (including driver)
+                Driver seat is added automatically
               </Text>
             </View>
 

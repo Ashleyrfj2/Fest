@@ -111,7 +111,7 @@ export function MeetupMap({ meetupPin, onUpdatePin, isEditor }: MeetupMapProps) 
         <MapView
           ref={mapRef}
           style={styles.map}
-          provider={PROVIDER_GOOGLE}
+          provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
           initialRegion={region}
           onPress={handleMapPress}
           showsUserLocation={true}

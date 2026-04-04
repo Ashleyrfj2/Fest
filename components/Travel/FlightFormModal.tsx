@@ -16,13 +16,14 @@ import {
 } from 'react-native';
 import { X } from 'lucide-react-native';
 import { colors, typography, spacing, borderRadius } from '@/lib/tokens';
-import { FlightDetail } from '@/lib/travelTypes';
+import { FlightDetail, Vehicle } from '@/lib/travelTypes';
 
 interface FlightFormModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (data: FlightFormData) => Promise<void>;
+  onSave: (data: FlightFormData) => Promise<boolean>;
   editFlight?: FlightDetail | null;
+  vehicles?: Vehicle[];
 }
 
 export interface FlightFormData {
@@ -31,6 +32,7 @@ export interface FlightFormData {
   arrival_airport: string | null;
   arrival_time: string | null;
   needs_pickup: boolean;
+  pickup_vehicle_id: string | null;
 }
 
 export function FlightFormModal({
@@ -38,12 +40,14 @@ export function FlightFormModal({
   onClose,
   onSave,
   editFlight,
+  vehicles = [],
 }: FlightFormModalProps) {
   const [airline, setAirline] = useState('');
   const [flightNumber, setFlightNumber] = useState('');
   const [arrivalAirport, setArrivalAirport] = useState('');
   const [arrivalTime, setArrivalTime] = useState('');
   const [needsPickup, setNeedsPickup] = useState(false);
+  const [pickupVehicleId, setPickupVehicleId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   // Populate form when editing
@@ -58,6 +62,7 @@ export function FlightFormModal({
           : ''
       );
       setNeedsPickup(editFlight.needs_pickup || false);
+      setPickupVehicleId(editFlight.pickup_vehicle_id || null);
     } else {
       // Reset form
       setAirline('');
@@ -65,20 +70,24 @@ export function FlightFormModal({
       setArrivalAirport('');
       setArrivalTime('');
       setNeedsPickup(false);
+      setPickupVehicleId(null);
     }
   }, [editFlight, visible]);
 
   async function handleSave() {
     setIsSaving(true);
     try {
-      await onSave({
+      const wasSaved = await onSave({
         airline: airline.trim() || null,
         flight_number: flightNumber.trim() || null,
         arrival_airport: arrivalAirport.trim() || null,
         arrival_time: arrivalTime || null,
         needs_pickup: needsPickup,
+        pickup_vehicle_id: needsPickup ? pickupVehicleId : null,
       });
-      onClose();
+      if (wasSaved) {
+        onClose();
+      }
     } catch (error) {
       console.error('Error saving flight:', error);
     } finally {
@@ -180,7 +189,12 @@ export function FlightFormModal({
                 </View>
                 <Switch
                   value={needsPickup}
-                  onValueChange={setNeedsPickup}
+                  onValueChange={(value) => {
+                    setNeedsPickup(value);
+                    if (!value) {
+                      setPickupVehicleId(null);
+                    }
+                  }}
                   trackColor={{
                     false: colors.surface.level2,
                     true: colors.accent.gold,
@@ -189,6 +203,49 @@ export function FlightFormModal({
                 />
               </View>
             </View>
+
+            {needsPickup && (
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>Assign Pickup Vehicle (Optional)</Text>
+                <View style={styles.vehicleChoices}>
+                  <TouchableOpacity
+                    style={[
+                      styles.vehicleChoice,
+                      pickupVehicleId === null && styles.vehicleChoiceSelected,
+                    ]}
+                    onPress={() => setPickupVehicleId(null)}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.vehicleChoiceText,
+                        pickupVehicleId === null && styles.vehicleChoiceTextSelected,
+                      ]}
+                    >
+                      Unassigned
+                    </Text>
+                  </TouchableOpacity>
+
+                  {vehicles.map((vehicle) => {
+                    const availableSeats = Math.max(0, vehicle.capacity - (vehicle.passengers?.length || 0) - 1);
+                    const selected = pickupVehicleId === vehicle.id;
+
+                    return (
+                      <TouchableOpacity
+                        key={vehicle.id}
+                        style={[styles.vehicleChoice, selected && styles.vehicleChoiceSelected]}
+                        onPress={() => setPickupVehicleId(vehicle.id)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.vehicleChoiceText, selected && styles.vehicleChoiceTextSelected]}>
+                          {vehicle.make_model || 'Ride Available'} - {availableSeats} seat{availableSeats === 1 ? '' : 's'}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
           </ScrollView>
 
           {/* Actions */}
@@ -297,6 +354,30 @@ const styles = StyleSheet.create({
   switchLabel: {
     flex: 1,
     gap: 4,
+  },
+  vehicleChoices: {
+    gap: spacing.sm,
+  },
+  vehicleChoice: {
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.surface.level1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  vehicleChoiceSelected: {
+    borderColor: colors.accent.gold,
+    backgroundColor: colors.accent.goldDim,
+  },
+  vehicleChoiceText: {
+    fontSize: typography.size.body,
+    fontWeight: typography.weight.body,
+    color: colors.text.primary,
+  },
+  vehicleChoiceTextSelected: {
+    color: colors.base,
+    fontWeight: typography.weight.cardTitle,
   },
   actions: {
     flexDirection: 'row',
