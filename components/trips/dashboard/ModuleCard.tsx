@@ -15,9 +15,9 @@ export interface ModuleDefinition {
   icon: LucideIcon;
   color: string;
   priority: 'P1' | 'P2';
-  progress?: number; // 0-100
-  isPrimary?: boolean; // Promoted as the hero module
-  isImplemented?: boolean; // Whether the module is actually built
+  progress?: number;
+  isPrimary?: boolean;
+  isImplemented?: boolean;
 }
 
 interface ModuleCardProps {
@@ -31,22 +31,13 @@ export function ModuleCard({ module, onPress }: ModuleCardProps) {
   const progressPercent = hasProgress ? module.progress : 0;
 
   return (
-    <TouchableOpacity
-      style={[
-        styles.card,
-        module.isPrimary && styles.primaryCard,
-      ]}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      {/* Primary badge */}
+    <TouchableOpacity style={[styles.card, module.isPrimary && styles.primaryCard]} onPress={onPress} activeOpacity={0.7}>
       {module.isPrimary && (
         <View style={styles.primaryBadge}>
           <Text style={styles.primaryBadgeText}>START HERE</Text>
         </View>
       )}
 
-      {/* Icon and content */}
       <View style={styles.content}>
         <View
           style={[
@@ -55,22 +46,15 @@ export function ModuleCard({ module, onPress }: ModuleCardProps) {
             module.isPrimary && styles.primaryIconContainer,
           ]}
         >
-          <Icon
-            size={module.isPrimary ? 28 : 24}
-            color={module.color}
-            strokeWidth={2}
-          />
+          <Icon size={module.isPrimary ? 28 : 24} color={module.color} strokeWidth={2} />
         </View>
 
         <View style={styles.textContainer}>
-          <Text style={[styles.moduleName, module.isPrimary && styles.primaryModuleName]}>
-            {module.name}
-          </Text>
+          <Text style={[styles.moduleName, module.isPrimary && styles.primaryModuleName]}>{module.name}</Text>
           <Text style={styles.moduleDescription} numberOfLines={1}>
             {module.description}
           </Text>
 
-          {/* Progress bar */}
           {hasProgress && (
             <View style={styles.progressContainer}>
               <View style={styles.progressTrack}>
@@ -90,7 +74,6 @@ export function ModuleCard({ module, onPress }: ModuleCardProps) {
         </View>
       </View>
 
-      {/* Coming soon indicator */}
       {!module.isImplemented && (
         <View style={styles.comingSoonBadge}>
           <Text style={styles.comingSoonText}>Coming Soon</Text>

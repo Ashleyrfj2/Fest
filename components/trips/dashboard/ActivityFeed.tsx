@@ -43,11 +43,7 @@ export function ActivityFeed({ activities, emptyMessage = 'No activity yet' }: A
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {activities.map((activity) => (
           <View key={activity.id} style={styles.activityCard}>
             <View style={styles.activityHeader}>

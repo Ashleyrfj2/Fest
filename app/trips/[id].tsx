@@ -33,13 +33,8 @@ import { supabase } from '@/lib/supabase';
 import { generateInviteUrl } from '@/lib/invites/invite-utils';
 import { colors, borderRadius, spacing, typography } from '@/lib/tokens';
 import { Database } from '@/lib/database.types';
-import {
-  QuickStatsHeader,
-  ActivityFeed,
-  ModuleCard,
-  CrewSection,
-} from './[id]/_components';
-import { MODULES } from './[id]/modules';
+import { QuickStatsHeader, ActivityFeed, ModuleCard, CrewSection } from '@/components/trips/dashboard';
+import { MODULES } from '@/components/trips/dashboard/modules';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
 type GroupMember = Database['public']['Tables']['group_members']['Row'] & {

@@ -15,7 +15,7 @@ import {
 import { router } from 'expo-router';
 import { Mail, Lock, Phone, ShieldAlert, Signpost, Trash2, UserCircle2, X } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { SettingsCard, SettingsPageFrame, SettingsRow, SettingsSectionLabel } from './_components';
+import { SettingsCard, SettingsPageFrame, SettingsRow, SettingsSectionLabel } from '@/components/settings/SettingsComponents';
 import { colors, borderRadius, spacing, typography } from '@/lib/tokens';
 
 export default function PrivacySettingsScreen() {

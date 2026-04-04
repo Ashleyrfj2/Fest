@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     fontSize: typography.size.appTitle,
     fontWeight: typography.weight.headline,
     color: colors.text.primary,
-    marginBottom: spacing.xs,
+    marginBottom: typography.size.body,
   },
   subtitle: {
     fontSize: typography.size.body,

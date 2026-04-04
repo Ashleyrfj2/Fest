@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Contrast, Layers3, MoonStar, SunMedium, Type } from 'lucide-react-native';
-import { SettingsCard, SettingsPageFrame, SettingsSectionLabel } from './_components';
+import { SettingsCard, SettingsPageFrame, SettingsSectionLabel } from '@/components/settings/SettingsComponents';
 import { borderRadius, colors, spacing, typography } from '@/lib/tokens';
 
 type Choice = 'system' | 'dark' | 'light';

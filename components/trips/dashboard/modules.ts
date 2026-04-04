@@ -14,7 +14,7 @@ import {
   DollarSign,
   Users,
 } from 'lucide-react-native';
-import { ModuleDefinition } from './_components';
+import { ModuleDefinition } from './ModuleCard';
 
 export const MODULES: ModuleDefinition[] = [
   {
@@ -24,7 +24,7 @@ export const MODULES: ModuleDefinition[] = [
     icon: MapPin,
     color: '#28C896',
     priority: 'P1',
-    isPrimary: true, // Promoted as the hero module
+    isPrimary: true,
     isImplemented: true,
     progress: 0,
   },

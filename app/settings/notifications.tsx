@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert, Text } from 'react-native';
 import { Bell, CalendarClock, MessageCircle, Settings2, ShoppingBag, Truck } from 'lucide-react-native';
-import { SettingsCard, SettingsPageFrame, SettingsSectionLabel, SettingsToggleRow, SettingsRow } from './_components';
+import { SettingsCard, SettingsPageFrame, SettingsSectionLabel, SettingsToggleRow, SettingsRow } from '@/components/settings/SettingsComponents';
 
 export default function NotificationsSettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);

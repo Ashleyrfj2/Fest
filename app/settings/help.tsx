@@ -1,6 +1,6 @@
 import { Alert, Linking, StyleSheet, Text } from 'react-native';
 import { CircleHelp, Mail, MessageSquarePlus, PhoneCall, ShieldCheck } from 'lucide-react-native';
-import { SettingsCard, SettingsPageFrame, SettingsRow, SettingsSectionLabel } from './_components';
+import { SettingsCard, SettingsPageFrame, SettingsRow, SettingsSectionLabel } from '@/components/settings/SettingsComponents';
 import { colors, spacing } from '@/lib/tokens';
 
 const SUPPORT_EMAIL = 'support@festnest.app';

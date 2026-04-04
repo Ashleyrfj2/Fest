@@ -17,7 +17,6 @@ interface QuickStatsHeaderProps {
 export function QuickStatsHeader({ daysUntil, crewSize, completionPercent }: QuickStatsHeaderProps) {
   return (
     <View style={styles.container}>
-      {/* Days Until */}
       <View style={styles.stat}>
         <View style={styles.iconContainer}>
           <Calendar size={20} color={colors.accent.gold} strokeWidth={2} />
@@ -26,7 +25,6 @@ export function QuickStatsHeader({ daysUntil, crewSize, completionPercent }: Qui
         <Text style={styles.statLabel}>days until</Text>
       </View>
 
-      {/* Crew Size */}
       <View style={styles.stat}>
         <View style={styles.iconContainer}>
           <Users size={20} color={colors.accent.gold} strokeWidth={2} />
@@ -35,7 +33,6 @@ export function QuickStatsHeader({ daysUntil, crewSize, completionPercent }: Qui
         <Text style={styles.statLabel}>crew members</Text>
       </View>
 
-      {/* Completion */}
       <View style={styles.stat}>
         <View style={styles.iconContainer}>
           <CheckCircle size={20} color={colors.accent.gold} strokeWidth={2} />

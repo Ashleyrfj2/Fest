@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { Bell, CircleHelp, LogOut, Shield, User } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { colors } from '@/lib/tokens';
-import { SettingsCard, SettingsPageFrame, SettingsRow, SettingsSectionLabel } from './_components';
+import { SettingsCard, SettingsPageFrame, SettingsRow, SettingsSectionLabel } from '@/components/settings/SettingsComponents';
 
 export default function SettingsScreen() {
   const { userProfile, isGhostAccount, signOut } = useAuth();
