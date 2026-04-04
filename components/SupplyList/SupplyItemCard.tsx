@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { CheckCircle, Circle, MoreVertical, Trash2, Edit } from 'lucide-react-native';
 import { colors, typography, spacing, borderRadius } from '@/lib/tokens';
-import { SupplyItem, getCategoryMetadata, STATUS_METADATA } from '@/lib/supplyTypes';
+import { SupplyItem, getCategoryMetadata } from '@/lib/supplyTypes';
 
 interface SupplyItemCardProps {
   item: SupplyItem;

@@ -21,7 +21,6 @@ import {
   SupplyItem,
   SupplyCategory,
   SUPPLY_CATEGORIES,
-  getCategoryMetadata,
 } from '@/lib/supplyTypes';
 
 interface AddEditSupplyModalProps {
