@@ -124,6 +124,11 @@ export default function TripDashboardScreen() {
       return;
     }
 
+    if (moduleId === 'travel') {
+      router.push(`/trips/${id}/travel`);
+      return;
+    }
+
     if (moduleId === 'safety') {
       router.push(`/trips/${id}/safety-profile?tripId=${id}`);
       return;

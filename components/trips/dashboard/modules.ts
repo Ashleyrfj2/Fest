@@ -55,7 +55,7 @@ export const MODULES: ModuleDefinition[] = [
     icon: Car,
     color: '#4A9EFF',
     priority: 'P1',
-    isImplemented: false,
+    isImplemented: true,
     progress: 0,
   },
   {

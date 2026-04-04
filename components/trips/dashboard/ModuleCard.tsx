@@ -62,7 +62,7 @@ export function ModuleCard({ module, onPress }: ModuleCardProps) {
                   style={[
                     styles.progressFill,
                     {
-                      width: `${progressPercent}%`,
+                      width: `${progressPercent || 0}%`,
                       backgroundColor: module.color,
                     },
                   ]}
