@@ -23,8 +23,8 @@ All secrets have been properly secured. The `.env` file and other sensitive conf
 
 ### ✅ Safe — Documentation
 **Locations:** 
-- `docs/supabase-setup.md`
-- `docs/notion-mcp-setup.md`
+- `docs/setup/supabase-setup.md`
+- `docs/setup/notion-mcp-setup.md`
 - Status: Contains placeholder examples like `ntn_YOUR_TOKEN_HERE` (safe)
 
 ## .gitignore Verification

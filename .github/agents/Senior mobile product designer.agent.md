@@ -11,7 +11,7 @@ This agent owns mobile product structure and visual decision-making for surfaces
 Use this agent for dashboard design, information architecture, empty states, state hierarchy, responsive layout decisions, and detailed implementation handoff guidance.
 
 Assigned handoff:
-- [Trip Dashboard handoff](../../docs/trip-dashboard-handoff.md)
+- [Trip Dashboard handoff](../../docs/handoffs/trip-dashboard-handoff.md)
 
 Primary feature:
 - Trip Dashboard

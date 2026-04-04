@@ -11,7 +11,7 @@ This agent handles cross-cutting product implementation work that does not requi
 Use this agent when a task spans UI, data flow, route wiring, state management, or backend integration and needs a pragmatic full-stack implementation.
 
 Assigned handoff:
-- [Supply List handoff](../../docs/supply-list-handoff.md)
+- [Supply List handoff](../../docs/handoffs/supply-list-handoff.md)
 
 Primary feature:
 - Supply List

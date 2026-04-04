@@ -115,4 +115,4 @@ After migrations are complete:
 3. ✅ Test with sample data
 4. ✅ Connect app to database
 
-See [docs/supabase-setup.md](../docs/supabase-setup.md) for full documentation.
+See [docs/setup/supabase-setup.md](../docs/setup/supabase-setup.md) for full documentation.

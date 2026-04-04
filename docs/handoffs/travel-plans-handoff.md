@@ -10,11 +10,11 @@ Build the Travel module as the trip’s coordination layer for cars, passengers,
 Travel is a P1 module in the design spec and fits the current collaboration model well. It is a practical next step after the dashboard because it connects members to real-world coordination without requiring the heavier media or lineup work.
 
 ## Source Context
-- [Design spec](design-spec.md)
-- [Data model](data-model.md)
-- [Trip system](trip-system.md)
-- [Feature ideas](features.md)
-- [Session notes](session-notes-2026-03-19.md)
+- [Design spec](../product/design-spec.md)
+- [Data model](../product/data-model.md)
+- [Trip system](../product/trip-system.md)
+- [Feature ideas](../product/features.md)
+- [Session notes](../sessions/session-notes-2026-03-19.md)
 
 ## Scope
 - Build vehicle creation and management.

@@ -1,5 +1,5 @@
 -- FestNest Database Schema
--- 17 entities following docs/data-model.md
+-- 17 entities following docs/product/data-model.md
 -- Created: March 19, 2026
 
 -- Enable UUID extension

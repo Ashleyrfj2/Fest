@@ -11,7 +11,7 @@ This agent owns complex React Native implementation work where interaction quali
 Use this agent for gesture-driven UI, offline persistence, local state synchronization, advanced screens, and production-ready mobile interaction patterns.
 
 Assigned handoff:
-- [Camp Grid handoff](../../docs/camp-grid-handoff.md)
+- [Camp Grid handoff](../../docs/handoffs/camp-grid-handoff.md)
 
 Primary feature:
 - Camp Grid

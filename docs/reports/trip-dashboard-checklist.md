@@ -1,7 +1,7 @@
 # Trip Dashboard Implementation Checklist
 
 **Feature:** Trip Dashboard (Level 2 Navigation)  
-**Handoff Document:** `docs/trip-dashboard-handoff.md`  
+**Handoff Document:** `docs/handoffs/trip-dashboard-handoff.md`  
 **Implementation Date:** April 3, 2026  
 **Status:** ✅ **COMPLETE**
 
@@ -11,7 +11,7 @@ This checklist captures the April 3 dashboard baseline. Module implementation st
 - Implemented now: Camp Grid, Supply List, Travel, Safety, Collaboration, Packing
 - Remaining: Food Planner, Lineup, Budget
 
-Use [session-notes-2026-04-04.md](session-notes-2026-04-04.md) as the latest state source.
+Use [session-notes-2026-04-04.md](../sessions/session-notes-2026-04-04.md) as the latest state source.
 
 ---
 
@@ -494,9 +494,9 @@ All handoff requirements have been implemented according to specification. The T
 ### ✅ Design Review
 
 The implementation follows all design decisions from:
-- `docs/ui-decisions.md` (color palette, typography, spacing)
-- `docs/design-spec.md` (module priority, permissions)
-- `docs/trip-system.md` (data model, roles)
+- `docs/product/ui-decisions.md` (color palette, typography, spacing)
+- `docs/product/design-spec.md` (module priority, permissions)
+- `docs/product/trip-system.md` (data model, roles)
 
 ### ✅ Code Quality
 

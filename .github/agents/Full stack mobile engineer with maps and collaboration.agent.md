@@ -11,7 +11,7 @@ This agent owns mobile features that combine shared state, coordination, mapping
 Use this agent for travel coordination, vehicle and passenger workflows, shared meetup points, location-based group planning, and other collaboration-first mobile screens that may involve map primitives or routing logic.
 
 Assigned handoff:
-- [Travel Plans handoff](../../docs/travel-plans-handoff.md)
+- [Travel Plans handoff](../../docs/handoffs/travel-plans-handoff.md)
 
 Primary feature:
 - Travel Plans

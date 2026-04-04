@@ -11,7 +11,7 @@ This agent owns the React Native implementation details that make the Travel mod
 Use this agent when a Travel screen has missing customization inputs, modal save issues, stale local state, or UI that does not refresh after a mutation.
 
 Assigned handoff:
-- [Travel Plans handoff](../../docs/travel-plans-handoff.md)
+- [Travel Plans handoff](../../docs/handoffs/travel-plans-handoff.md)
 
 Primary feature:
 - Travel Plans

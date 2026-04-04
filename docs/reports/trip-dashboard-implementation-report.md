@@ -12,7 +12,7 @@ This report is a historical implementation snapshot. Current module state has ch
 
 Also, dashboard module components now live under `components/trips/dashboard/`.
 
-For latest details, see [session-notes-2026-04-04.md](session-notes-2026-04-04.md).
+For latest details, see [session-notes-2026-04-04.md](../sessions/session-notes-2026-04-04.md).
 
 ---
 
@@ -323,6 +323,6 @@ The Trip Dashboard is **production-ready** for the current feature set. It succe
 ---
 
 **Implementation verified:** April 3, 2026  
-**Handoff document:** `docs/trip-dashboard-handoff.md`  
-**Data model reference:** `docs/data-model.md`  
-**Design system:** `docs/ui-decisions.md`
+**Handoff document:** `docs/handoffs/trip-dashboard-handoff.md`  
+**Data model reference:** `docs/product/data-model.md`  
+**Design system:** `docs/product/ui-decisions.md`

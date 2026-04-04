@@ -6,7 +6,7 @@ This flow document is a structural reference from the initial dashboard implemen
 - Implemented now: Camp Grid, Supply List, Travel, Safety, Collaboration, Packing
 - Remaining: Food Planner, Lineup, Budget
 
-See [session-notes-2026-04-04.md](session-notes-2026-04-04.md) for current implementation state.
+See [session-notes-2026-04-04.md](../sessions/session-notes-2026-04-04.md) for current implementation state.
 
 ## Screen Hierarchy
 

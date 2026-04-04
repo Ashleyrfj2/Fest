@@ -11,7 +11,7 @@ This agent owns the parts of Travel that depend on mapping, realtime sync, and c
 Use this agent when the meetup map is blank, a map provider is misconfigured, realtime updates are not reflecting in the UI, or Supabase selects need explicit relationship names.
 
 Assigned handoff:
-- [Travel Plans handoff](../../docs/travel-plans-handoff.md)
+- [Travel Plans handoff](../../docs/handoffs/travel-plans-handoff.md)
 
 Primary feature:
 - Travel Plans

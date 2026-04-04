@@ -11,7 +11,7 @@ This agent owns features where user trust, data scoping, and safety are critical
 Use this agent for emergency profiles, account-sensitive flows, permission boundaries, secure storage, privacy copy, and any task that handles personal data or destructive actions.
 
 Assigned handoff:
-- [Safety Profile handoff](../../docs/safety-profile-handoff.md)
+- [Safety Profile handoff](../../docs/handoffs/safety-profile-handoff.md)
 
 Primary feature:
 - Safety / Emergency Info

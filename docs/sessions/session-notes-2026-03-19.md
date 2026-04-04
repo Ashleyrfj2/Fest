@@ -66,8 +66,8 @@ Successfully scaffolded the complete Expo/React Native project for FestNest, set
 
 ### 6. Documentation Created
 - ✅ **SUPABASE_QUICKSTART.md** - 5-minute setup guide
-- ✅ **docs/supabase-setup.md** - Comprehensive setup instructions
-- ✅ **docs/testing-database.md** - Database testing guide with troubleshooting
+- ✅ **docs/setup/supabase-setup.md** - Comprehensive setup instructions
+- ✅ **docs/setup/testing-database.md** - Database testing guide with troubleshooting
 - ✅ **scripts/setup-supabase.sh** - Automated setup script for CLI
 - ✅ **supabase/README.md** - Migration workflow documentation
 - ✅ **README.md** - Updated with current project status

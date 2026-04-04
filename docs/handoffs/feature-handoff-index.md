@@ -4,7 +4,7 @@
 - Activity Tab (cross-trip feed) implemented.
 - Collaboration Hub module implemented.
 - Packing Checklist module implemented.
-- See [Session Notes - 2026-04-04](session-notes-2026-04-04.md) for implementation and QA details.
+- See [Session Notes - 2026-04-04](../sessions/session-notes-2026-04-04.md) for implementation and QA details.
 
 ## Recommended Next Features
 1. Food Planner — owner: full-stack mobile engineer.

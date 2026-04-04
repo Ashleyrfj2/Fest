@@ -32,7 +32,7 @@ Target audience: camping festival-goers (Electric Forest, Dancefestopia, Wookan,
 
 ## Data Model
 
-17 entities — see @docs/data-model.md for full schema. Key groups:
+17 entities — see @docs/product/data-model.md for full schema. Key groups:
 - Core: User, Trip, GroupMember
 - Camp: CampGrid, CampItem
 - Supplies/Food: SupplyItem, MealDay, Meal, PackingItem, PackingCheck
@@ -52,7 +52,7 @@ Target audience: camping festival-goers (Electric Forest, Dancefestopia, Wookan,
 
 ## Onboarding
 
-Two paths — see @docs/onboarding.md for full flow:
+Two paths — see @docs/product/onboarding.md for full flow:
 - **Join via invite link:** Tap link → set name/color → see group → soft-prompt safety → soft-prompt notifications
 - **Create new trip:** Create trip → set leader profile → share invite → set up first module → assign module leads
 
@@ -77,16 +77,16 @@ Two-level structure:
 
 ## Detailed Docs
 
-- @docs/data-model.md — Full 17-entity schema with field notes
-- @docs/design-spec.md — All 9 modules with detailed feature lists and permission matrix
-- @docs/features.md — Feature ideas: live mode, mesh networking, weather, profiles
-- @docs/onboarding.md — Both onboarding paths, step by step
-- @docs/ui-decisions.md — Aesthetic direction, mockup status, design principles
+- @docs/product/data-model.md — Full 17-entity schema with field notes
+- @docs/product/design-spec.md — All 9 modules with detailed feature lists and permission matrix
+- @docs/product/features.md — Feature ideas: live mode, mesh networking, weather, profiles
+- @docs/product/onboarding.md — Both onboarding paths, step by step
+- @docs/product/ui-decisions.md — Aesthetic direction, mockup status, design principles
 
 ## Notion Project Hub
 
 Full specs live in Notion: https://www.notion.so/322349e899af812c8776d5cd5aa72ed8
-Claude Code can access this via the Notion MCP server — see @docs/notion-mcp-setup.md
+Claude Code can access this via the Notion MCP server — see @docs/setup/notion-mcp-setup.md
 
 ## Conventions
 

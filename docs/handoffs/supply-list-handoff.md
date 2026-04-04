@@ -10,11 +10,11 @@ Build the collaborative Supply List module for trip members to track who is brin
 This is a P1 collaboration feature with direct utility and relatively low design ambiguity compared with live or media-heavy modules. It maps cleanly to the existing trip/member model.
 
 ## Source Context
-- [Design spec](design-spec.md)
-- [Data model](data-model.md)
-- [Trip system](trip-system.md)
-- [Session notes](session-notes-2026-03-19.md)
-- [Session notes](session-notes-2026-04-03.md)
+- [Design spec](../product/design-spec.md)
+- [Data model](../product/data-model.md)
+- [Trip system](../product/trip-system.md)
+- [Session notes](../sessions/session-notes-2026-03-19.md)
+- [Session notes](../sessions/session-notes-2026-04-03.md)
 
 ## Scope
 - Build the supply list module UI and interactions.

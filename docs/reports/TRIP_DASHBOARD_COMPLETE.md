@@ -2,7 +2,7 @@
 
 **Status:** ✅ **PRODUCTION READY**  
 **Date:** April 3, 2026  
-**Handoff:** `docs/trip-dashboard-handoff.md`
+**Handoff:** `docs/handoffs/trip-dashboard-handoff.md`
 
 ## Status Update (April 4, 2026)
 
@@ -12,7 +12,7 @@ This document is an April 3 snapshot. Current implementation state has advanced:
 - Travel, Supply List, and Safety are also implemented.
 - Activity tab now has a full cross-trip feed implementation.
 
-See [session-notes-2026-04-04.md](session-notes-2026-04-04.md) for the latest verified state.
+See [session-notes-2026-04-04.md](../sessions/session-notes-2026-04-04.md) for the latest verified state.
 
 ---
 
@@ -213,6 +213,6 @@ The Trip Dashboard is fully implemented according to the handoff specification. 
 
 **Implemented by:** Senior mobile product designer agent  
 **Date:** April 3, 2026  
-**Handoff Reference:** `docs/trip-dashboard-handoff.md`
+**Handoff Reference:** `docs/handoffs/trip-dashboard-handoff.md`
 
 🎉 **Ready to ship!**

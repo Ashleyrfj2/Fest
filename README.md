@@ -9,7 +9,7 @@ Mobile app for coordinating camping music festival trips with your group.
 npm install
 
 # Set up Supabase database (first time only)
-# See docs/supabase-setup.md for detailed instructions
+# See docs/setup/supabase-setup.md for detailed instructions
 
 # Start Expo development server
 npm start
@@ -29,7 +29,7 @@ Then:
 
 2. Environment variables are already configured in `.env`
 
-See **docs/supabase-setup.md** for complete setup guide.
+See **docs/setup/supabase-setup.md** for complete setup guide.
 
 ## Project Structure
 

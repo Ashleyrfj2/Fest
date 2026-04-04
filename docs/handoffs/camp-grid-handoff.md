@@ -10,10 +10,10 @@ Complete the hero Camp Grid feature as a polished drag-and-drop campsite layout 
 Camp Grid is the product’s hero feature and the highest-value planning surface. The docs already describe it as in progress, so this handoff is for finishing the core experience with confidence rather than restarting the concept.
 
 ## Source Context
-- [Camp Grid plan](Camp-Grid.md)
-- [Festival dimension source of truth](Festival-dimensions.md)
-- [Data model](data-model.md)
-- [Design spec](design-spec.md)
+- [Camp Grid plan](../modules/camp-grid/Camp-Grid.md)
+- [Festival dimension source of truth](../modules/camp-grid/Festival-dimensions.md)
+- [Data model](../product/data-model.md)
+- [Design spec](../product/design-spec.md)
 - Repo memory note: `camp-grid-data-source.md`
 
 ## Scope

@@ -10,11 +10,11 @@ Build the Safety / Emergency Info module so each user can manage their own emerg
 This is one of the highest-trust features in the product. The docs describe it as self-owned, encrypted, and offline-cached, so it deserves careful implementation after the main trip collaboration surfaces are established.
 
 ## Source Context
-- [Design spec](design-spec.md)
-- [Data model](data-model.md)
-- [Onboarding and safety prompt flow](onboarding.md)
-- [Feature ideas and offline-first guidance](features.md)
-- [Session notes](session-notes-2026-03-19.md)
+- [Design spec](../product/design-spec.md)
+- [Data model](../product/data-model.md)
+- [Onboarding and safety prompt flow](../product/onboarding.md)
+- [Feature ideas and offline-first guidance](../product/features.md)
+- [Session notes](../sessions/session-notes-2026-03-19.md)
 
 ## Scope
 - Build the self-owned safety profile UI.

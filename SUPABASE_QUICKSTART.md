@@ -168,6 +168,6 @@ To verify the app can connect to the database:
 
 ## Need Help?
 
-- Full documentation: `docs/supabase-setup.md`
-- Data model reference: `docs/data-model.md`
+- Full documentation: `docs/setup/supabase-setup.md`
+- Data model reference: `docs/product/data-model.md`
 - Supabase docs: https://supabase.com/docs

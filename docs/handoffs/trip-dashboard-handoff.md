@@ -10,10 +10,10 @@ Build the Level 2 Trip Dashboard as the main per-trip home surface. This screen 
 This is the orchestration layer for the product. The docs say the trip dashboard is designed but not yet built, and it is the place where every major module is entered from. Without it, feature work becomes fragmented.
 
 ## Source Context
-- [Trip system](trip-system.md)
-- [Design system and navigation direction](ui-decisions.md)
-- [Module priority and permissions](design-spec.md)
-- [Session note on current status](session-notes-2026-03-19.md)
+- [Trip system](../product/trip-system.md)
+- [Design system and navigation direction](../product/ui-decisions.md)
+- [Module priority and permissions](../product/design-spec.md)
+- [Session note on current status](../sessions/session-notes-2026-03-19.md)
 
 ## Scope
 - Build a polished trip-level dashboard for a single trip.

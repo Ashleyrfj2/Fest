@@ -1,7 +1,7 @@
 /**
  * FestNest Design System Tokens
  *
- * All design tokens defined per CLAUDE.md and docs/ui-decisions.md
+ * All design tokens defined per CLAUDE.md and docs/product/ui-decisions.md
  * Never use hardcoded values in components — always reference these tokens
  */
 

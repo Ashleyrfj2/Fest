@@ -59,7 +59,7 @@ Implemented three major product surfaces after the April 3 session: cross-trip A
 - [lib/hooks/useCollaboration.ts](../lib/hooks/useCollaboration.ts)
 - [lib/hooks/usePackingList.ts](../lib/hooks/usePackingList.ts)
 - [lib/packingTypes.ts](../lib/packingTypes.ts)
-- [docs/session-notes-2026-04-04.md](./session-notes-2026-04-04.md)
+- [docs/sessions/session-notes-2026-04-04.md](./session-notes-2026-04-04.md)
 
 ## Files Updated
 - [app/(tabs)/activity.tsx](../app/(tabs)/activity.tsx)
