@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   headerTitle: {
-    fontSize: typography.size.headline,
+    fontSize: typography.size.appTitle,
     fontWeight: typography.weight.headline,
     color: colors.text.primary,
   },
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: colors.accent.green,
+    backgroundColor: colors.success,
     borderRadius: 4,
   },
   scrollView: {
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   emptyTitle: {
-    fontSize: typography.size.headline,
+    fontSize: typography.size.appTitle,
     fontWeight: typography.weight.headline,
     color: colors.text.primary,
   },

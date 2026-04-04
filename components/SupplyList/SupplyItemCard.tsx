@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { CheckCircle, Circle, MoreVertical, Trash2, Edit } from 'lucide-react-native';
 import { colors, typography, spacing, borderRadius } from '@/lib/tokens';
-import { SupplyItem, getCategoryMetadata, STATUS_METADATA } from '@/lib/supplyTypes';
+import { SupplyItem, getCategoryMetadata } from '@/lib/supplyTypes';
 
 interface SupplyItemCardProps {
   item: SupplyItem;
@@ -104,9 +104,9 @@ export function SupplyItemCard({
           activeOpacity={0.7}
         >
           {isActionLoading ? (
-            <ActivityIndicator size="small" color={colors.accent.green} />
+            <ActivityIndicator size="small" color={colors.success} />
           ) : isPacked ? (
-            <CheckCircle size={24} color={colors.accent.green} fill={colors.accent.green} />
+            <CheckCircle size={24} color={colors.success} fill={colors.success} />
           ) : (
             <Circle size={24} color={colors.text.dim} strokeWidth={2} />
           )}
@@ -213,8 +213,8 @@ export function SupplyItemCard({
             onPress={handleDelete}
             activeOpacity={0.7}
           >
-            <Trash2 size={16} color={colors.status.error} strokeWidth={2} />
-            <Text style={[styles.menuItemText, { color: colors.status.error }]}>Delete</Text>
+            <Trash2 size={16} color={colors.danger} strokeWidth={2} />
+            <Text style={[styles.menuItemText, { color: colors.danger }]}>Delete</Text>
           </TouchableOpacity>
         </View>
       )}
