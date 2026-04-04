@@ -4,6 +4,16 @@
 **Date:** April 3, 2026  
 **Handoff:** `docs/trip-dashboard-handoff.md`
 
+## Status Update (April 4, 2026)
+
+This document is an April 3 snapshot. Current implementation state has advanced:
+- Collaboration is implemented and routed.
+- Packing is implemented and routed.
+- Travel, Supply List, and Safety are also implemented.
+- Activity tab now has a full cross-trip feed implementation.
+
+See [session-notes-2026-04-04.md](session-notes-2026-04-04.md) for the latest verified state.
+
 ---
 
 ## Executive Summary
@@ -15,7 +25,7 @@ The Trip Dashboard feature has been **fully implemented** and is ready for produ
 - Promoted primary module (Camp Grid with "START HERE" badge)
 - Full crew visibility with role-based permissions
 - Activity feed showing recent group actions
-- Navigation to all 9 modules (8 coming soon, 1 live)
+- Navigation to all 9 modules (multiple modules implemented beyond Camp Grid)
 
 ---
 
@@ -35,8 +45,8 @@ The Trip Dashboard feature has been **fully implemented** and is ready for produ
 ### Module Definitions
 - **File:** `app/trips/[id]/modules.ts`
 - **Count:** 9 modules with icons, colors, priorities
-- **Live:** Camp Grid (implemented)
-- **Coming Soon:** 8 modules with placeholder alerts
+- **Live:** Camp Grid, Supply List, Travel, Safety, Collaboration, Packing
+- **Still Coming Soon:** Food Planner, Lineup, Budget
 
 ---
 
@@ -102,7 +112,7 @@ Camp Grid Editor (Level 3, landscape)
 3. Check countdown is accurate
 4. Verify crew members display with correct roles
 5. Tap Camp Grid → verify navigation + landscape lock
-6. Tap other modules → verify "coming soon" alerts
+6. Tap Food/Lineup/Budget modules → verify "coming soon" alerts
 7. Test as leader → verify invite + settings buttons
 8. Test as viewer → verify buttons hidden
 9. Share invite → verify share sheet opens
@@ -113,15 +123,15 @@ Camp Grid Editor (Level 3, landscape)
 ## Next Steps
 
 ### Immediate (P1 Modules)
-- [ ] Implement **Supply List** (who's bringing what)
-- [ ] Implement **Travel** (rides & meetup plans)
-- [ ] Implement **Safety** (emergency info)
-- [ ] Implement **Collaboration** (permissions management)
+- [x] Implement **Supply List** (who's bringing what)
+- [x] Implement **Travel** (rides & meetup plans)
+- [x] Implement **Safety** (emergency info)
+- [x] Implement **Collaboration** (permissions management)
 
 ### Secondary (P2 Modules)
 - [ ] Implement **Food Planner** (meal calendar)
 - [ ] Implement **Lineup** (artist voting)
-- [ ] Implement **Packing** (personal checklist)
+- [x] Implement **Packing** (personal checklist)
 - [ ] Implement **Budget** (expense splitting)
 
 ### Enhancement

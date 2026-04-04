@@ -134,6 +134,16 @@ export default function TripDashboardScreen() {
       return;
     }
 
+    if (moduleId === 'collaboration') {
+      router.push(`/trips/${id}/collaboration`);
+      return;
+    }
+
+    if (moduleId === 'packing') {
+      router.push(`/trips/${id}/packing-checklist`);
+      return;
+    }
+
     // Other modules not yet implemented
     const module = MODULES.find((m) => m.id === moduleId);
     Alert.alert(module?.name || 'Coming Soon', `${module?.name} coming soon`);

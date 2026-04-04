@@ -133,6 +133,20 @@ export function VehicleCard({
         </View>
       )}
 
+      {!!(vehicle.waypoints && vehicle.waypoints.length > 0) && (
+        <View style={styles.waypointsSection}>
+          <Text style={styles.sectionLabel}>PICKUP STOPS</Text>
+          {(vehicle.waypoints || [])
+            .slice()
+            .sort((a, b) => a.order - b.order)
+            .map((waypoint, index) => (
+              <Text key={`${vehicle.id}-waypoint-${index}`} style={styles.waypointText}>
+                {index + 1}. {waypoint.address}
+              </Text>
+            ))}
+        </View>
+      )}
+
       {/* Driver */}
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>DRIVER</Text>
@@ -269,6 +283,16 @@ const styles = StyleSheet.create({
     fontSize: typography.size.body,
     fontWeight: typography.weight.body,
     color: colors.text.mid,
+  },
+  waypointsSection: {
+    gap: spacing.xs,
+    paddingTop: spacing.xs,
+  },
+  waypointText: {
+    fontSize: typography.size.body,
+    fontWeight: typography.weight.body,
+    color: colors.text.mid,
+    paddingLeft: spacing.xs,
   },
   section: {
     gap: spacing.sm,

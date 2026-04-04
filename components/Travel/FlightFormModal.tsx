@@ -50,6 +50,20 @@ export function FlightFormModal({
   const [pickupVehicleId, setPickupVehicleId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  function normalizeDateTime(value: string): string | null {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    const candidate = trimmed.includes('T') ? trimmed : trimmed.replace(' ', 'T');
+    const parsed = new Date(candidate);
+
+    if (Number.isNaN(parsed.getTime())) {
+      return '__INVALID__';
+    }
+
+    return parsed.toISOString();
+  }
+
   // Populate form when editing
   useEffect(() => {
     if (editFlight) {
@@ -75,13 +89,19 @@ export function FlightFormModal({
   }, [editFlight, visible]);
 
   async function handleSave() {
+    const normalizedArrivalTime = normalizeDateTime(arrivalTime);
+    if (normalizedArrivalTime === '__INVALID__') {
+      alert('Please enter a valid arrival time, like 2026-06-15 14:00');
+      return;
+    }
+
     setIsSaving(true);
     try {
       const wasSaved = await onSave({
         airline: airline.trim() || null,
         flight_number: flightNumber.trim() || null,
         arrival_airport: arrivalAirport.trim() || null,
-        arrival_time: arrivalTime || null,
+        arrival_time: normalizedArrivalTime,
         needs_pickup: needsPickup,
         pickup_vehicle_id: needsPickup ? pickupVehicleId : null,
       });

@@ -31,6 +31,7 @@ export function FlightCard({
   onDelete,
 }: FlightCardProps) {
   const isOwnFlight = currentUserId === flight.user_id;
+  const flightLabel = [flight.airline, flight.flight_number].filter(Boolean).join(' ');
 
   function handleDeletePress() {
     Alert.alert(
@@ -57,11 +58,7 @@ export function FlightCard({
           </View>
           <View style={styles.headerInfo}>
             <Text style={styles.userName}>{flight.user?.display_name || 'User'}</Text>
-            {flight.airline && flight.flight_number && (
-              <Text style={styles.flightNumber}>
-                {flight.airline} {flight.flight_number}
-              </Text>
-            )}
+            {!!flightLabel && <Text style={styles.flightNumber}>{flightLabel}</Text>}
           </View>
         </View>
 
@@ -132,7 +129,7 @@ export function FlightCard({
             ]}
           >
             {flight.pickup_vehicle_id
-              ? 'Pickup arranged'
+              ? `Pickup arranged${flight.pickup_vehicle?.make_model ? `: ${flight.pickup_vehicle.make_model}` : ''}`
               : 'Needs pickup from airport'}
           </Text>
         </View>

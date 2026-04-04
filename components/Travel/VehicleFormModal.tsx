@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { X } from 'lucide-react-native';
 import { colors, typography, spacing, borderRadius } from '@/lib/tokens';
-import { Vehicle } from '@/lib/travelTypes';
+import { Vehicle, Waypoint } from '@/lib/travelTypes';
 
 interface VehicleFormModalProps {
   visible: boolean;
@@ -30,6 +30,7 @@ export interface VehicleFormData {
   capacity: number;
   departure_city: string | null;
   departure_time: string | null;
+  waypoints: Waypoint[] | null;
 }
 
 export function VehicleFormModal({
@@ -42,6 +43,7 @@ export function VehicleFormModal({
   const [availableSpots, setAvailableSpots] = useState('3');
   const [departureCity, setDepartureCity] = useState('');
   const [departureTime, setDepartureTime] = useState('');
+  const [waypointAddresses, setWaypointAddresses] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   // Populate form when editing
@@ -55,14 +57,46 @@ export function VehicleFormModal({
           ? new Date(editVehicle.departure_time).toISOString().slice(0, 16)
           : ''
       );
+      setWaypointAddresses(
+        (editVehicle.waypoints || [])
+          .sort((a, b) => a.order - b.order)
+          .map((waypoint) => waypoint.address)
+      );
     } else {
       // Reset form
       setMakeModel('');
       setAvailableSpots('3');
       setDepartureCity('');
       setDepartureTime('');
+      setWaypointAddresses([]);
     }
   }, [editVehicle, visible]);
+
+  function addWaypointField() {
+    setWaypointAddresses((prev) => [...prev, '']);
+  }
+
+  function updateWaypointField(index: number, value: string) {
+    setWaypointAddresses((prev) => prev.map((item, idx) => (idx === index ? value : item)));
+  }
+
+  function removeWaypointField(index: number) {
+    setWaypointAddresses((prev) => prev.filter((_, idx) => idx !== index));
+  }
+
+  function normalizeDateTime(value: string): string | null {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    const candidate = trimmed.includes('T') ? trimmed : trimmed.replace(' ', 'T');
+    const parsed = new Date(candidate);
+
+    if (Number.isNaN(parsed.getTime())) {
+      return '__INVALID__';
+    }
+
+    return parsed.toISOString();
+  }
 
   async function handleSave() {
     const spotsNum = parseInt(availableSpots, 10);
@@ -73,6 +107,21 @@ export function VehicleFormModal({
     }
 
     const capacityNum = spotsNum + 1;
+    const normalizedDepartureTime = normalizeDateTime(departureTime);
+    if (normalizedDepartureTime === '__INVALID__') {
+      alert('Please enter a valid departure time, like 2026-06-15 14:00');
+      return;
+    }
+
+    const parsedWaypoints = waypointAddresses
+      .map((address) => address.trim())
+      .filter((address) => address.length > 0)
+      .map((address, index) => ({
+        address,
+        lat: 0,
+        lng: 0,
+        order: index,
+      }));
 
     setIsSaving(true);
     try {
@@ -80,7 +129,8 @@ export function VehicleFormModal({
         make_model: makeModel.trim() || null,
         capacity: capacityNum,
         departure_city: departureCity.trim() || null,
-        departure_time: departureTime || null,
+        departure_time: normalizedDepartureTime,
+        waypoints: parsedWaypoints.length > 0 ? parsedWaypoints : null,
       });
       if (wasSaved) {
         onClose();
@@ -177,6 +227,46 @@ export function VehicleFormModal({
                 Format: 2026-06-15 14:00
               </Text>
             </View>
+
+            {/* Pickup Waypoints */}
+            <View style={styles.fieldGroup}>
+              <View style={styles.waypointHeader}>
+                <Text style={styles.label}>Pickup Stops (Optional)</Text>
+                <TouchableOpacity
+                  style={styles.addWaypointButton}
+                  onPress={addWaypointField}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.addWaypointButtonText}>Add Stop</Text>
+                </TouchableOpacity>
+              </View>
+
+              {waypointAddresses.length === 0 ? (
+                <Text style={styles.hint}>Add pickup stops if you plan to collect passengers on the way.</Text>
+              ) : (
+                <View style={styles.waypointsList}>
+                  {waypointAddresses.map((waypoint, index) => (
+                    <View key={`waypoint-${index}`} style={styles.waypointRow}>
+                      <Text style={styles.waypointIndex}>{index + 1}.</Text>
+                      <TextInput
+                        style={styles.waypointInput}
+                        value={waypoint}
+                        onChangeText={(value) => updateWaypointField(index, value)}
+                        placeholder="Pickup stop address"
+                        placeholderTextColor={colors.text.dim}
+                      />
+                      <TouchableOpacity
+                        style={styles.removeWaypointButton}
+                        onPress={() => removeWaypointField(index)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.removeWaypointButtonText}>Remove</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
           </ScrollView>
 
           {/* Actions */}
@@ -271,6 +361,60 @@ const styles = StyleSheet.create({
     fontSize: typography.size.meta,
     fontWeight: typography.weight.body,
     color: colors.text.dim,
+  },
+  waypointHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+  },
+  addWaypointButton: {
+    borderWidth: 1,
+    borderColor: colors.accent.gold,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.surface.level1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  addWaypointButtonText: {
+    color: colors.accent.gold,
+    fontSize: typography.size.meta,
+    fontWeight: typography.weight.label,
+  },
+  waypointsList: {
+    gap: spacing.sm,
+  },
+  waypointRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  waypointIndex: {
+    width: 20,
+    textAlign: 'center',
+    color: colors.text.mid,
+    fontSize: typography.size.body,
+    fontWeight: typography.weight.label,
+  },
+  waypointInput: {
+    flex: 1,
+    backgroundColor: colors.surface.level1,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    fontSize: typography.size.body,
+    color: colors.text.primary,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
+  },
+  removeWaypointButton: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  removeWaypointButtonText: {
+    color: colors.danger,
+    fontSize: typography.size.meta,
+    fontWeight: typography.weight.label,
   },
   actions: {
     flexDirection: 'row',

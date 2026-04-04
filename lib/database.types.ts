@@ -217,6 +217,58 @@ export interface Database {
           updated_at?: string
         }
       }
+      packing_items: {
+        Row: {
+          id: string
+          trip_id: string
+          name: string
+          category: 'shelter' | 'festival_gear' | 'clothing' | 'hygiene' | 'medical' | 'kitchen' | 'comfort'
+          is_group_item: boolean
+          assigned_to: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          trip_id: string
+          name: string
+          category: 'shelter' | 'festival_gear' | 'clothing' | 'hygiene' | 'medical' | 'kitchen' | 'comfort'
+          is_group_item?: boolean
+          assigned_to?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          trip_id?: string
+          name?: string
+          category?: 'shelter' | 'festival_gear' | 'clothing' | 'hygiene' | 'medical' | 'kitchen' | 'comfort'
+          is_group_item?: boolean
+          assigned_to?: string | null
+          created_at?: string
+        }
+      }
+      packing_checks: {
+        Row: {
+          packing_item_id: string
+          user_id: string
+          packed: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          packing_item_id: string
+          user_id: string
+          packed?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          packing_item_id?: string
+          user_id?: string
+          packed?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
       safety_profiles: {
         Row: {
           id: string

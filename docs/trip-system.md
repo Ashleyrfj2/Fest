@@ -34,17 +34,27 @@ Per-trip view showing:
 - Crew list with roles and avatar colors
 - Share invite button (native share sheet)
 - Settings menu (leader only)
-- 8 module cards, with Camp Grid wired as the first live module and the others still showing coming soon placeholders
+- 9 module cards with multiple implemented module routes now wired from dashboard
 
 **Modules displayed:**
 - Camp Grid - Design campsite layout
-- Supply List - Who's bringing what
+- Supply List - Who's bringing what (implemented)
 - Food Planner - Plan meals
-- Travel - Rides & meetup plans
+- Travel - Rides & meetup plans (implemented)
 - Lineup - Vote on artists
-- Packing - Track what you packed
-- Safety - Emergency info
+- Packing - Track what you packed (implemented)
+- Safety - Emergency info (implemented)
 - Budget - Track & split expenses
+- Collaboration - Manage crew and permissions (implemented)
+
+### 2.1 Activity Tab (Cross-Trip)
+**Screen:** `app/(tabs)/activity.tsx`
+
+Per-user cross-trip feed showing:
+- Recent `activity_logs` entries across all trips where the user is a member
+- Grouped date sections (Today/Yesterday/older)
+- Pull-to-refresh and realtime updates
+- Tap-through to the associated trip dashboard
 
 ### 3. Invite System
 **Utilities:** `lib/invites/invite-utils.ts`
@@ -194,9 +204,9 @@ app.json                     # Deep link configuration
 
 ## Next Steps
 
-1. **Module Implementation** - Build the 9 modules (camp grid, supply list, etc.)
+1. **Finish Remaining Modules** - Food Planner, Lineup, Budget
 2. **Trip Settings** - Edit trip, manage members, transfer leadership, leave trip
-3. **Activity Feed** - Show realtime updates on trip dashboard
+3. **Collaboration Approval Queue Backend** - replace current safe UI stub with real table + flows
 4. **Progress Tracking** - Calculate % complete based on module completion
 5. **Notifications** - Push notifications for invites, member joins, activity
 6. **Invite Expiry UI** - Allow leaders to set custom expiry dates
@@ -205,8 +215,7 @@ app.json                     # Deep link configuration
 ## Known Limitations
 
 - Invite links are permanent (expiry logic exists but not exposed in UI)
-- Module cards are placeholders (not yet functional)
+- Food, Lineup, and Budget module cards still route to coming-soon behavior
 - No trip editing after creation
-- No member management (remove/change roles)
-- No activity feed (just placeholder)
+- Collaboration approval queue backend is not implemented (screen is intentionally stubbed)
 - Progress calculation not implemented

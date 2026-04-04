@@ -75,7 +75,7 @@ export const MODULES: ModuleDefinition[] = [
     icon: Backpack,
     color: '#FFB84D',
     priority: 'P2',
-    isImplemented: false,
+    isImplemented: true,
     progress: 0,
   },
   {
@@ -105,7 +105,7 @@ export const MODULES: ModuleDefinition[] = [
     icon: Users,
     color: '#9B8340',
     priority: 'P1',
-    isImplemented: false,
+    isImplemented: true,
     progress: 0,
   },
 ];

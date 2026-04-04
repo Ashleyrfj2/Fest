@@ -34,7 +34,7 @@ export default function ProfileScreen() {
   } = useAuth();
 
   const [displayName, setDisplayName] = useState('');
-  const [selectedColor, setSelectedColor] = useState(AVATAR_COLORS[0].hex);
+  const [selectedColor, setSelectedColor] = useState<string>(AVATAR_COLORS[0].hex);
   const [phone, setPhone] = useState('');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileError, setProfileError] = useState('');

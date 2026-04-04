@@ -57,8 +57,8 @@ export async function encryptString(
   }
   
   try {
-    const key = await getOrCreateEncryptionKey(userId);
-    const iv = await Crypto.getRandomBytesAsync(IV_SIZE_BYTES);
+    const key = Uint8Array.from(await getOrCreateEncryptionKey(userId));
+    const iv = Uint8Array.from(await Crypto.getRandomBytesAsync(IV_SIZE_BYTES));
     
     // Convert plaintext to bytes
     const encoder = new TextEncoder();
@@ -104,12 +104,12 @@ export async function decryptString(
   }
   
   try {
-    const key = await getOrCreateEncryptionKey(userId);
+    const key = Uint8Array.from(await getOrCreateEncryptionKey(userId));
     const combined = base64ToUint8Array(ciphertext);
     
     // Extract IV and ciphertext
     const iv = combined.slice(0, IV_SIZE_BYTES);
-    const encryptedData = combined.slice(IV_SIZE_BYTES);
+    const encryptedData = Uint8Array.from(combined.slice(IV_SIZE_BYTES));
     
     // Use Web Crypto API for AES-GCM
     const cryptoKey = await crypto.subtle.importKey(

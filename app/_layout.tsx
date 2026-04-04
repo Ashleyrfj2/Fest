@@ -61,7 +61,10 @@ function RootLayoutNav() {
         <Stack.Screen name="trips/create" />
         <Stack.Screen name="trips/[id]" />
         <Stack.Screen name="trips/[id]/camp-grid" />
+        <Stack.Screen name="trips/[id]/travel" />
         <Stack.Screen name="trips/[id]/supply-list" />
+        <Stack.Screen name="trips/[id]/collaboration" />
+        <Stack.Screen name="trips/[id]/packing-checklist" />
         <Stack.Screen name="trips/[id]/safety-profile" />
         <Stack.Screen name="settings" />
         <Stack.Screen name="join/[code]" />

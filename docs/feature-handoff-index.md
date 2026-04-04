@@ -1,11 +1,17 @@
 # Feature Handoff Index
 
+## Recently Completed (April 4, 2026)
+- Activity Tab (cross-trip feed) implemented.
+- Collaboration Hub module implemented.
+- Packing Checklist module implemented.
+- See [Session Notes - 2026-04-04](session-notes-2026-04-04.md) for implementation and QA details.
+
 ## Recommended Next Features
-1. Trip Dashboard — owner: senior mobile product designer or mobile frontend lead.
-2. Supply List — owner: full-stack mobile engineer.
-3. Safety / Emergency Info — owner: privacy/security-minded mobile engineer.
-4. Travel Plans — owner: full-stack mobile engineer with maps and collaboration experience.
-5. Camp Grid — owner: senior mobile engineer with strong React Native gesture and interaction experience.
+1. Food Planner — owner: full-stack mobile engineer.
+2. Lineup Scheduler — owner: full-stack mobile engineer with realtime collaboration experience.
+3. Budget Tracker — owner: full-stack mobile engineer with strong data modeling and split-logic experience.
+4. Trip Dashboard Progress Metrics — owner: mobile frontend lead.
+5. Collaboration Approval Queue Backend — owner: full-stack engineer (Supabase schema + RLS + client integration).
 
 ## Handoff Documents
 - [Trip Dashboard](trip-dashboard-handoff.md)
@@ -16,5 +22,5 @@
 
 ## Notes
 - These handoffs are aligned to the current docs and session notes.
-- Trip Dashboard is the orchestration layer, so it should lead the sequence.
-- Supply List, Safety, Travel, and Camp Grid all map cleanly to the current product model and can be scoped independently once the dashboard direction is locked.
+- Trip Dashboard remains the orchestration layer, but multiple modules are now implemented.
+- Use the session notes as the source of truth for implementation state between major handoff document revisions.
