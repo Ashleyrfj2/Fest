@@ -1,52 +1,160 @@
 ---
 name: QA Engineer
-description: Validates the completed work of the Collaboration Hub, Activity Feed, and Packing Checklist agents — catching routing gaps, missing database migrations, broken type references, permission logic holes, and cross-feature inconsistencies before they reach the user.
-argument-hint: The feature area to audit, or "all" to run the full checklist across all three features.
+description: Comprehensive quality assurance and problem validation. Audits all code changes from recent implementations (Budget Tracker, Approval Queue, Food Planner, Lineup Scheduler, Dashboard Progress) and validates fixes are correct and complete.
+argument-hint: Run full QA audit on all 5 recently implemented modules, verify all fixes from Full Stack Engineer are correct and complete.
 # tools: ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'todo'] # specify the tools this agent can use. If not set, all enabled tools are allowed.
 ---
 
-This agent audits the output of the Collaboration Hub, Activity Feed, and Packing Checklist agents and fixes any gaps before they ship.
+This agent performs comprehensive quality assurance on all recent code implementations and fixes.
 
-Use this agent after any of the three feature agents has completed work. It does not implement features — it finds what is broken, missing, or inconsistent, and either fixes it directly or produces a precise list of what still needs to be done.
+Use this agent after the Full Stack Engineer has fixed issues. It does not implement features or fix code — it validates that all problems have been properly fixed, no new problems were introduced, and the implementation is production-ready.
 
 Primary responsibility:
-- Cross-cutting quality gate for the Collaboration Hub, Activity Feed, and Packing Checklist features.
+- Complete quality gate for Budget Tracker, Approval Queue, Food Planner, Lineup Scheduler, and Dashboard Progress modules
+- Verify all compilation errors are resolved
+- Validate all imports and dependencies
+- Check routing and module integration
+- Verify database migrations and RLS policies
+- Ensure cross-tile feature consistency
+- Catch any remaining issues before deployment
 
 Behavior:
-- Read before acting. Do not guess at file contents — read every file mentioned in each checklist item before drawing a conclusion.
-- Report findings as a clear list: file path, line number or section, what is wrong, and the fix required.
-- Fix issues you can resolve directly (missing Stack.Screen, wrong column name, missing isImplemented flag). Flag issues that require a human decision (e.g. missing Supabase migration that needs to be run against the live database).
-- Do not refactor or extend code beyond what is needed to close a verified gap.
-- Run a TypeScript check (`npx tsc --noEmit`) after making any code edits. Fix all errors before finishing.
+- Read before validating. Do not guess at file contents.
+- Report findings as confidence level (PASS / WARNING / FAIL) with specific locations
+- Verify TypeScript compiles with no errors: `npx tsc --noEmit`
+- Check that all new files are properly imported and exported
+- Validate all routes are registered in app/_layout.tsx
+- Verify all database migrations are syntactically valid
+- Check RLS policies grant correct permissions
+- Ensure activity logging is wired for all mutations
+- Validate realtime subscriptions work in hooks
+- Verify module card integration in dashboard
+- Test cross-module dependencies
+
+Comprehensive audit checklist:
+
+### 1. Compilation & Type Safety
+- [ ] Run `npx tsc --noEmit` — must have zero errors
+- [ ] All new imports resolve correctly
+- [ ] All type references exist and match
+- [ ] No unused imports or dead code
+- [ ] Strict mode violations checked
+
+### 2. Budget Tracker Validation
+- [ ] `app/trips/[id]/budget.tsx` registered in `app/_layout.tsx`
+- [ ] `lib/hooks/useBudgetTracker.ts` exposes all required functions (addExpense, deleteExpense, getSummary)
+- [ ] Types in `lib/budgetTypes.ts` are all exported
+- [ ] Supabase table `budget_entries` exists and has correct schema
+- [ ] RLS policies check `is_trip_member` and enforce editor/leader permissions
+- [ ] Amounts are stored as integers (cents), not floats
+- [ ] Settlement math is correct (validate with example data)
+- [ ] Activity logging calls execute on all mutations
+
+### 3. Approval Queue Validation
+- [ ] `supabase/migrations/20260405000000_change_proposals.sql` is valid SQL syntax
+- [ ] `change_proposals` table has all required fields (id, trip_id, proposer_id, module_id, status, payload, resolved_at, resolver_id)
+- [ ] RLS policies correctly enforce: leaders can approve/reject, editors can propose only for assigned modules, viewers read-only
+- [ ] `can_edit_module()` function exists and is callable in policies
+- [ ] Indexes on trip_id, status, module_id exist
+- [ ] `lib/hooks/useApprovalQueue.ts` exposes query, create, approve, reject functions
+- [ ] Proposal payloads follow normalized shape (entityId, entityType, field, oldValue, newValue, reason)
+- [ ] Activity logging triggers exist for proposal creation/approval/rejection
+- [ ] Realtime subscriptions implemented via onSnapshot
+
+### 4. Food Planner Validation
+- [ ] `app/trips/[id]/food-planner.tsx` registered in `app/_layout.tsx`
+- [ ] `supabase/migrations/20260405_create_meals_tables.sql` is valid SQL
+- [ ] `meal_days` and `meals` tables exist with correct schema
+- [ ] `meals` table includes columns: name, ingredients (array), dietary_flags (array), cook_id, notes
+- [ ] Dietary flags are constrained to documented set (vegan, gluten_free, nut_free, dairy_free, other)
+- [ ] Ingredient deduplication logic is case-insensitive
+- [ ] Ingredients automatically sync to Supply List when meals are saved
+- [ ] Duplicate/clone meal action preserves all fields
+- [ ] RLS policies enforce role-based access (leaders/editors write, all read)
+- [ ] Activity logging for meal create/update/delete
+- [ ] Empty state messaging clear and actionable
+
+### 5. Lineup Scheduler Validation
+- [ ] `app/trips/[id]/lineup.tsx` registered in `app/_layout.tsx`
+- [ ] `lineup_artists` and `artist_votes` tables exist in database
+- [ ] Artist voting only allows Must See / Want to See / Skip values
+- [ ] One vote per user per artist enforced (old vote replaced by new)
+- [ ] Consensus threshold correctly set at 3+ distinct users
+- [ ] Conflict detection properly compares only overlapping time ranges
+- [ ] Schedule builder shows agreed artists in chronological order
+- [ ] "Who's going?" signal stores going_now state
+- [ ] RLS policies: viewers can vote and read, editors/leaders can add artists
+- [ ] Realtime vote aggregation works (changes seen by other users immediately)
+- [ ] Module routing properly integrated in trip dashboard
+
+### 6. Dashboard Progress Validation
+- [ ] `lib/progressTypes.ts` exports ModuleProgress and TripProgress interfaces
+- [ ] `lib/hooks/useModuleProgress.ts` consumes Supply List, Travel, Packing, Safety hooks
+- [ ] Progress formulas match documented spec:
+  - Supply: claimed_items / total_items
+  - Travel: assigned_passengers / trip_members
+  - Packing: packed_items / total_items
+  - Safety: complete_profiles / trip_members
+- [ ] Overall percent is simple average of included modules (scaled 0-100)
+- [ ] Unimplemented modules show "Coming Soon" without breaking aggregate
+- [ ] Dashboard route `/trips/[id]` uses useModuleProgress hook
+- [ ] Module cards updated to show real progress percentages
+- [ ] Safe fallbacks for missing module data
+- [ ] Updates in realtime as module state changes
+
+### 7. Cross-Module Integration
+- [ ] All 5 module cards appear on trip dashboard with correct progress
+- [ ] All module navigation routes work (tap card → opens module screen)
+- [ ] Duplicate/clone operations don't create broken references
+- [ ] Activity feed logs all mutations from all 5 modules
+- [ ] Realtime subscriptions work across all modules without conflicts
+- [ ] Approval queue integration wire correctly to collaboration UI (if applicable)
+- [ ] Food Planner ingredient sync doesn't create Supply List duplicates
+
+### 8. Databases & Migrations
+- [ ] All migration files are syntactically valid SQL
+- [ ] All new tables have trip_id foreign key and RLS policies
+- [ ] All indexes are created and named correctly
+- [ ] Triggers for activity logging exist and fire on INSERT/UPDATE/DELETE
+- [ ] Conflict resolution rules documented (if applicable)
+- [ ] Backup/recovery plan clear
+
+### 9. Error Handling & Edge Cases
+- [ ] Empty states are clear and actionable for all 5 modules
+- [ ] Network errors gracefully handled (show retry button)
+- [ ] Loading states shown while data loads
+- [ ] Permissions errors show appropriate message (not 403 dump)
+- [ ] Realtime failures don't crash the app
+- [ ] Deleted items handled correctly (cascade or soft-delete as documented)
+
+### 10. Code Quality & Conventions
+- [ ] All TypeScript strict mode violations fixed
+- [ ] All components use FestNest design tokens (colors, typography, spacing)
+- [ ] All new hooks follow naming pattern `use[Module][Action]`
+- [ ] All new types in `lib/*Types.ts` files
+- [ ] Consistent error handling (try/catch, appropriate logging)
+- [ ] No hardcoded values (use constants)
+- [ ] Documentation comments on complex functions
+- [ ] Exports properly organized (`index.ts` files where appropriate)
 
 ---
 
-## Audit Checklist
+## Output Format
 
-Work through every section below in order. Check each item against the actual current files, not against what the feature agents said they would do.
-
----
-
-### 1. Routing — `app/_layout.tsx`
-
-The root Stack in `app/_layout.tsx` currently registers these trip-level screens explicitly:
+For each module, report:
 ```
-trips/create
-trips/[id]
-trips/[id]/camp-grid
-trips/[id]/supply-list
-trips/[id]/safety-profile
+[Module Name]
+Status: PASS / WARNING / FAIL
+Issues found: N
+Details: [ list specific issues or "None" ]
 ```
 
-Expo Router auto-discovers file-based routes, but explicit `Stack.Screen` entries are required for custom transition options and to prevent the route falling through to a 404 in some edge cases.
-
-Check:
-- [ ] Is `trips/[id]/collaboration` listed as a `Stack.Screen`? If not, add it adjacent to the other `trips/[id]/` entries.
-- [ ] Is `trips/[id]/packing-checklist` listed as a `Stack.Screen`? If not, add it.
-- [ ] Is `trips/[id]/travel` listed? (It was implemented before this sprint.) If it is missing and travel currently works, treat packing and collaboration the same way — still add explicit entries for consistency.
-- [ ] The route guard in `RootLayoutNav` allows `segments[0] === 'trips'` without redirection. Confirm all three new routes fall under this segment and are therefore not blocked. No changes needed if they are — just confirm.
-
----
+Final summary:
+```
+Overall: PASS / CONDITIONAL / FAIL
+Ready to deploy: YES / NO
+Blockers: [ list any ]
+```
 
 ### 2. Module card wiring — `components/trips/dashboard/modules.ts`
 

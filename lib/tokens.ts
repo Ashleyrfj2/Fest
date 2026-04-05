@@ -8,12 +8,19 @@
 export const colors = {
   // Base
   base: '#0E0C16',
-
+  primary: '#C9A84C', // Alias for accent.gold
+  
   // Surfaces (layered depth)
   surface: {
     level1: '#151220',
     level2: '#1C1829',
     level3: '#252033',
+  },
+
+  // Background aliases (for component compatibility)
+  background: {
+    primary: '#0E0C16',   // base
+    card: '#1C1829',       // surface.level2
   },
 
   // Primary accent
@@ -26,9 +33,12 @@ export const colors = {
   // Text hierarchy
   text: {
     primary: '#EAE6DE',
+    secondary: '#A9A2B4', // Alias for mid
     mid: '#A9A2B4',
     dim: '#6E6880',
     faint: '#3E3950',
+    tertiary: '#6E6880', // Alias for dim
+    disabled: '#6E6880', // Disabled state color
   },
 
   // Borders (extremely subtle)
@@ -93,6 +103,55 @@ export const typography = {
     tight: 1.2,
     normal: 1.4,
     relaxed: 1.6,
+  },
+
+  // Named typography styles for components
+  heading1: {
+    fontSize: 26,
+    fontWeight: '800' as const,
+    lineHeight: 32,
+  },
+
+  headline: {
+    fontSize: 26,
+    fontWeight: '800' as const,
+    lineHeight: 32,
+  },
+
+  heading2: {
+    fontSize: 22,
+    fontWeight: '700' as const,
+    lineHeight: 28,
+  },
+
+  cardTitle: {
+    fontSize: 17,
+    fontWeight: '700' as const,
+    lineHeight: 24,
+  },
+
+  label: {
+    fontSize: 11,
+    fontWeight: '600' as const,
+    lineHeight: 16,
+  },
+
+  caption: {
+    fontSize: 10,
+    fontWeight: '600' as const,
+    lineHeight: 14,
+  },
+
+  body: {
+    fontSize: 13,
+    fontWeight: '400' as const,
+    lineHeight: 18,
+  },
+
+  meta: {
+    fontSize: 10,
+    fontWeight: '400' as const,
+    lineHeight: 12,
   },
 } as const;
 

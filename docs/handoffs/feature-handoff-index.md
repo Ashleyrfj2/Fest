@@ -1,17 +1,16 @@
 # Feature Handoff Index
 
-## Recently Completed (April 4, 2026)
-- Activity Tab (cross-trip feed) implemented.
-- Collaboration Hub module implemented.
-- Packing Checklist module implemented.
-- See [Session Notes - 2026-04-04](../sessions/session-notes-2026-04-04.md) for implementation and QA details.
+## Recently Completed (April 5, 2026)
+- Supabase migration history repaired and remote schema aligned.
+- Food Planner, Lineup Scheduler, Budget Tracker, approval queue backend, and dashboard progress scaffolding were added and validated.
+- TypeScript regressions from the refreshed schema were fixed.
+- Session-generated markdown docs were cleaned up and a new test notes file was added.
+- See [Session Notes - 2026-04-05](../sessions/session-notes-2026-04-05.md) for the latest implementation and cleanup details.
 
 ## Recommended Next Features
-1. Food Planner — owner: full-stack mobile engineer.
-2. Lineup Scheduler — owner: full-stack mobile engineer with realtime collaboration experience.
-3. Budget Tracker — owner: full-stack mobile engineer with strong data modeling and split-logic experience.
-4. Trip Dashboard Progress Metrics — owner: mobile frontend lead.
-5. Collaboration Approval Queue Backend — owner: full-stack engineer (Supabase schema + RLS + client integration).
+1. Revalidate the new trip module flows in the app.
+2. Review the session test notes after live testing.
+3. Continue the next outstanding feature surface from the product roadmap.
 
 ## Handoff Documents
 - [Trip Dashboard](trip-dashboard-handoff.md)
@@ -21,6 +20,6 @@
 - [Camp Grid](camp-grid-handoff.md)
 
 ## Notes
-- These handoffs are aligned to the current docs and session notes.
-- Trip Dashboard remains the orchestration layer, but multiple modules are now implemented.
+- Keep this index aligned to the current docs and session notes.
+- Trip Dashboard remains the orchestration layer, but the new modules and support docs are now in place.
 - Use the session notes as the source of truth for implementation state between major handoff document revisions.

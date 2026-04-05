@@ -35,6 +35,7 @@ import { colors, borderRadius, spacing, typography } from '@/lib/tokens';
 import { Database } from '@/lib/database.types';
 import { QuickStatsHeader, ActivityFeed, ModuleCard, CrewSection } from '@/components/trips/dashboard';
 import { MODULES } from '@/components/trips/dashboard/modules';
+import { useModuleProgress } from '@/lib/hooks/useModuleProgress';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
 type GroupMember = Database['public']['Tables']['group_members']['Row'] & {
@@ -51,6 +52,9 @@ export default function TripDashboardScreen() {
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Get real progress from all modules
+  const tripProgress = useModuleProgress(id || '', members);
 
   useEffect(() => {
     loadTripData();
@@ -144,6 +148,21 @@ export default function TripDashboardScreen() {
       return;
     }
 
+    if (moduleId === 'lineup') {
+      router.push(`/trips/${id}/lineup`);
+      return;
+    }
+
+    if (moduleId === 'food') {
+      router.push(`/trips/${id}/food-planner`);
+      return;
+    }
+
+    if (moduleId === 'budget') {
+      router.push(`/trips/${id}/budget?tripId=${id}`);
+      return;
+    }
+
     // Other modules not yet implemented
     const module = MODULES.find((m) => m.id === moduleId);
     Alert.alert(module?.name || 'Coming Soon', `${module?.name} coming soon`);
@@ -156,13 +175,6 @@ export default function TripDashboardScreen() {
     const diffTime = start.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return Math.max(0, diffDays);
-  }
-
-  function calculateCompletionPercent(): number {
-    // Calculate based on implemented modules
-    // For now, return 0% since only Camp Grid is available
-    // TODO: Implement proper progress calculation based on module completion
-    return 0;
   }
 
   // Loading state
@@ -191,7 +203,7 @@ export default function TripDashboardScreen() {
   }
 
   const daysUntil = calculateDaysUntil();
-  const completionPercent = calculateCompletionPercent();
+  const completionPercent = tripProgress.overallPercent;
   const currentMember = members.find((m) => m.user_id === userProfile?.id);
   const isLeader = currentMember?.role === 'leader';
 
@@ -265,7 +277,10 @@ export default function TripDashboardScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>GET STARTED</Text>
           <ModuleCard
-            module={MODULES[0]} // Camp Grid is first and marked as primary
+            module={{
+              ...MODULES[0],
+              progress: tripProgress.moduleProgress.camp_grid?.percent || 0,
+            }}
             onPress={() => handleModulePress(MODULES[0].id)}
           />
         </View>
@@ -286,7 +301,10 @@ export default function TripDashboardScreen() {
             {MODULES.slice(1).map((module) => (
               <ModuleCard
                 key={module.id}
-                module={module}
+                module={{
+                  ...module,
+                  progress: tripProgress.moduleProgress[module.id]?.percent || 0,
+                }}
                 onPress={() => handleModulePress(module.id)}
               />
             ))}

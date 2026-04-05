@@ -45,7 +45,7 @@ export const MODULES: ModuleDefinition[] = [
     icon: UtensilsCrossed,
     color: '#6D30CC',
     priority: 'P2',
-    isImplemented: false,
+    isImplemented: true,
     progress: 0,
   },
   {
@@ -65,7 +65,7 @@ export const MODULES: ModuleDefinition[] = [
     icon: Music,
     color: '#F280B0',
     priority: 'P2',
-    isImplemented: false,
+    isImplemented: true,
     progress: 0,
   },
   {
@@ -95,7 +95,7 @@ export const MODULES: ModuleDefinition[] = [
     icon: DollarSign,
     color: '#B47AFF',
     priority: 'P2',
-    isImplemented: false,
+    isImplemented: true,
     progress: 0,
   },
   {

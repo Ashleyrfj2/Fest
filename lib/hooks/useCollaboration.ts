@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { Database } from '@/lib/database.types';
 import { supabase } from '@/lib/supabase';
+import { useApprovalQueue } from '@/lib/hooks/useApprovalQueue';
+import { ChangeProposalWithProposer } from '@/lib/approvalQueueTypes';
 
 type GroupMemberRow = Database['public']['Tables']['group_members']['Row'];
 type UserRow = Database['public']['Tables']['users']['Row'];
@@ -11,19 +13,14 @@ type JoinedMember = GroupMemberRow & {
   user: Pick<UserRow, 'id' | 'display_name' | 'avatar_color'> | null;
 };
 
-type ApprovalQueueItem = {
-  id: string;
-  description: string;
-  created_at: string;
-  proposed_by: string;
-};
-
 export function useCollaboration(tripId: string) {
   const { userProfile } = useAuth();
   const [members, setMembers] = useState<JoinedMember[]>([]);
-  const [approvalQueue, setApprovalQueue] = useState<ApprovalQueueItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Wire in the approval queue
+  const approvalQueue = useApprovalQueue(tripId);
 
   const currentUserRole = useMemo<Role | null>(() => {
     if (!userProfile?.id) return null;
@@ -51,9 +48,6 @@ export function useCollaboration(tripId: string) {
       }));
 
       setMembers(normalized);
-
-      // Approval queue is intentionally a safe stub until a proposals table exists.
-      setApprovalQueue([]);
     } catch (err) {
       console.error('Error fetching collaboration members:', err);
       setError(err instanceof Error ? err.message : 'Failed to load crew');
@@ -303,16 +297,33 @@ export function useCollaboration(tripId: string) {
   );
 
   return {
+    // Members
     members,
-    approvalQueue,
-    hasApprovalQueueTable: false,
     currentUserRole,
-    isLoading,
-    error,
+    isLeader,
+
+    // Approval Queue
+    approvalQueue: approvalQueue.proposalsByStatus.pending,
+    allProposals: approvalQueue.proposals,
+    proposalsByStatus: approvalQueue.proposalsByStatus,
+    createProposal: approvalQueue.createProposal,
+    approveProposal: approvalQueue.approveProposal,
+    rejectProposal: approvalQueue.rejectProposal,
+    markProposalStale: approvalQueue.markProposalStale,
+    getPendingProposalsForModule: approvalQueue.getPendingProposalsForModule,
+    canUserPropose: approvalQueue.canUserPropose,
+
+    // State
+    isLoading: isLoading || approvalQueue.isLoading,
+    error: error || approvalQueue.error,
+    hasApprovalQueueTable: true,
+
+    // Actions
     updateRole,
     removeMember,
     transferLeadership,
     setModuleLead,
     refetch: fetchMembers,
+    refreshApprovalQueue: approvalQueue.refresh,
   };
 }

@@ -445,7 +445,7 @@ export default function CollaborationScreen() {
           ) : (
             approvalQueue.map((proposal) => (
               <View key={proposal.id} style={styles.queueItem}>
-                <Text style={styles.queueTitle}>{proposal.description}</Text>
+                <Text style={styles.queueTitle}>{proposal.payload?.description}</Text>
                 <Text style={styles.queueMeta}>{new Date(proposal.created_at).toLocaleString()}</Text>
               </View>
             ))
