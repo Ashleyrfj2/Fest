@@ -11,6 +11,9 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 - Lineup component has weird symbol tabs on top that are clickable, the plus sign does not work so unable to add artists.
 - The back icon does not work. iOs swipe feature works.
 - Clicking add flight just brings up a cancel or save flight button. There is no options to add details. [I can provide more details for this when it is time to fix this]. Adding a vehichle does the same.
+-  "WARN  SafeAreaView has been deprecated and will be removed in a future release. Please use 'react-native-safe-area-context' instead. See https://github.com/AppAndFlow/react-native-safe-area-context"
+ 
+
 ## Follow-Up
 - Why is outfit voting in travel plans?
 -  Travel plans map - does it allow zooming in with touch gestures?
