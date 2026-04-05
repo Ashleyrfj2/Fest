@@ -11,7 +11,9 @@ export type SupplyItemInsert = Database['public']['Tables']['supply_items']['Ins
 export type SupplyItemUpdate = Database['public']['Tables']['supply_items']['Update'];
 
 // Extended type with user info
-export type SupplyItem = SupplyItemRow & {
+export type SupplyItem = Omit<SupplyItemRow, 'category' | 'status'> & {
+  category: SupplyCategory;
+  status: SupplyStatus;
   claimedByUser?: {
     id: string;
     display_name: string;
