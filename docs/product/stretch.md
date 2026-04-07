@@ -6,3 +6,4 @@
 6. Notifications and Appearance settings are scaffolded in the UI but still need real persistence and app-wide wiring.
 7. Password fields should keep the visibility toggle pattern where it makes sense, especially in auth and account-upgrade flows.
 8. Application cuts into the top info bar (Battery time, camera lense area)
+9. Travel outfit photo upload and outfit voting are deferred for now and belong in stretch rather than the active Travel module.

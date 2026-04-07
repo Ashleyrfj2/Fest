@@ -19,6 +19,17 @@ export interface LatLng {
   lng: number;
 }
 
+export type MeetupPinType = 'meetup' | 'pickup' | 'carpool' | 'landmark';
+
+export interface MeetupPin extends LatLng {
+  label: string;
+  notes: string | null;
+  pin_type: MeetupPinType;
+  created_by_id: string | null;
+  created_by_name: string | null;
+  updated_at: string;
+}
+
 export interface Vehicle {
   id: string;
   trip_id: string;
@@ -196,8 +207,7 @@ export interface OutfitVoteInsert {
 export interface TravelData {
   vehicles: Vehicle[];
   flights: FlightDetail[];
-  outfitPosts: OutfitPost[];
-  tripMeetupPin: LatLng | null; // Shared meetup location for the whole trip
+  tripMeetupPin: MeetupPin | null; // Shared meetup location for the whole trip
 }
 
 export interface VehicleWithPassengers extends Vehicle {

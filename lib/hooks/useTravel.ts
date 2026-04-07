@@ -1,6 +1,6 @@
 /**
  * Travel Plans Data Hooks
- * Real-time data management for vehicles, flights, meetup, and outfits
+ * Real-time data management for vehicles, flights, and meetup
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -14,13 +14,7 @@ import {
   VehiclePassengerInsert,
   FlightDetail,
   FlightDetailInsert,
-  FlightDetailUpdate,
-  OutfitPost,
-  OutfitPostInsert,
-  OutfitVote,
-  OutfitVoteInsert,
-  VoteType,
-  LatLng,
+  MeetupPin,
   TravelProgress,
 } from '@/lib/travelTypes';
 
@@ -30,18 +24,38 @@ import {
 export function useTravel(tripId: string) {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [flights, setFlights] = useState<FlightDetail[]>([]);
-  const [outfitPosts, setOutfitPosts] = useState<OutfitPost[]>([]);
-  const [tripMeetupPin, setTripMeetupPin] = useState<LatLng | null>(null);
+  const [tripMeetupPin, setTripMeetupPin] = useState<MeetupPin | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { userProfile } = useAuth();
 
-  // Fetch all travel data
+  function normalizeMeetupPin(pin: unknown): MeetupPin | null {
+    if (!pin || typeof pin !== 'object') {
+      return null;
+    }
+
+    const candidate = pin as Partial<MeetupPin> & { lat?: unknown; lng?: unknown };
+
+    if (typeof candidate.lat !== 'number' || typeof candidate.lng !== 'number') {
+      return null;
+    }
+
+    return {
+      lat: candidate.lat,
+      lng: candidate.lng,
+      label: typeof candidate.label === 'string' && candidate.label.trim().length > 0 ? candidate.label : 'Group Meetup',
+      notes: typeof candidate.notes === 'string' && candidate.notes.trim().length > 0 ? candidate.notes : null,
+      pin_type: candidate.pin_type === 'pickup' || candidate.pin_type === 'carpool' || candidate.pin_type === 'landmark' ? candidate.pin_type : 'meetup',
+      created_by_id: typeof candidate.created_by_id === 'string' ? candidate.created_by_id : null,
+      created_by_name: typeof candidate.created_by_name === 'string' ? candidate.created_by_name : null,
+      updated_at: typeof candidate.updated_at === 'string' && candidate.updated_at.length > 0 ? candidate.updated_at : new Date().toISOString(),
+    };
+  }
+
   const fetchData = useCallback(async () => {
     try {
       setError(null);
 
-      // Fetch vehicles with driver and passengers
       const { data: vehicleData, error: vehicleError } = await supabase
         .from('vehicles')
         .select(`
@@ -57,7 +71,6 @@ export function useTravel(tripId: string) {
 
       if (vehicleError) throw vehicleError;
 
-      // Fetch flights with user info
       const { data: flightData, error: flightError } = await supabase
         .from('flight_details')
         .select(`
@@ -70,60 +83,45 @@ export function useTravel(tripId: string) {
 
       if (flightError) throw flightError;
 
-      // Fetch outfit posts with user and votes
-      const { data: outfitData, error: outfitError } = await supabase
-        .from('outfit_posts')
-        .select(`
-          *,
-          user:users!outfit_posts_user_id_fkey(id, display_name, avatar_color),
-          votes:outfit_votes(
-            *,
-            user:users!outfit_votes_user_id_fkey(id, display_name, avatar_color)
-          )
-        `)
-        .eq('trip_id', tripId)
-        .order('created_at', { ascending: false });
+      const { data: tripData, error: tripError } = await supabase
+        .from('trips')
+        .select('meetup_pin')
+        .eq('id', tripId)
+        .single();
 
-      if (outfitError) throw outfitError;
+      if (tripError) throw tripError;
 
-      // Add vote summaries to outfit posts
-      const outfitsWithSummaries = (outfitData || []).map((post) => {
-        const votes = post.votes || [];
-        const upvotes = votes.filter((v: OutfitVote) => v.vote === 'up').length;
-        const downvotes = votes.filter((v: OutfitVote) => v.vote === 'down').length;
-        const userVote = votes.find((v: OutfitVote) => v.user_id === userProfile?.id)?.vote || null;
+      setVehicles((vehicleData as Vehicle[]) || []);
+      setFlights((flightData as FlightDetail[]) || []);
 
-        return {
-          ...post,
-          vote_summary: {
-            upvotes,
-            downvotes,
-            user_vote: userVote as 'up' | 'down' | null,
-          },
-        };
-      });
+      const tripMeetupPinData = normalizeMeetupPin(tripData?.meetup_pin);
+      const firstVehicleWithPin = (vehicleData || []).find((vehicle) => vehicle.meetup_pin);
+      const legacyVehiclePin = firstVehicleWithPin?.meetup_pin
+        ? normalizeMeetupPin({
+            lat: (firstVehicleWithPin.meetup_pin as { lat?: number; lng?: number }).lat,
+            lng: (firstVehicleWithPin.meetup_pin as { lat?: number; lng?: number }).lng,
+            label: 'Group Meetup',
+            notes: null,
+            pin_type: 'meetup',
+            created_by_id: firstVehicleWithPin.driver_id,
+            created_by_name: firstVehicleWithPin.driver?.display_name || null,
+            updated_at: firstVehicleWithPin.updated_at,
+          })
+        : null;
 
-      setVehicles(vehicleData as Vehicle[] || []);
-      setFlights(flightData as FlightDetail[] || []);
-      setOutfitPosts(outfitsWithSummaries);
-
-      // Extract trip-level meetup pin (from any vehicle, or could be stored at trip level)
-      const firstVehicleWithPin = (vehicleData || []).find((v) => v.meetup_pin);
-      setTripMeetupPin(firstVehicleWithPin?.meetup_pin || null);
+      setTripMeetupPin(tripMeetupPinData || legacyVehiclePin);
     } catch (err) {
       console.error('Error fetching travel data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load travel data');
     } finally {
       setIsLoading(false);
     }
-  }, [tripId, userProfile?.id]);
+  }, [tripId]);
 
-  // Subscribe to real-time updates
   useEffect(() => {
     fetchData();
 
-    // Set up real-time subscriptions
-    const vehicleChannel = supabase
+    const travelChannel = supabase
       .channel(`vehicles:${tripId}`)
       .on(
         'postgres_changes',
@@ -154,35 +152,12 @@ export function useTravel(tripId: string) {
         },
         () => fetchData()
       )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'outfit_posts',
-          filter: `trip_id=eq.${tripId}`,
-        },
-        () => fetchData()
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'outfit_votes',
-        },
-        () => fetchData()
-      )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(vehicleChannel);
+      supabase.removeChannel(travelChannel);
     };
   }, [tripId, fetchData]);
-
-  // ============================================================================
-  // VEHICLE OPERATIONS
-  // ============================================================================
 
   const addVehicle = useCallback(
     async (vehicleData: Omit<VehicleInsert, 'trip_id' | 'driver_id'>) => {
@@ -206,7 +181,6 @@ export function useTravel(tripId: string) {
 
         if (insertError) throw insertError;
 
-        // Log activity
         await supabase.from('activity_logs').insert({
           trip_id: tripId,
           user_id: userProfile.id,
@@ -215,6 +189,8 @@ export function useTravel(tripId: string) {
           target_id: data.id,
           description: `Created vehicle ${vehicleData.make_model || 'ride'}`,
         });
+
+        void fetchData();
 
         return { data: data as Vehicle, error: null };
       } catch (err) {
@@ -225,7 +201,7 @@ export function useTravel(tripId: string) {
         };
       }
     },
-    [tripId, userProfile?.id]
+    [fetchData, tripId, userProfile?.id]
   );
 
   const updateVehicle = useCallback(
@@ -243,6 +219,8 @@ export function useTravel(tripId: string) {
 
         if (updateError) throw updateError;
 
+        void fetchData();
+
         return { data: data as Vehicle, error: null };
       } catch (err) {
         console.error('Error updating vehicle:', err);
@@ -252,7 +230,7 @@ export function useTravel(tripId: string) {
         };
       }
     },
-    []
+    [fetchData]
   );
 
   const deleteVehicle = useCallback(
@@ -267,7 +245,6 @@ export function useTravel(tripId: string) {
 
         if (deleteError) throw deleteError;
 
-        // Log activity
         if (vehicle) {
           await supabase.from('activity_logs').insert({
             trip_id: tripId,
@@ -279,6 +256,8 @@ export function useTravel(tripId: string) {
           });
         }
 
+        void fetchData();
+
         return { error: null };
       } catch (err) {
         console.error('Error deleting vehicle:', err);
@@ -287,12 +266,8 @@ export function useTravel(tripId: string) {
         };
       }
     },
-    [vehicles, tripId, userProfile?.id]
+    [fetchData, tripId, userProfile?.id, vehicles]
   );
-
-  // ============================================================================
-  // PASSENGER OPERATIONS
-  // ============================================================================
 
   const addPassenger = useCallback(
     async (passengerData: VehiclePassengerInsert) => {
@@ -308,7 +283,6 @@ export function useTravel(tripId: string) {
 
         if (insertError) throw insertError;
 
-        // Log activity
         await supabase.from('activity_logs').insert({
           trip_id: tripId,
           user_id: userProfile?.id,
@@ -317,6 +291,8 @@ export function useTravel(tripId: string) {
           target_id: passengerData.vehicle_id,
           description: `Added passenger to vehicle`,
         });
+
+        void fetchData();
 
         return { data: data as VehiclePassenger, error: null };
       } catch (err) {
@@ -327,7 +303,7 @@ export function useTravel(tripId: string) {
         };
       }
     },
-    [tripId, userProfile?.id]
+    [fetchData, tripId, userProfile?.id]
   );
 
   const removePassenger = useCallback(
@@ -341,7 +317,6 @@ export function useTravel(tripId: string) {
 
         if (deleteError) throw deleteError;
 
-        // Log activity
         await supabase.from('activity_logs').insert({
           trip_id: tripId,
           user_id: userProfile?.id,
@@ -351,6 +326,8 @@ export function useTravel(tripId: string) {
           description: `Removed passenger from vehicle`,
         });
 
+        void fetchData();
+
         return { error: null };
       } catch (err) {
         console.error('Error removing passenger:', err);
@@ -359,12 +336,8 @@ export function useTravel(tripId: string) {
         };
       }
     },
-    [tripId, userProfile?.id]
+    [fetchData, tripId, userProfile?.id]
   );
-
-  // ============================================================================
-  // FLIGHT OPERATIONS
-  // ============================================================================
 
   const addOrUpdateFlight = useCallback(
     async (
@@ -391,7 +364,6 @@ export function useTravel(tripId: string) {
         }
 
         if (existingFlightId) {
-          // Update existing
           const { data: updated, error: updateError } = await supabase
             .from('flight_details')
             .update(flightData)
@@ -406,7 +378,6 @@ export function useTravel(tripId: string) {
           if (updateError) throw updateError;
           data = updated;
         } else {
-          // Insert new
           const { data: inserted, error: insertError } = await supabase
             .from('flight_details')
             .insert({
@@ -425,7 +396,6 @@ export function useTravel(tripId: string) {
           data = inserted;
         }
 
-        // Log activity
         await supabase.from('activity_logs').insert({
           trip_id: tripId,
           user_id: userProfile.id,
@@ -434,6 +404,8 @@ export function useTravel(tripId: string) {
           target_id: data.id,
           description: `${existingFlightId ? 'Updated' : 'Added'} flight details`,
         });
+
+        void fetchData();
 
         return { data: data as FlightDetail, error: null };
       } catch (err) {
@@ -444,7 +416,7 @@ export function useTravel(tripId: string) {
         };
       }
     },
-    [tripId, userProfile?.id]
+    [fetchData, tripId, userProfile?.id]
   );
 
   const deleteFlight = useCallback(
@@ -457,7 +429,6 @@ export function useTravel(tripId: string) {
 
         if (deleteError) throw deleteError;
 
-        // Log activity
         await supabase.from('activity_logs').insert({
           trip_id: tripId,
           user_id: userProfile?.id,
@@ -467,6 +438,8 @@ export function useTravel(tripId: string) {
           description: `Deleted flight details`,
         });
 
+        void fetchData();
+
         return { error: null };
       } catch (err) {
         console.error('Error deleting flight:', err);
@@ -475,141 +448,22 @@ export function useTravel(tripId: string) {
         };
       }
     },
-    [tripId, userProfile?.id]
+    [fetchData, tripId, userProfile?.id]
   );
-
-  // ============================================================================
-  // OUTFIT OPERATIONS
-  // ============================================================================
-
-  const addOutfitPost = useCallback(
-    async (postData: Omit<OutfitPostInsert, 'trip_id' | 'user_id'>) => {
-      if (!userProfile?.id) {
-        return { data: null, error: 'User not authenticated' };
-      }
-
-      try {
-        const { data, error: insertError } = await supabase
-          .from('outfit_posts')
-          .insert({
-            ...postData,
-            trip_id: tripId,
-            user_id: userProfile.id,
-          })
-          .select(`
-            *,
-            user:users!outfit_posts_user_id_fkey(id, display_name, avatar_color)
-          `)
-          .single();
-
-        if (insertError) throw insertError;
-
-        // Log activity
-        await supabase.from('activity_logs').insert({
-          trip_id: tripId,
-          user_id: userProfile.id,
-          action_type: 'outfit_posted',
-          module: 'travel',
-          target_id: data.id,
-          description: `Posted outfit photo`,
-        });
-
-        return { data: data as OutfitPost, error: null };
-      } catch (err) {
-        console.error('Error adding outfit post:', err);
-        return {
-          data: null,
-          error: err instanceof Error ? err.message : 'Failed to post outfit',
-        };
-      }
-    },
-    [tripId, userProfile?.id]
-  );
-
-  const voteOnOutfit = useCallback(
-    async (outfitPostId: string, vote: VoteType) => {
-      if (!userProfile?.id) {
-        return { data: null, error: 'User not authenticated' };
-      }
-
-      try {
-        // Upsert vote (insert or update)
-        const { data, error: upsertError } = await supabase
-          .from('outfit_votes')
-          .upsert(
-            {
-              outfit_post_id: outfitPostId,
-              user_id: userProfile.id,
-              vote,
-            },
-            {
-              onConflict: 'outfit_post_id,user_id',
-            }
-          )
-          .select()
-          .single();
-
-        if (upsertError) throw upsertError;
-
-        return { data: data as OutfitVote, error: null };
-      } catch (err) {
-        console.error('Error voting on outfit:', err);
-        return {
-          data: null,
-          error: err instanceof Error ? err.message : 'Failed to vote',
-        };
-      }
-    },
-    [userProfile?.id]
-  );
-
-  const removeOutfitVote = useCallback(
-    async (outfitPostId: string) => {
-      if (!userProfile?.id) {
-        return { error: 'User not authenticated' };
-      }
-
-      try {
-        const { error: deleteError } = await supabase
-          .from('outfit_votes')
-          .delete()
-          .eq('outfit_post_id', outfitPostId)
-          .eq('user_id', userProfile.id);
-
-        if (deleteError) throw deleteError;
-
-        return { error: null };
-      } catch (err) {
-        console.error('Error removing vote:', err);
-        return {
-          error: err instanceof Error ? err.message : 'Failed to remove vote',
-        };
-      }
-    },
-    [userProfile?.id]
-  );
-
-  // ============================================================================
-  // MEETUP PIN OPERATIONS
-  // ============================================================================
 
   const updateTripMeetupPin = useCallback(
-    async (meetupPin: LatLng | null) => {
+    async (meetupPin: MeetupPin | null) => {
       try {
-        // For now, store meetup pin on all vehicles
-        // In production, this might be a trip-level field
-        const updatePromises = vehicles.map((vehicle) =>
-          supabase
-            .from('vehicles')
-            .update({ meetup_pin: meetupPin })
-            .eq('id', vehicle.id)
-        );
+        const { error: updateError } = await supabase
+          .from('trips')
+          .update({ meetup_pin: meetupPin })
+          .eq('id', tripId);
 
-        await Promise.all(updatePromises);
+        if (updateError) throw updateError;
 
         setTripMeetupPin(meetupPin);
+        void fetchData();
 
-        // Log activity
         await supabase.from('activity_logs').insert({
           trip_id: tripId,
           user_id: userProfile?.id,
@@ -627,45 +481,31 @@ export function useTravel(tripId: string) {
         };
       }
     },
-    [vehicles, tripId, userProfile?.id]
+    [fetchData, tripId, userProfile?.id]
   );
 
-  // ============================================================================
-  // DERIVED DATA
-  // ============================================================================
-
   const progress: TravelProgress = {
-    totalMembers: 0, // Would need to fetch from group_members
+    totalMembers: 0,
     membersWithRides: vehicles.reduce((sum, v) => sum + (v.passengers?.length || 0), 0),
     membersNeedingPickup: flights.filter((f) => f.needs_pickup && !f.pickup_vehicle_id).length,
-    membersAssigned: vehicles.reduce((sum, v) => sum + (v.passengers?.length || 0), 0) + vehicles.length, // passengers + drivers
+    membersAssigned: vehicles.reduce((sum, v) => sum + (v.passengers?.length || 0), 0) + vehicles.length,
   };
 
   return {
     vehicles,
     flights,
-    outfitPosts,
     tripMeetupPin,
     progress,
     isLoading,
     error,
-    // Vehicle operations
     addVehicle,
     updateVehicle,
     deleteVehicle,
-    // Passenger operations
     addPassenger,
     removePassenger,
-    // Flight operations
     addOrUpdateFlight,
     deleteFlight,
-    // Outfit operations
-    addOutfitPost,
-    voteOnOutfit,
-    removeOutfitVote,
-    // Meetup operations
     updateTripMeetupPin,
-    // Refetch
     refetch: fetchData,
   };
 }

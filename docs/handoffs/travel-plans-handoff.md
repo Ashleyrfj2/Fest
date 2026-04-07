@@ -4,7 +4,7 @@
 Full-stack mobile engineer with maps and collaboration experience.
 
 ## Goal
-Build the Travel module as the trip’s coordination layer for cars, passengers, flights, pickups, meetup details, and outfit voting.
+Build the Travel module as the trip’s coordination layer for cars, passengers, flights, pickups, and meetup details.
 
 ## Why This Is Next
 Travel is a P1 module in the design spec and fits the current collaboration model well. It is a practical next step after the dashboard because it connects members to real-world coordination without requiring the heavier media or lineup work.
@@ -22,7 +22,6 @@ Travel is a P1 module in the design spec and fits the current collaboration mode
 - Support departure city, departure time, and waypoint-based pickup flows.
 - Support a shared meetup pin for the trip.
 - Support flight details for members who need pickup.
-- Include outfit photo upload and simple voting if the current product phase supports it.
 - Keep the experience aligned with trip roles and permissions.
 
 ## Non-Goals
@@ -42,13 +41,11 @@ Travel is a P1 module in the design spec and fits the current collaboration mode
 - One section for vehicles and passengers.
 - One section for flights and pickup needs.
 - One section for group meetup details.
-- One section for outfit posts and votes if included in this phase.
 - Keep the module scannable rather than overly dense.
 
 ## Dependencies
 - Trip members, roles, and permissions are already modeled.
 - The trip dashboard should expose a clean route into Travel.
-- Storage or upload handling may be needed if outfit photos are included.
 - Map primitives or a map SDK may be needed if meetup pins become interactive.
 
 ## Acceptance Criteria
@@ -63,9 +60,9 @@ Travel is a P1 module in the design spec and fits the current collaboration mode
 2. Build the vehicle and passenger flows.
 3. Add flight detail handling and pickup flags.
 4. Add meetup pin support.
-5. Add outfit upload/voting only if the current build phase can support it without diluting the core travel workflow.
+5. Keep the core travel workflow focused on vehicles, flights, and meetup coordination.
 
 ## Risks
-- The module can become too broad if outfit features dominate the logistics work.
+- The module can become too broad if travel tries to absorb non-essential feature work.
 - Map behavior can add complexity quickly if the interaction model is not constrained.
 - Pickup routing can be confusing if the UI does not clearly distinguish vehicle stops from destination meetup points.

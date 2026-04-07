@@ -905,6 +905,7 @@ export type Database = {
           invite_code: string
           invite_expires_at: string | null
           leader_id: string
+          meetup_pin: Json | null
           name: string
           start_date: string
         }
@@ -916,6 +917,7 @@ export type Database = {
           invite_code: string
           invite_expires_at?: string | null
           leader_id: string
+          meetup_pin?: Json | null
           name: string
           start_date: string
         }
@@ -927,6 +929,7 @@ export type Database = {
           invite_code?: string
           invite_expires_at?: string | null
           leader_id?: string
+          meetup_pin?: Json | null
           name?: string
           start_date?: string
         }

@@ -17,6 +17,7 @@
 - [Supply List](supply-list-handoff.md)
 - [Safety / Emergency Info](safety-profile-handoff.md)
 - [Travel Plans](travel-plans-handoff.md)
+- [Travel Module Plan](travel-module-plan.md)
 - [Camp Grid](camp-grid-handoff.md)
 
 ## Notes

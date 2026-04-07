@@ -1,6 +1,6 @@
 /**
  * Travel Plans Screen
- * Collaborative travel coordination with vehicles, flights, meetup, and outfits
+ * Collaborative travel coordination with vehicles, flights, and meetup
  */
 
 import React, { useState } from 'react';
@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Plus, Car, Plane } from 'lucide-react-native';
 import { colors, typography, spacing, borderRadius } from '@/lib/tokens';
@@ -25,13 +26,12 @@ import {
   FlightCard,
   FlightFormModal,
   MeetupMap,
-  OutfitGrid,
 } from '@/components/Travel';
 import {
   Vehicle,
   FlightDetail,
   VehiclePassengerInsert,
-  VoteType,
+  MeetupPin,
 } from '@/lib/travelTypes';
 import { VehicleFormData } from '@/components/Travel/VehicleFormModal';
 import { FlightFormData } from '@/components/Travel/FlightFormModal';
@@ -49,7 +49,6 @@ export default function TravelScreen() {
   const {
     vehicles,
     flights,
-    outfitPosts,
     tripMeetupPin,
     progress,
     isLoading,
@@ -62,9 +61,6 @@ export default function TravelScreen() {
     removePassenger,
     addOrUpdateFlight,
     deleteFlight,
-    addOutfitPost,
-    voteOnOutfit,
-    removeOutfitVote,
     updateTripMeetupPin,
   } = useTravel(tripId);
 
@@ -190,38 +186,19 @@ export default function TravelScreen() {
   }
 
   // ============================================================================
-  // OUTFIT HANDLERS
-  // ============================================================================
-
-  function handleAddOutfit() {
-    // In a real app, this would open a photo picker
-    Alert.alert(
-      'Add Outfit Photo',
-      'Photo upload feature coming soon! For now, this would open a photo picker to select your festival outfit.',
-      [{ text: 'OK' }]
-    );
-  }
-
-  async function handleVoteOnOutfit(postId: string, vote: VoteType) {
-    const result = await voteOnOutfit(postId, vote);
-    if (result.error) {
-      Alert.alert('Error', result.error);
-    }
-  }
-
-  async function handleRemoveOutfitVote(postId: string) {
-    const result = await removeOutfitVote(postId);
-    if (result.error) {
-      Alert.alert('Error', result.error);
-    }
-  }
-
-  // ============================================================================
   // MEETUP HANDLERS
   // ============================================================================
 
-  async function handleUpdateMeetupPin(pin: any) {
-    const result = await updateTripMeetupPin(pin);
+  async function handleUpdateMeetupPin(pin: MeetupPin | null) {
+    const normalizedPin = pin
+      ? {
+          ...pin,
+          created_by_id: pin.created_by_id || userProfile?.id || null,
+          created_by_name: pin.created_by_name || userProfile?.display_name || null,
+        }
+      : null;
+
+    const result = await updateTripMeetupPin(normalizedPin);
     if (result.error) {
       Alert.alert('Error', result.error);
     }
@@ -234,25 +211,25 @@ export default function TravelScreen() {
   // Loading state
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color={colors.accent.gold} />
         <Text style={styles.loadingText}>Loading travel plans...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   // Error state
   if (error) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.container, styles.centered]}>
         <Text style={styles.errorText}>Failed to load travel plans</Text>
         <Text style={styles.errorMessage}>{error}</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -384,17 +361,6 @@ export default function TravelScreen() {
           />
         </View>
 
-        {/* Outfit Voting Section */}
-        <View style={styles.section}>
-          <OutfitGrid
-            outfitPosts={outfitPosts}
-            currentUserId={userProfile?.id}
-            onVote={handleVoteOnOutfit}
-            onRemoveVote={handleRemoveOutfitVote}
-            onAddPost={handleAddOutfit}
-            isEditor={true} // Everyone can post outfits
-          />
-        </View>
       </ScrollView>
 
       {/* Modals */}
@@ -412,7 +378,7 @@ export default function TravelScreen() {
         editFlight={editingFlight}
         vehicles={vehicles}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -447,7 +413,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingTop: 60,
     paddingBottom: spacing.md,
     backgroundColor: colors.base,
   },

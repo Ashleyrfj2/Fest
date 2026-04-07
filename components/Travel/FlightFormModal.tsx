@@ -144,67 +144,79 @@ export function FlightFormModal({
             contentContainerStyle={styles.formContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* Airline */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Airline (Optional)</Text>
-              <TextInput
-                style={styles.input}
-                value={airline}
-                onChangeText={setAirline}
-                placeholder="e.g. Delta, United, Southwest"
-                placeholderTextColor={colors.text.dim}
-                autoCapitalize="words"
-              />
-            </View>
-
-            {/* Flight Number */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Flight Number (Optional)</Text>
-              <TextInput
-                style={styles.input}
-                value={flightNumber}
-                onChangeText={setFlightNumber}
-                placeholder="e.g. DL1234"
-                placeholderTextColor={colors.text.dim}
-                autoCapitalize="characters"
-              />
-            </View>
-
-            {/* Arrival Airport */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Arrival Airport (Optional)</Text>
-              <TextInput
-                style={styles.input}
-                value={arrivalAirport}
-                onChangeText={setArrivalAirport}
-                placeholder="e.g. LAX, JFK, ORD"
-                placeholderTextColor={colors.text.dim}
-                autoCapitalize="characters"
-              />
-            </View>
-
-            {/* Arrival Time */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Arrival Time (Optional)</Text>
-              <TextInput
-                style={styles.input}
-                value={arrivalTime}
-                onChangeText={setArrivalTime}
-                placeholder="YYYY-MM-DD HH:MM"
-                placeholderTextColor={colors.text.dim}
-              />
-              <Text style={styles.hint}>
-                Format: 2026-06-15 14:00
+            <View style={styles.introCard}>
+              <Text style={styles.introTitle}>Flight details</Text>
+              <Text style={styles.introText}>
+                Share your airline, flight number, arrival airport, and arrival time so the group can plan pickup.
               </Text>
             </View>
 
-            {/* Needs Pickup */}
-            <View style={styles.fieldGroup}>
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionTitle}>Arrival info</Text>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>Airline / carrier</Text>
+                <TextInput
+                  style={styles.input}
+                  value={airline}
+                  onChangeText={setAirline}
+                  placeholder="e.g. Delta, United, Southwest"
+                  placeholderTextColor={colors.text.dim}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                />
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>Flight Number</Text>
+                <TextInput
+                  style={styles.input}
+                  value={flightNumber}
+                  onChangeText={setFlightNumber}
+                  placeholder="e.g. DL1234"
+                  placeholderTextColor={colors.text.dim}
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                />
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>Arrival Airport</Text>
+                <TextInput
+                  style={styles.input}
+                  value={arrivalAirport}
+                  onChangeText={setArrivalAirport}
+                  placeholder="e.g. LAX, JFK, ORD"
+                  placeholderTextColor={colors.text.dim}
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                />
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>Arrival Time</Text>
+                <TextInput
+                  style={styles.input}
+                  value={arrivalTime}
+                  onChangeText={setArrivalTime}
+                  placeholder="YYYY-MM-DD HH:MM"
+                  placeholderTextColor={colors.text.dim}
+                  autoCorrect={false}
+                />
+                <Text style={styles.hint}>
+                  Format: 2026-06-15 14:00
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionTitle}>Pickup plan</Text>
+
               <View style={styles.switchRow}>
                 <View style={styles.switchLabel}>
                   <Text style={styles.label}>Need pickup from airport?</Text>
                   <Text style={styles.hint}>
-                    Let the group know if you need a ride
+                    Turn this on if the group should coordinate a ride.
                   </Text>
                 </View>
                 <Switch
@@ -222,50 +234,60 @@ export function FlightFormModal({
                   thumbColor={colors.base}
                 />
               </View>
-            </View>
 
-            {needsPickup && (
-              <View style={styles.fieldGroup}>
-                <Text style={styles.label}>Assign Pickup Vehicle (Optional)</Text>
-                <View style={styles.vehicleChoices}>
-                  <TouchableOpacity
-                    style={[
-                      styles.vehicleChoice,
-                      pickupVehicleId === null && styles.vehicleChoiceSelected,
-                    ]}
-                    onPress={() => setPickupVehicleId(null)}
-                    activeOpacity={0.7}
-                  >
-                    <Text
+              {needsPickup && (
+                <View style={styles.assignmentBlock}>
+                  <Text style={styles.label}>Assign Pickup Vehicle</Text>
+                  <Text style={styles.hint}>
+                    Pick a vehicle if one is already handling airport pickup.
+                  </Text>
+
+                  <View style={styles.vehicleChoices}>
+                    <TouchableOpacity
                       style={[
-                        styles.vehicleChoiceText,
-                        pickupVehicleId === null && styles.vehicleChoiceTextSelected,
+                        styles.vehicleChoice,
+                        pickupVehicleId === null && styles.vehicleChoiceSelected,
                       ]}
+                      onPress={() => setPickupVehicleId(null)}
+                      activeOpacity={0.7}
                     >
-                      Unassigned
-                    </Text>
-                  </TouchableOpacity>
-
-                  {vehicles.map((vehicle) => {
-                    const availableSeats = Math.max(0, vehicle.capacity - (vehicle.passengers?.length || 0) - 1);
-                    const selected = pickupVehicleId === vehicle.id;
-
-                    return (
-                      <TouchableOpacity
-                        key={vehicle.id}
-                        style={[styles.vehicleChoice, selected && styles.vehicleChoiceSelected]}
-                        onPress={() => setPickupVehicleId(vehicle.id)}
-                        activeOpacity={0.7}
+                      <Text
+                        style={[
+                          styles.vehicleChoiceText,
+                          pickupVehicleId === null && styles.vehicleChoiceTextSelected,
+                        ]}
                       >
-                        <Text style={[styles.vehicleChoiceText, selected && styles.vehicleChoiceTextSelected]}>
-                          {vehicle.make_model || 'Ride Available'} - {availableSeats} seat{availableSeats === 1 ? '' : 's'}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
+                        Unassigned
+                      </Text>
+                    </TouchableOpacity>
+
+                    {vehicles.length === 0 ? (
+                      <Text style={styles.hint}>
+                        Add a vehicle first if you want to assign pickup.
+                      </Text>
+                    ) : (
+                      vehicles.map((vehicle) => {
+                        const availableSeats = Math.max(0, vehicle.capacity - (vehicle.passengers?.length || 0) - 1);
+                        const selected = pickupVehicleId === vehicle.id;
+
+                        return (
+                          <TouchableOpacity
+                            key={vehicle.id}
+                            style={[styles.vehicleChoice, selected && styles.vehicleChoiceSelected]}
+                            onPress={() => setPickupVehicleId(vehicle.id)}
+                            activeOpacity={0.7}
+                          >
+                            <Text style={[styles.vehicleChoiceText, selected && styles.vehicleChoiceTextSelected]}>
+                              {vehicle.make_model || 'Ride Available'} - {availableSeats} seat{availableSeats === 1 ? '' : 's'}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })
+                    )}
+                  </View>
                 </View>
-              </View>
-            )}
+              )}
+            </View>
           </ScrollView>
 
           {/* Actions */}
@@ -304,7 +326,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.base,
     borderTopLeftRadius: borderRadius.xl,
     borderTopRightRadius: borderRadius.xl,
-    maxHeight: '85%',
+    height: '85%',
   },
   header: {
     flexDirection: 'row',
@@ -335,6 +357,38 @@ const styles = StyleSheet.create({
   formContent: {
     padding: spacing.lg,
     gap: spacing.lg,
+  },
+  introCard: {
+    backgroundColor: colors.surface.level1,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
+    gap: spacing.xs,
+  },
+  introTitle: {
+    fontSize: typography.size.cardTitle,
+    fontWeight: typography.weight.cardTitle,
+    color: colors.text.primary,
+  },
+  introText: {
+    fontSize: typography.size.body,
+    fontWeight: typography.weight.body,
+    color: colors.text.mid,
+    lineHeight: 20,
+  },
+  sectionCard: {
+    backgroundColor: colors.surface.level1,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
+    gap: spacing.md,
+  },
+  sectionTitle: {
+    fontSize: typography.size.cardTitle,
+    fontWeight: typography.weight.cardTitle,
+    color: colors.text.primary,
   },
   fieldGroup: {
     gap: spacing.sm,
@@ -374,6 +428,10 @@ const styles = StyleSheet.create({
   switchLabel: {
     flex: 1,
     gap: 4,
+  },
+  assignmentBlock: {
+    gap: spacing.sm,
+    paddingTop: spacing.xs,
   },
   vehicleChoices: {
     gap: spacing.sm,

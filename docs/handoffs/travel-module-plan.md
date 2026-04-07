@@ -1,0 +1,85 @@
+# Travel Module Plan
+
+## Owner
+Travel Module UI Engineer, Travel Module Data Engineer, Travel Module Maps Engineer, and Travel Module QA Engineer.
+
+## Goal
+Finish the Travel feature as the trip’s coordination layer for vehicles, passengers, flights, pickup details, and a shared meetup location, while keeping the implementation tight, mobile-friendly, and consistent with the current app.
+
+## Why This Plan Exists
+The Travel module is already documented as shipped in the implementation report, but the live app still has test-reported regressions and a few unfinished user flows. This plan narrows the active scope, removes outfit work from the module for now, and gives each specialist a clear lane.
+
+## Current Scope
+- Vehicle creation and management.
+- Passenger assignment to vehicles.
+- Departure city, departure time, and waypoint-based pickup details.
+- Shared meetup pin or meetup location support.
+- Flight details for members who need pickup.
+- Clean save flows and immediate UI refresh after edits.
+- Role-aware controls that match trip permissions.
+
+## Deferred Out of Scope
+- Outfit photo upload and outfit voting.
+- Lineup import support.
+- Unique username work.
+- Any broader trip logistics that are not required for core rides, flights, or meetup coordination.
+
+## Source Context
+- [Travel Plans handoff](travel-plans-handoff.md)
+- [Travel Plans implementation report](../reports/travel-plans-implementation-report.md)
+- [Test notes](../test-notes.md)
+- [Stretch backlog](../product/stretch.md)
+
+## Recommended Implementation Order
+1. Fix the broken vehicle and flight modal flows so the core data-entry path works.
+2. Fix the navigation and safe-area regressions that affect basic usability.
+3. Confirm the meetup map zoom, pan, and pin behavior are understandable on device.
+4. Add waypoint and pickup refinements after the base workflow is stable.
+5. Run QA across the whole Travel flow before calling it done.
+
+## Owner Breakdown
+### Travel Module UI Engineer
+- Own the Travel screen shell, section hierarchy, empty states, and modal entry points.
+- Keep the layout scannable and aligned with the rest of the app.
+- Make sure the Travel screen is understandable at a glance.
+
+### Travel Module Data Engineer
+- Own vehicle, flight, and meetup state updates.
+- Fix stale state after save and keep refresh behavior predictable.
+- Keep trip-scoped mutations and permission handling explicit.
+
+### Travel Module Maps Engineer
+- Own meetup map rendering, pin interactions, zoom/pan behavior, and waypoint-related UX.
+- Keep map behavior lightweight and understandable.
+- Make sure the map still reads clearly when no location is set.
+
+### Travel Module QA Engineer
+- Audit the whole Travel workflow after implementation.
+- Validate forms, save flows, map behavior, permissions, and error states.
+- Fail the feature if any core path still feels incomplete or brittle.
+
+## Acceptance Criteria
+- A user can create and edit vehicles without placeholder-only UI.
+- A user can create and edit flights without placeholder-only UI.
+- The back button and safe-area behavior work correctly.
+- Meetup or waypoint state is understandable and usable.
+- The Travel map behaves well on device.
+- Empty states and error states feel intentional.
+- No outfit-related controls remain in Travel.
+- QA signs off with no critical blockers.
+
+## QA Exit Checklist
+- [ ] Vehicle add/edit opens a real form and saves successfully.
+- [ ] Flight add/edit opens a real form and saves successfully.
+- [ ] Back navigation works on the Travel screen.
+- [ ] Safe-area and top-bar overlap are resolved.
+- [ ] Meetup map can be panned and zoomed as expected.
+- [ ] Empty states are intentional and readable.
+- [ ] Permission-gated controls appear only for the correct roles.
+- [ ] Save flows visibly reflect the user action without requiring a reload.
+- [ ] No outfit-related UI remains in Travel.
+
+## Notes
+- Keep the work focused on shipping a clean, reliable travel workflow.
+- If a new idea does not help rides, flights, or meetup coordination, move it to stretch.
+- Use the existing travel handoff as the source of product intent and this document as the execution plan.

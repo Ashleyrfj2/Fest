@@ -40,7 +40,7 @@ export function VehicleFormModal({
   editVehicle,
 }: VehicleFormModalProps) {
   const [makeModel, setMakeModel] = useState('');
-  const [availableSpots, setAvailableSpots] = useState('3');
+  const [totalSeats, setTotalSeats] = useState('4');
   const [departureCity, setDepartureCity] = useState('');
   const [departureTime, setDepartureTime] = useState('');
   const [waypointAddresses, setWaypointAddresses] = useState<string[]>([]);
@@ -50,7 +50,7 @@ export function VehicleFormModal({
   useEffect(() => {
     if (editVehicle) {
       setMakeModel(editVehicle.make_model || '');
-      setAvailableSpots(String(Math.max(0, editVehicle.capacity - 1)));
+      setTotalSeats(String(Math.max(1, editVehicle.capacity)));
       setDepartureCity(editVehicle.departure_city || '');
       setDepartureTime(
         editVehicle.departure_time
@@ -65,7 +65,7 @@ export function VehicleFormModal({
     } else {
       // Reset form
       setMakeModel('');
-      setAvailableSpots('3');
+      setTotalSeats('4');
       setDepartureCity('');
       setDepartureTime('');
       setWaypointAddresses([]);
@@ -99,14 +99,13 @@ export function VehicleFormModal({
   }
 
   async function handleSave() {
-    const spotsNum = parseInt(availableSpots, 10);
+    const seatsNum = parseInt(totalSeats, 10);
 
-    if (isNaN(spotsNum) || spotsNum < 0 || spotsNum > 19) {
-      alert('Please enter available spots between 0 and 19');
+    if (isNaN(seatsNum) || seatsNum < 1 || seatsNum > 20) {
+      alert('Please enter total seats between 1 and 20');
       return;
     }
 
-    const capacityNum = spotsNum + 1;
     const normalizedDepartureTime = normalizeDateTime(departureTime);
     if (normalizedDepartureTime === '__INVALID__') {
       alert('Please enter a valid departure time, like 2026-06-15 14:00');
@@ -127,7 +126,7 @@ export function VehicleFormModal({
     try {
       const wasSaved = await onSave({
         make_model: makeModel.trim() || null,
-        capacity: capacityNum,
+        capacity: seatsNum,
         departure_city: departureCity.trim() || null,
         departure_time: normalizedDepartureTime,
         waypoints: parsedWaypoints.length > 0 ? parsedWaypoints : null,
@@ -171,67 +170,93 @@ export function VehicleFormModal({
             contentContainerStyle={styles.formContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* Make/Model */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Make & Model (Optional)</Text>
-              <TextInput
-                style={styles.input}
-                value={makeModel}
-                onChangeText={setMakeModel}
-                placeholder="e.g. Honda Accord, Blue Sedan"
-                placeholderTextColor={colors.text.dim}
-                autoCapitalize="words"
-              />
-            </View>
-
-            {/* Capacity */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Available Passenger Spots</Text>
-              <TextInput
-                style={styles.input}
-                value={availableSpots}
-                onChangeText={setAvailableSpots}
-                placeholder="3"
-                placeholderTextColor={colors.text.dim}
-                keyboardType="number-pad"
-              />
-              <Text style={styles.hint}>
-                Driver seat is added automatically
+            <View style={styles.introCard}>
+              <Text style={styles.introTitle}>Vehicle details</Text>
+              <Text style={styles.introText}>
+                Add the ride type, total seats, where it starts, and any pickup stops.
               </Text>
             </View>
 
-            {/* Departure City */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Departure City (Optional)</Text>
-              <TextInput
-                style={styles.input}
-                value={departureCity}
-                onChangeText={setDepartureCity}
-                placeholder="e.g. Los Angeles, CA"
-                placeholderTextColor={colors.text.dim}
-                autoCapitalize="words"
-              />
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionTitle}>Ride basics</Text>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>Vehicle type / make & model</Text>
+                <TextInput
+                  style={styles.input}
+                  value={makeModel}
+                  onChangeText={setMakeModel}
+                  placeholder="e.g. SUV, minivan, Honda Accord"
+                  placeholderTextColor={colors.text.dim}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  textContentType="none"
+                />
+                <Text style={styles.hint}>
+                  This helps everyone know what car to look for.
+                </Text>
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>Total Seats</Text>
+                <TextInput
+                  style={styles.input}
+                  value={totalSeats}
+                  onChangeText={setTotalSeats}
+                  placeholder="4"
+                  placeholderTextColor={colors.text.dim}
+                  keyboardType="number-pad"
+                  autoCorrect={false}
+                />
+                <Text style={styles.hint}>
+                  Include the driver seat in the total.
+                </Text>
+              </View>
             </View>
 
-            {/* Departure Time */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Departure Time (Optional)</Text>
-              <TextInput
-                style={styles.input}
-                value={departureTime}
-                onChangeText={setDepartureTime}
-                placeholder="YYYY-MM-DD HH:MM"
-                placeholderTextColor={colors.text.dim}
-              />
-              <Text style={styles.hint}>
-                Format: 2026-06-15 14:00
-              </Text>
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionTitle}>Departure plan</Text>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>Starting Point / Departure City</Text>
+                <TextInput
+                  style={styles.input}
+                  value={departureCity}
+                  onChangeText={setDepartureCity}
+                  placeholder="e.g. Los Angeles, CA"
+                  placeholderTextColor={colors.text.dim}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                />
+                <Text style={styles.hint}>
+                  Where is the car leaving from?
+                </Text>
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>Departure Time</Text>
+                <TextInput
+                  style={styles.input}
+                  value={departureTime}
+                  onChangeText={setDepartureTime}
+                  placeholder="YYYY-MM-DD HH:MM"
+                  placeholderTextColor={colors.text.dim}
+                  autoCorrect={false}
+                />
+                <Text style={styles.hint}>
+                  Format: 2026-06-15 14:00
+                </Text>
+              </View>
             </View>
 
-            {/* Pickup Waypoints */}
-            <View style={styles.fieldGroup}>
+            <View style={styles.sectionCard}>
               <View style={styles.waypointHeader}>
-                <Text style={styles.label}>Pickup Stops (Optional)</Text>
+                <View style={styles.sectionHeaderCopy}>
+                  <Text style={styles.sectionTitle}>Pickup Stops on the Route</Text>
+                  <Text style={styles.hint}>
+                    Add any addresses where you plan to pick people up.
+                  </Text>
+                </View>
                 <TouchableOpacity
                   style={styles.addWaypointButton}
                   onPress={addWaypointField}
@@ -242,7 +267,9 @@ export function VehicleFormModal({
               </View>
 
               {waypointAddresses.length === 0 ? (
-                <Text style={styles.hint}>Add pickup stops if you plan to collect passengers on the way.</Text>
+                <Text style={styles.hint}>
+                  Add pickup stops if you plan to collect passengers on the way.
+                </Text>
               ) : (
                 <View style={styles.waypointsList}>
                   {waypointAddresses.map((waypoint, index) => (
@@ -254,6 +281,7 @@ export function VehicleFormModal({
                         onChangeText={(value) => updateWaypointField(index, value)}
                         placeholder="Pickup stop address"
                         placeholderTextColor={colors.text.dim}
+                        autoCorrect={false}
                       />
                       <TouchableOpacity
                         style={styles.removeWaypointButton}
@@ -305,7 +333,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.base,
     borderTopLeftRadius: borderRadius.xl,
     borderTopRightRadius: borderRadius.xl,
-    maxHeight: '85%',
+    height: '85%',
   },
   header: {
     flexDirection: 'row',
@@ -336,6 +364,42 @@ const styles = StyleSheet.create({
   formContent: {
     padding: spacing.lg,
     gap: spacing.lg,
+  },
+  introCard: {
+    backgroundColor: colors.surface.level1,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
+    gap: spacing.xs,
+  },
+  introTitle: {
+    fontSize: typography.size.cardTitle,
+    fontWeight: typography.weight.cardTitle,
+    color: colors.text.primary,
+  },
+  introText: {
+    fontSize: typography.size.body,
+    fontWeight: typography.weight.body,
+    color: colors.text.mid,
+    lineHeight: 20,
+  },
+  sectionCard: {
+    backgroundColor: colors.surface.level1,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
+    gap: spacing.md,
+  },
+  sectionTitle: {
+    fontSize: typography.size.cardTitle,
+    fontWeight: typography.weight.cardTitle,
+    color: colors.text.primary,
+  },
+  sectionHeaderCopy: {
+    flex: 1,
+    gap: spacing.xs,
   },
   fieldGroup: {
     gap: spacing.sm,
