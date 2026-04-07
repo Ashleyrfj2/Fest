@@ -6,7 +6,7 @@
 
 import { View, Text, ScrollView, StyleSheet, Pressable, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Icon } from '@/components/Icon';
 import { EmailPromptBanner } from '@/components/EmailPromptBanner';
@@ -187,11 +187,6 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <Text style={styles.appTitle}>FestNest</Text>
           <View style={styles.headerButtons}>
-            <Link href="/test-db" asChild>
-              <Pressable style={styles.testButton}>
-                <Text style={styles.testButtonText}>Test DB</Text>
-              </Pressable>
-            </Link>
             <Pressable
               style={styles.settingsButton}
               onPress={() => router.push('/settings')}
@@ -509,19 +504,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-  },
-  testButton: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.accent.gold,
-    borderRadius: borderRadius.sm,
-  },
-  testButtonText: {
-    fontSize: typography.size.meta,
-    fontWeight: typography.weight.label,
-    color: colors.base,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   settingsButton: {
     padding: spacing.sm,
