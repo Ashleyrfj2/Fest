@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Plus, Package } from 'lucide-react-native';
 import { colors, typography, spacing, borderRadius } from '@/lib/tokens';
@@ -148,20 +149,20 @@ export default function SupplyListScreen() {
   // Loading state
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color={colors.accent.gold} />
         <Text style={styles.loadingText}>Loading supplies...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   // Error state
   if (error) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.container, styles.centered]}>
         <Text style={styles.errorText}>Failed to load supply list</Text>
         <Text style={styles.errorMessage}>{error}</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -169,7 +170,7 @@ export default function SupplyListScreen() {
   const isEmpty = categoryGroups.length === 0;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -267,7 +268,7 @@ export default function SupplyListScreen() {
         editItem={editingItem}
         findDuplicates={findDuplicates}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -302,8 +303,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingTop: 60,
-    paddingBottom: spacing.md,
+    paddingVertical: spacing.md,
     backgroundColor: colors.base,
   },
   backButton: {

@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   FlatList,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Plus, UtensilsCrossed } from 'lucide-react-native';
 import { colors, typography, spacing, borderRadius } from '@/lib/tokens';
@@ -141,26 +142,26 @@ export default function FoodPlannerScreen() {
 
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color={colors.accent.gold} />
         <Text style={styles.loadingText}>Loading meal planner...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.container, styles.centered]}>
         <Text style={styles.errorText}>Failed to load meal planner</Text>
         <Text style={styles.errorMessage}>{error}</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   const isEmpty = mealDays.length === 0;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -273,7 +274,7 @@ export default function FoodPlannerScreen() {
           onCancel={() => setIsModalVisible(false)}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -312,7 +313,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.subtle,
-    paddingTop: spacing.lg,
   },
   backButton: {
     padding: spacing.sm,

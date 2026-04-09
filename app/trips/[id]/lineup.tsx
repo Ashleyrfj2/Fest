@@ -13,9 +13,11 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  TextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Plus, Search, Filter } from 'lucide-react-native';
+import { ArrowLeft, Plus, Search, Filter, ThumbsUp, Eye, SkipForward } from 'lucide-react-native';
 import { colors, typography, spacing, borderRadius } from '@/lib/tokens';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useLineup } from '@/lib/hooks/useLineup';
@@ -183,17 +185,17 @@ export default function LineupSchedulerScreen() {
   // Loading state
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color={colors.accent.gold} />
         <Text style={styles.loadingText}>Loading lineup...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   // Error state
   if (error) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.container, styles.centered]}>
         <Text style={styles.errorText}>Error: {error}</Text>
         <TouchableOpacity
           style={styles.retryButton}
@@ -201,12 +203,12 @@ export default function LineupSchedulerScreen() {
         >
           <Text style={styles.retryButtonText}>Go Back</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       {/* Header */}
       <View style={styles.headerBar}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -255,25 +257,40 @@ export default function LineupSchedulerScreen() {
             contentContainerStyle={styles.filterButtons}
             scrollEventThrottle={16}
           >
-            {(['all', 'must_see', 'want_to_see', 'skip'] as const).map((pref) => (
-              <TouchableOpacity
-                key={pref}
-                style={[
-                  styles.filterButton,
-                  filterPreference === pref && styles.filterButtonActive,
-                ]}
-                onPress={() => setFilterPreference(pref)}
-              >
-                <Text
+            {(['all', 'must_see', 'want_to_see', 'skip'] as const).map((pref) => {
+              let label = 'All';
+              let icon = null;
+              if (pref === 'must_see') {
+                label = 'Must See';
+                icon = <ThumbsUp size={16} color={filterPreference === pref ? colors.accent.gold : colors.text.mid} />;
+              } else if (pref === 'want_to_see') {
+                label = 'Want to See';
+                icon = <Eye size={16} color={filterPreference === pref ? colors.accent.gold : colors.text.mid} />;
+              } else if (pref === 'skip') {
+                label = 'Skip';
+                icon = <SkipForward size={16} color={filterPreference === pref ? colors.accent.gold : colors.text.mid} />;
+              }
+              return (
+                <TouchableOpacity
+                  key={pref}
                   style={[
-                    styles.filterButtonText,
-                    filterPreference === pref && styles.filterButtonTextActive,
+                    styles.filterButton,
+                    filterPreference === pref && styles.filterButtonActive,
                   ]}
+                  onPress={() => setFilterPreference(pref)}
                 >
-                  {pref === 'all' ? 'All' : pref === 'must_see' ? '👍' : pref === 'want_to_see' ? '👀' : '⏭️'}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  {icon && <View style={{ marginRight: spacing.xs }}>{icon}</View>}
+                  <Text
+                    style={[
+                      styles.filterButtonText,
+                      filterPreference === pref && styles.filterButtonTextActive,
+                    ]}
+                  >
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
 
@@ -340,11 +357,9 @@ export default function LineupSchedulerScreen() {
         onAdd={handleAddArtist}
         isLoading={isAddingArtist}
       />
-    </View>
+    </SafeAreaView>
   );
 }
-
-import { TextInput } from 'react-native';
 
 const styles = StyleSheet.create({
   container: {

@@ -1,6 +1,8 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { ArrowLeft } from 'lucide-react-native';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { CampGridDropMetrics, CampGridScene } from '@/components/CampGrid/CampGridScene';
@@ -18,6 +20,7 @@ export default function CampGridScreen() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [orientationReady, setOrientationReady] = useState(false);
   const [gridMetrics, setGridMetrics] = useState<CampGridDropMetrics | null>(null);
+  const [dropFeedback, setDropFeedback] = useState<string | null>(null);
   const [showCustomItemModal, setShowCustomItemModal] = useState(false);
   const [dragPreview, setDragPreview] = useState<{
     template: CampItemTemplate;
@@ -42,23 +45,30 @@ export default function CampGridScreen() {
     saveLayoutToGroup,
   } = useCampGridDB(id);
 
-  useLayoutEffect(() => {
-    let isActive = true;
-    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE).catch(() => {
-      // If orientation lock fails on web/simulator edge cases, keep screen usable.
-    }).finally(() => {
-      if (isActive) {
-        setOrientationReady(true);
-      }
-    });
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
 
-    return () => {
-      isActive = false;
-      ScreenOrientation.unlockAsync().catch(() => {
-        // no-op
-      });
-    };
-  }, []);
+      setOrientationReady(false);
+
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE)
+        .catch(() => {
+          // If orientation lock fails on web/simulator edge cases, keep screen usable.
+        })
+        .finally(() => {
+          if (isActive) {
+            setOrientationReady(true);
+          }
+        });
+
+      return () => {
+        isActive = false;
+        ScreenOrientation.unlockAsync().catch(() => {
+          // no-op
+        });
+      };
+    }, [])
+  );
 
   useEffect(() => {
     async function loadFestivalName() {
@@ -86,6 +96,18 @@ export default function CampGridScreen() {
     }
   }, [error]);
 
+  useEffect(() => {
+    if (!dropFeedback) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setDropFeedback(null);
+    }, 2200);
+
+    return () => clearTimeout(timer);
+  }, [dropFeedback]);
+
   const saveStatusText = isSavingLayout
     ? 'Saving layout...'
     : hasUnsavedChanges
@@ -98,6 +120,7 @@ export default function CampGridScreen() {
     setDragPreview(null);
 
     if (!grid || !gridMetrics) {
+      setDropFeedback('Drop items on the grid to place them.');
       return;
     }
 
@@ -108,6 +131,7 @@ export default function CampGridScreen() {
       point.y <= gridMetrics.y + gridMetrics.height;
 
     if (!insideGrid) {
+      setDropFeedback('Item was not added. Drop inside the grid bounds.');
       return;
     }
 
@@ -140,9 +164,15 @@ export default function CampGridScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['left', 'right']} style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
           <ArrowLeft size={22} color={colors.text.mid} strokeWidth={2} />
         </TouchableOpacity>
         <View style={styles.headerCopy}>
@@ -160,6 +190,8 @@ export default function CampGridScreen() {
             }}
             disabled={isSavingLayout}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Save layout"
           >
             <Text style={styles.saveButtonLabel}>{isSavingLayout ? 'Saving...' : 'Save Layout'}</Text>
           </TouchableOpacity>
@@ -169,6 +201,11 @@ export default function CampGridScreen() {
 
       <View style={styles.content}>
         <View style={styles.gridPane}>
+          {dropFeedback && (
+            <View style={styles.dropFeedbackBanner}>
+              <Text style={styles.dropFeedbackText}>{dropFeedback}</Text>
+            </View>
+          )}
           <CampGridScene
             grid={grid}
             items={items}
@@ -242,7 +279,7 @@ export default function CampGridScreen() {
           await addItem(template);
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -272,8 +309,8 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   backButton: {
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
     borderRadius: borderRadius.md,
     backgroundColor: colors.surface.level1,
     alignItems: 'center',
@@ -297,7 +334,10 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
+    minHeight: 44,
     backgroundColor: colors.accent.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   saveButtonDisabled: {
     opacity: 0.7,
@@ -317,6 +357,24 @@ const styles = StyleSheet.create({
   },
   gridPane: {
     flex: 1,
+  },
+  dropFeedbackBanner: {
+    position: 'absolute',
+    top: spacing.md,
+    left: spacing.md,
+    right: spacing.md,
+    zIndex: 35,
+    borderRadius: borderRadius.md,
+    backgroundColor: 'rgba(220, 68, 68, 0.94)',
+    borderWidth: 1,
+    borderColor: colors.danger,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  dropFeedbackText: {
+    color: colors.base,
+    fontSize: typography.size.body,
+    fontWeight: typography.weight.label,
   },
   dragPreviewLayer: {
     ...StyleSheet.absoluteFillObject,

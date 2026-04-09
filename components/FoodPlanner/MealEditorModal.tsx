@@ -15,6 +15,7 @@ import {
   FlatList,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, Plus, Trash2, ChefHat } from 'lucide-react-native';
 import { colors, typography, spacing, borderRadius } from '@/lib/tokens';
 import {
@@ -130,7 +131,7 @@ export function MealEditorModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent={false}>
-      <View style={styles.container}>
+      <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onCancel} disabled={isSaving}>
@@ -303,7 +304,7 @@ export function MealEditorModal({
 
           <View style={styles.spacer} />
         </ScrollView>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }

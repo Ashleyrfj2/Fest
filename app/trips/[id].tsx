@@ -20,6 +20,7 @@ import {
   Share,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import {
@@ -116,9 +117,6 @@ export default function TripDashboardScreen() {
 
   function handleModulePress(moduleId: string) {
     if (moduleId === 'camp_grid') {
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE).catch(() => {
-        // Keep navigation responsive if orientation lock is unavailable
-      });
       router.push(`/trips/${id}/camp-grid`);
       return;
     }
@@ -180,16 +178,16 @@ export default function TripDashboardScreen() {
   // Loading state
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.container, styles.centered]}>
         <Text style={styles.loadingText}>Loading trip...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   // Error state - trip not found
   if (!trip) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.container, styles.centered]}>
         <Text style={styles.errorText}>Trip not found</Text>
         <TouchableOpacity
           style={styles.backToHomeButton}
@@ -198,7 +196,7 @@ export default function TripDashboardScreen() {
         >
           <Text style={styles.backToHomeText}>Back to Home</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -208,7 +206,7 @@ export default function TripDashboardScreen() {
   const isLeader = currentMember?.role === 'leader';
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -320,7 +318,7 @@ export default function TripDashboardScreen() {
           />
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -362,7 +360,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: spacing.lg,
-    paddingTop: 60,
     paddingBottom: 40,
   },
   header: {

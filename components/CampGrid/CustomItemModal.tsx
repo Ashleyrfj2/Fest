@@ -18,6 +18,7 @@ export function CustomItemModal({ visible, onClose, onSave }: CustomItemModalPro
   const [heightText, setHeightText] = useState('4');
   const [color, setColor] = useState(COLOR_OPTIONS[0]);
   const [rotated, setRotated] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!visible) return;
@@ -27,6 +28,7 @@ export function CustomItemModal({ visible, onClose, onSave }: CustomItemModalPro
     setHeightText('4');
     setColor(COLOR_OPTIONS[0]);
     setRotated(false);
+    setValidationError(null);
   }, [visible]);
 
   if (!visible) {
@@ -38,8 +40,11 @@ export function CustomItemModal({ visible, onClose, onSave }: CustomItemModalPro
     const rawHeight = Number(heightText);
 
     if (!Number.isFinite(rawWidth) || !Number.isFinite(rawHeight) || rawWidth <= 0 || rawHeight <= 0) {
+      setValidationError('Enter valid width and height values greater than 0.');
       return;
     }
+
+    setValidationError(null);
 
     const template: CampItemTemplate = {
       itemType: 'custom',
@@ -69,7 +74,12 @@ export function CustomItemModal({ visible, onClose, onSave }: CustomItemModalPro
             <Text style={styles.inputLabel}>Width (ft)</Text>
             <TextInput
               value={widthText}
-              onChangeText={setWidthText}
+              onChangeText={(value) => {
+                setWidthText(value);
+                if (validationError) {
+                  setValidationError(null);
+                }
+              }}
               keyboardType="decimal-pad"
               style={styles.input}
             />
@@ -78,14 +88,27 @@ export function CustomItemModal({ visible, onClose, onSave }: CustomItemModalPro
             <Text style={styles.inputLabel}>Height (ft)</Text>
             <TextInput
               value={heightText}
-              onChangeText={setHeightText}
+              onChangeText={(value) => {
+                setHeightText(value);
+                if (validationError) {
+                  setValidationError(null);
+                }
+              }}
               keyboardType="decimal-pad"
               style={styles.input}
             />
           </View>
         </View>
 
-        <TouchableOpacity style={[styles.rotateToggle, rotated && styles.rotateToggleActive]} onPress={() => setRotated((current) => !current)} activeOpacity={0.8}>
+        {validationError ? <Text style={styles.errorText}>{validationError}</Text> : null}
+
+        <TouchableOpacity
+          style={[styles.rotateToggle, rotated && styles.rotateToggleActive]}
+          onPress={() => setRotated((current) => !current)}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Rotate custom item"
+        >
           <RotateCw size={16} color={rotated ? colors.base : colors.text.primary} strokeWidth={2} />
           <Text style={[styles.rotateToggleText, rotated && styles.rotateToggleTextActive]}>
             {rotated ? 'Rotated 90°' : 'Default Orientation'}
@@ -105,16 +128,30 @@ export function CustomItemModal({ visible, onClose, onSave }: CustomItemModalPro
                 ]}
                 onPress={() => setColor(option)}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={`Choose item color ${option}`}
               />
             ))}
           </View>
         </View>
 
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.secondaryButton} onPress={onClose} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={onClose}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Cancel custom item"
+          >
             <Text style={styles.secondaryButtonText}>Cancel</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.primaryButton} onPress={() => void handleSave()} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={() => void handleSave()}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Save custom item"
+          >
             <Text style={styles.primaryButtonText}>Add Item</Text>
           </TouchableOpacity>
         </View>
@@ -188,6 +225,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface.level2,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
+    minHeight: 44,
     alignSelf: 'flex-start',
   },
   rotateToggleActive: {
@@ -227,7 +265,9 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
+    minHeight: 44,
     backgroundColor: colors.surface.level2,
+    justifyContent: 'center',
   },
   secondaryButtonText: {
     color: colors.text.primary,
@@ -238,7 +278,14 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
+    minHeight: 44,
     backgroundColor: colors.accent.gold,
+    justifyContent: 'center',
+  },
+  errorText: {
+    color: colors.danger,
+    fontSize: typography.size.meta,
+    fontWeight: typography.weight.label,
   },
   primaryButtonText: {
     color: colors.base,

@@ -108,7 +108,14 @@ function LibraryItemRow({
 
   return (
     <View style={styles.itemRow}>
-      <View {...panResponder.panHandlers} style={styles.itemButton}>
+      <View
+        {...panResponder.panHandlers}
+        style={styles.itemButton}
+        accessible
+        accessibilityRole="button"
+        accessibilityLabel={`Add ${preparedItem.label}`}
+        accessibilityHint="Tap to add to grid, or drag and drop onto the grid"
+      >
         <View style={[styles.swatch, { backgroundColor: preparedItem.color }]} />
         <View style={styles.textContainer}>
           <Text style={styles.itemLabel}>{preparedItem.label}</Text>
@@ -118,7 +125,13 @@ function LibraryItemRow({
         </View>
       </View>
 
-      <TouchableOpacity style={styles.rotateButton} onPress={onToggleRotation} activeOpacity={0.8}>
+      <TouchableOpacity
+        style={styles.rotateButton}
+        onPress={onToggleRotation}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={`Rotate ${preparedItem.label}`}
+      >
         <RotateCw size={16} color={rotated ? colors.base : colors.text.mid} strokeWidth={2} />
         <Text style={[styles.rotateButtonText, rotated && styles.rotateButtonTextActive]}>{rotated ? '90°' : '0°'}</Text>
       </TouchableOpacity>
@@ -140,7 +153,13 @@ export function ItemLibrarySidebar({
 
   return (
     <View style={[styles.container, collapsed && styles.containerCollapsed]}>
-      <TouchableOpacity style={styles.collapseButton} onPress={onToggleCollapsed} activeOpacity={0.8}>
+      <TouchableOpacity
+        style={styles.collapseButton}
+        onPress={onToggleCollapsed}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={collapsed ? 'Open item library' : 'Collapse item library'}
+      >
         <Text style={styles.collapseButtonText}>{collapsed ? 'Open' : 'Hide'}</Text>
       </TouchableOpacity>
 
@@ -169,7 +188,13 @@ export function ItemLibrarySidebar({
               />
             ))}
 
-            <TouchableOpacity style={styles.customButton} onPress={onCreateCustomItem} activeOpacity={0.8}>
+            <TouchableOpacity
+              style={styles.customButton}
+              onPress={onCreateCustomItem}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Add custom camp item"
+            >
               <View style={styles.customIcon}>
                 <Plus size={18} color={colors.base} strokeWidth={2.2} />
               </View>
@@ -204,6 +229,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     marginBottom: spacing.md,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   collapseButtonText: {
     color: colors.text.mid,
@@ -245,9 +272,11 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     borderWidth: 1,
     borderColor: colors.border.subtle,
+    minHeight: 44,
   },
   rotateButton: {
     width: 54,
+    minHeight: 44,
     borderRadius: borderRadius.md,
     backgroundColor: colors.surface.level2,
     borderWidth: 1,
@@ -291,6 +320,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border.subtle,
     marginTop: spacing.sm,
+    minHeight: 44,
   },
   customIcon: {
     width: 32,

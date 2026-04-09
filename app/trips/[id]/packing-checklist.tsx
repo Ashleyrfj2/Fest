@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft,
@@ -175,6 +176,7 @@ export default function PackingChecklistScreen() {
           const result = await deleteItem(itemId);
           if (result.error) {
             Alert.alert('Error', result.error);
+            return;
           }
         },
       },
@@ -220,7 +222,6 @@ export default function PackingChecklistScreen() {
       Alert.alert('Error', result.error);
       return;
     }
-
     closeAddModal();
   }
 
@@ -230,7 +231,6 @@ export default function PackingChecklistScreen() {
       Alert.alert('Error', result.error);
       return;
     }
-
     setAssignModalItem(null);
   }
 
@@ -243,24 +243,24 @@ export default function PackingChecklistScreen() {
 
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color={colors.accent.gold} />
         <Text style={styles.loadingText}>Loading packing checklist...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.container, styles.centered]}>
         <Text style={styles.errorText}>Failed to load packing checklist</Text>
         <Text style={styles.errorMessage}>{error}</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.push(`/trips/${tripId}`)} activeOpacity={0.7}>
           <ArrowLeft size={24} color={colors.text.mid} strokeWidth={2} />
@@ -559,7 +559,7 @@ export default function PackingChecklistScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -594,8 +594,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingTop: 60,
-    paddingBottom: spacing.md,
+    paddingVertical: spacing.md,
     backgroundColor: colors.base,
   },
   backButton: {

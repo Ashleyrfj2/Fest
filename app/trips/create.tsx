@@ -17,26 +17,18 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ArrowLeft, Calendar, MapPin } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { generateInviteCode, generateInviteExpiry } from '@/lib/invites/invite-utils';
 import { colors, borderRadius, spacing, typography } from '@/lib/tokens';
-
-// Popular festivals for type-ahead
-const POPULAR_FESTIVALS = [
-  'Electric Forest',
-  'Dancefestopia',
-  'Beyond Wonderland PNW',
-  'Bonnaroo',
-  'Lightning in a Bottle',
-  'Okeechobee',
-  'Shambhala',
-  'Wookan',
-  'Lost Lands',
-  'Elements Lakewood',
-];
+import {
+  formatFestivalDateRange,
+  getFestivalTripOption,
+  POPULAR_FESTIVAL_OPTIONS,
+} from '@/lib/festivalTripOptions';
 
 export default function CreateTripScreen() {
   const { userProfile } = useAuth();
@@ -48,9 +40,21 @@ export default function CreateTripScreen() {
   const [error, setError] = useState('');
   const [showFestivalSuggestions, setShowFestivalSuggestions] = useState(false);
 
-  const filteredFestivals = POPULAR_FESTIVALS.filter((fest) =>
-    fest.toLowerCase().includes(festivalName.toLowerCase())
+  const filteredFestivals = POPULAR_FESTIVAL_OPTIONS.filter((festival) =>
+    festival.name.toLowerCase().includes(festivalName.toLowerCase())
   );
+
+  function applyFestivalDates(selectedFestivalName: string) {
+    const festivalOption = getFestivalTripOption(selectedFestivalName);
+
+    if (!festivalOption) {
+      return;
+    }
+
+    setFestivalName(festivalOption.name);
+    setStartDate(festivalOption.startDate);
+    setEndDate(festivalOption.endDate);
+  }
 
   const handleCreateTrip = async () => {
     // Validation
@@ -142,7 +146,8 @@ export default function CreateTripScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
@@ -214,17 +219,20 @@ export default function CreateTripScreen() {
             {/* Festival Suggestions */}
             {showFestivalSuggestions && filteredFestivals.length > 0 && (
               <View style={styles.suggestionsList}>
-                {filteredFestivals.slice(0, 5).map((fest) => (
+                {filteredFestivals.slice(0, 5).map((festival) => (
                   <TouchableOpacity
-                    key={fest}
+                    key={festival.name}
                     style={styles.suggestionItem}
                     onPress={() => {
-                      setFestivalName(fest);
+                      applyFestivalDates(festival.name);
                       setShowFestivalSuggestions(false);
                     }}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.suggestionText}>{fest}</Text>
+                    <Text style={styles.suggestionText}>{festival.name}</Text>
+                    <Text style={styles.suggestionDateText}>
+                      {formatFestivalDateRange(festival.startDate, festival.endDate)}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -300,11 +308,15 @@ export default function CreateTripScreen() {
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  safeArea: {
     flex: 1,
     backgroundColor: colors.base,
   },
@@ -313,7 +325,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: spacing.xxl,
-    paddingTop: 60,
     paddingBottom: 40,
   },
   backButton: {
@@ -425,6 +436,12 @@ const styles = StyleSheet.create({
     fontSize: typography.size.body,
     fontWeight: typography.weight.body,
     color: colors.text.primary,
+  },
+  suggestionDateText: {
+    marginTop: 2,
+    fontSize: typography.size.meta,
+    fontWeight: typography.weight.body,
+    color: colors.text.mid,
   },
   errorText: {
     fontSize: typography.size.body,

@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafetyProfile } from '@/lib/hooks/useSafetyProfile';
 import { SafetyProfileEditForm } from '@/components/SafetyProfile/SafetyProfileEditForm';
@@ -55,27 +56,27 @@ export default function SafetyProfileScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <SafeAreaView edges={['top']} style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.accent.gold} />
         <Text style={styles.loadingText}>Loading safety profile...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.errorContainer}>
+      <SafeAreaView edges={['top']} style={styles.errorContainer}>
         <Text style={styles.errorIcon}>⚠️</Text>
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={refreshProfile}>
           <Text style={styles.retryButtonText}>Try Again</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -134,7 +135,7 @@ export default function SafetyProfileScreen() {
           </View>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -149,7 +150,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.lg,
-    paddingTop: 60,
     backgroundColor: colors.surface.level1,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.medium,

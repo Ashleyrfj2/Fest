@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { LayoutChangeEvent, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, LayoutChangeEvent, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { RotateCw, Settings, Trash2 } from 'lucide-react-native';
 import { clamp, CampGridConfig, CampItem, snapFeetToCell } from '@/lib/campGridTypes';
 import { borderRadius, colors, spacing, typography } from '@/lib/tokens';
@@ -114,6 +114,8 @@ export function CampGridScene({
               style={styles.iconButton}
               onPress={() => onRotateItem(selectedItem.id)}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Rotate selected item"
             >
               <RotateCw size={18} color={colors.text.primary} strokeWidth={2.2} />
             </TouchableOpacity>
@@ -121,8 +123,26 @@ export function CampGridScene({
           {selectedItem && (
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={() => onDeleteItem(selectedItem.id)}
+              onPress={() => {
+                Alert.alert(
+                  'Delete item?',
+                  `Remove ${selectedItem.label} from this layout?`,
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Delete',
+                      style: 'destructive',
+                      onPress: () => {
+                        void onDeleteItem(selectedItem.id);
+                        setSelectedItemId(null);
+                      },
+                    },
+                  ]
+                );
+              }}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Delete selected item"
             >
               <Trash2 size={18} color={colors.danger} strokeWidth={2.2} />
             </TouchableOpacity>
@@ -131,6 +151,8 @@ export function CampGridScene({
             style={styles.iconButton}
             onPress={() => setShowSettings((prev) => !prev)}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={showSettings ? 'Hide grid settings' : 'Show grid settings'}
           >
             <Settings size={18} color={colors.text.primary} strokeWidth={2.2} />
           </TouchableOpacity>
@@ -214,8 +236,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   iconButton: {
-    width: 38,
-    height: 38,
+    width: 44,
+    height: 44,
     borderRadius: borderRadius.md,
     backgroundColor: colors.surface.level1,
     alignItems: 'center',

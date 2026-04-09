@@ -27,6 +27,7 @@ export function DimensionModal({ visible, festivalName, onSave }: DimensionModal
   const [heightText, setHeightText] = useState(String(options[0]?.heightFt ?? 20));
   const [cellSizeFt, setCellSizeFt] = useState<CellSizeValue>(1);
   const [measurementUnit, setMeasurementUnit] = useState<MeasurementUnit>('ft');
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const selectedOption = options.find((option) => option.id === selectedId) ?? options[0];
 
@@ -34,14 +35,18 @@ export function DimensionModal({ visible, festivalName, onSave }: DimensionModal
     setSelectedId(option.id);
     setWidthText(String(option.widthFt));
     setHeightText(String(option.heightFt));
+    setValidationError(null);
   }
 
   function handleSave() {
     const widthFt = Number(widthText);
     const heightFt = Number(heightText);
     if (!Number.isFinite(widthFt) || !Number.isFinite(heightFt) || widthFt <= 0 || heightFt <= 0) {
+      setValidationError('Enter valid width and height values greater than 0.');
       return;
     }
+
+    setValidationError(null);
 
     onSave({
       widthFt,
@@ -80,7 +85,12 @@ export function DimensionModal({ visible, festivalName, onSave }: DimensionModal
             <Text style={styles.inputLabel}>Width (ft)</Text>
             <TextInput
               value={widthText}
-              onChangeText={setWidthText}
+              onChangeText={(value) => {
+                setWidthText(value);
+                if (validationError) {
+                  setValidationError(null);
+                }
+              }}
               keyboardType="decimal-pad"
               style={styles.input}
             />
@@ -89,19 +99,33 @@ export function DimensionModal({ visible, festivalName, onSave }: DimensionModal
             <Text style={styles.inputLabel}>Height (ft)</Text>
             <TextInput
               value={heightText}
-              onChangeText={setHeightText}
+              onChangeText={(value) => {
+                setHeightText(value);
+                if (validationError) {
+                  setValidationError(null);
+                }
+              }}
               keyboardType="decimal-pad"
               style={styles.input}
             />
           </View>
         </View>
 
+        {validationError ? <Text style={styles.errorText}>{validationError}</Text> : null}
+
         <View style={styles.row}>
           {[0.5, 1, 1.5].map((size) => (
             <TouchableOpacity
               key={size}
               style={[styles.pill, cellSizeFt === size && styles.pillActive]}
-              onPress={() => setCellSizeFt(size as CellSizeValue)}
+              onPress={() => {
+                setCellSizeFt(size as CellSizeValue);
+                if (validationError) {
+                  setValidationError(null);
+                }
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={`Set cell size to ${size} feet`}
             >
               <Text style={[styles.pillText, cellSizeFt === size && styles.pillTextActive]}>{size}ft</Text>
             </TouchableOpacity>
@@ -114,13 +138,21 @@ export function DimensionModal({ visible, festivalName, onSave }: DimensionModal
               key={unit}
               style={[styles.pill, measurementUnit === unit && styles.pillActive]}
               onPress={() => setMeasurementUnit(unit)}
+              accessibilityRole="button"
+              accessibilityLabel={`Use ${unit} units`}
             >
               <Text style={[styles.pillText, measurementUnit === unit && styles.pillTextActive]}>{unit}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={handleSave}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Save dimensions and start building"
+        >
           <Text style={styles.saveButtonText}>Start Building</Text>
         </TouchableOpacity>
       </View>
@@ -224,8 +256,14 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 44,
     paddingVertical: spacing.md,
     marginTop: spacing.sm,
+  },
+  errorText: {
+    color: colors.danger,
+    fontSize: typography.size.meta,
+    fontWeight: typography.weight.label,
   },
   saveButtonText: {
     color: colors.base,
