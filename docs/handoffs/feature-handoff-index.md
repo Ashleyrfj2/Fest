@@ -1,6 +1,14 @@
 # Feature Handoff Index
 
-## Recently Completed (April 7, 2026)
+## Recently Completed (April 9, 2026)
+- Added a new workspace custom agent: Senior QA Engineer.
+- Ran a high-confidence cleanup pass for dead and outdated assets.
+- Removed unused collaboration UI components: ApprovalQueuePanel and ModuleProposalWidget.
+- Removed outdated report snapshots in docs/reports and updated README status pointers to active docs.
+- Verified no stale references to removed files and confirmed TypeScript compilation is clean.
+- See [Session Notes - 2026-04-09](../sessions/session-notes-2026-04-09.md) for full implementation details.
+
+## Previously Completed (April 7, 2026)
 - Vehicle and flight form modals fixed (container height issue resolved).
 - Safe-area overlap with camera/notification bar resolved (SafeAreaView wrapper applied).
 - Meetup pin metadata system implemented: rich labels, notes, pin types (meetup/pickup/carpool/landmark), and creator tracking.
@@ -9,7 +17,7 @@
 - TypeScript compilation verified clean (zero errors).
 - See [Session Notes - 2026-04-07](../sessions/session-notes-2026-04-07.md) for full implementation details.
 
-## Previously Completed (April 5, 2026)
+## Earlier Completed (April 5, 2026)
 - Supabase migration history repaired and remote schema aligned.
 - Food Planner, Lineup Scheduler, Budget Tracker, approval queue backend, and dashboard progress scaffolding were added and validated.
 - TypeScript regressions from the refreshed schema were fixed.
