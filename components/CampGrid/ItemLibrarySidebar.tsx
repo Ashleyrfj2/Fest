@@ -1,6 +1,6 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, PanResponder } from 'react-native';
-import { Plus, RotateCw } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import { CampItemTemplate } from '@/lib/campGridTypes';
 import { borderRadius, colors, spacing, typography } from '@/lib/tokens';
 
@@ -15,8 +15,6 @@ const ITEM_LIBRARY: CampItemTemplate[] = [
 ];
 
 interface ItemLibrarySidebarProps {
-  collapsed: boolean;
-  onToggleCollapsed: () => void;
   onAddItem: (template: CampItemTemplate) => void | Promise<void>;
   onDragStart: (template: CampItemTemplate, point: { x: number; y: number }) => void;
   onDragMove: (point: { x: number; y: number }) => void;
@@ -27,8 +25,6 @@ interface ItemLibrarySidebarProps {
 
 interface LibraryItemRowProps {
   item: CampItemTemplate;
-  rotated: boolean;
-  onToggleRotation: () => void;
   onAddItem: (template: CampItemTemplate) => void | Promise<void>;
   onDragStart: (template: CampItemTemplate, point: { x: number; y: number }) => void;
   onDragMove: (point: { x: number; y: number }) => void;
@@ -36,22 +32,8 @@ interface LibraryItemRowProps {
   onDragCancel: () => void;
 }
 
-function applyRotation(template: CampItemTemplate, rotated: boolean): CampItemTemplate {
-  if (!rotated) {
-    return template;
-  }
-
-  return {
-    ...template,
-    widthFt: template.heightFt,
-    heightFt: template.widthFt,
-  };
-}
-
 function LibraryItemRow({
   item,
-  rotated,
-  onToggleRotation,
   onAddItem,
   onDragStart,
   onDragMove,
@@ -60,7 +42,7 @@ function LibraryItemRow({
 }: LibraryItemRowProps) {
   const dragStartedRef = useRef(false);
   const startPointRef = useRef({ x: 0, y: 0 });
-  const preparedItem = applyRotation(item, rotated);
+  const preparedItem = item;
 
   const panResponder = useMemo(
     () =>
@@ -114,7 +96,7 @@ function LibraryItemRow({
         accessible
         accessibilityRole="button"
         accessibilityLabel={`Add ${preparedItem.label}`}
-        accessibilityHint="Tap to add to grid, or drag and drop onto the grid"
+        accessibilityHint="Tap to add this item to the grid"
       >
         <View style={[styles.swatch, { backgroundColor: preparedItem.color }]} />
         <View style={styles.textContainer}>
@@ -124,24 +106,11 @@ function LibraryItemRow({
           </Text>
         </View>
       </View>
-
-      <TouchableOpacity
-        style={styles.rotateButton}
-        onPress={onToggleRotation}
-        activeOpacity={0.8}
-        accessibilityRole="button"
-        accessibilityLabel={`Rotate ${preparedItem.label}`}
-      >
-        <RotateCw size={16} color={rotated ? colors.base : colors.text.mid} strokeWidth={2} />
-        <Text style={[styles.rotateButtonText, rotated && styles.rotateButtonTextActive]}>{rotated ? '90°' : '0°'}</Text>
-      </TouchableOpacity>
     </View>
   );
 }
 
 export function ItemLibrarySidebar({
-  collapsed,
-  onToggleCollapsed,
   onAddItem,
   onDragStart,
   onDragMove,
@@ -149,154 +118,111 @@ export function ItemLibrarySidebar({
   onDragCancel,
   onCreateCustomItem,
 }: ItemLibrarySidebarProps) {
-  const [rotations, setRotations] = useState<Record<string, boolean>>({});
-
   return (
-    <View style={[styles.container, collapsed && styles.containerCollapsed]}>
-      <TouchableOpacity
-        style={styles.collapseButton}
-        onPress={onToggleCollapsed}
-        activeOpacity={0.8}
-        accessibilityRole="button"
-        accessibilityLabel={collapsed ? 'Open item library' : 'Collapse item library'}
+    <View style={styles.container}>
+      <Text style={styles.title}>Item Library</Text>
+      <Text style={styles.helperText}>Tap to add items to the grid.</Text>
+
+      <ScrollView
+        style={styles.list}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
       >
-        <Text style={styles.collapseButtonText}>{collapsed ? 'Open' : 'Hide'}</Text>
-      </TouchableOpacity>
+        {ITEM_LIBRARY.map((item) => (
+          <LibraryItemRow
+            key={item.itemType}
+            item={item}
+            onAddItem={onAddItem}
+            onDragStart={onDragStart}
+            onDragMove={onDragMove}
+            onDragEnd={onDragEnd}
+            onDragCancel={onDragCancel}
+          />
+        ))}
 
-      {!collapsed && (
-        <>
-          <Text style={styles.title}>Item Library</Text>
-          <Text style={styles.helperText}>Tap to add or drag onto the grid. Rotate items before you place them.</Text>
-
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.listContent}>
-            {ITEM_LIBRARY.map((item) => (
-              <LibraryItemRow
-                key={item.itemType}
-                item={item}
-                rotated={Boolean(rotations[item.itemType])}
-                onToggleRotation={() =>
-                  setRotations((current) => ({
-                    ...current,
-                    [item.itemType]: !current[item.itemType],
-                  }))
-                }
-                onAddItem={onAddItem}
-                onDragStart={onDragStart}
-                onDragMove={onDragMove}
-                onDragEnd={onDragEnd}
-                onDragCancel={onDragCancel}
-              />
-            ))}
-
-            <TouchableOpacity
-              style={styles.customButton}
-              onPress={onCreateCustomItem}
-              activeOpacity={0.8}
-              accessibilityRole="button"
-              accessibilityLabel="Add custom camp item"
-            >
-              <View style={styles.customIcon}>
-                <Plus size={18} color={colors.base} strokeWidth={2.2} />
-              </View>
-              <View style={styles.textContainer}>
-                <Text style={styles.customTitle}>Create Custom Item</Text>
-                <Text style={styles.customMeta}>Choose label, size, color, and rotation</Text>
-              </View>
-            </TouchableOpacity>
-          </ScrollView>
-        </>
-      )}
+        <TouchableOpacity
+          style={styles.customButton}
+          onPress={onCreateCustomItem}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Add custom camp item"
+        >
+          <View style={styles.customIcon}>
+            <Plus size={18} color={colors.base} strokeWidth={2.2} />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={styles.customTitle}>Create Custom Item</Text>
+            <Text style={styles.customMeta}>Choose label, size, color, and rotation</Text>
+          </View>
+        </TouchableOpacity>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    width: 220,
-    backgroundColor: colors.surface.level1,
-    borderLeftWidth: 1,
-    borderLeftColor: colors.border.subtle,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.sm,
-  },
-  containerCollapsed: {
-    width: 72,
-  },
-  collapseButton: {
-    alignSelf: 'flex-end',
-    backgroundColor: colors.surface.level2,
-    borderRadius: borderRadius.md,
-    paddingHorizontal: spacing.md,
+    flex: 1,
+    width: '100%',
+    minHeight: 0,
+    backgroundColor: 'rgba(21, 18, 32, 0.94)',
+    borderWidth: 1,
+    borderColor: 'rgba(201, 168, 76, 0.24)',
+    borderRadius: borderRadius.lg,
     paddingVertical: spacing.sm,
-    marginBottom: spacing.md,
-    minHeight: 44,
-    justifyContent: 'center',
+    paddingHorizontal: spacing.xs,
+    overflow: 'hidden',
   },
-  collapseButtonText: {
-    color: colors.text.mid,
-    fontSize: typography.size.meta,
-    fontWeight: typography.weight.label,
-    textTransform: 'uppercase',
-    letterSpacing: typography.letterSpacing.wide,
+  list: {
+    flex: 1,
+    minHeight: 0,
   },
   title: {
-    color: colors.text.primary,
+    color: colors.accent.goldBright,
     fontSize: typography.size.cardTitle,
     fontWeight: typography.weight.cardTitle,
-    marginBottom: spacing.xs,
-    paddingHorizontal: spacing.xs,
+    marginBottom: 2,
+    alignSelf: 'center',
+    width: '85%',
   },
   helperText: {
-    color: colors.text.dim,
+    color: colors.text.mid,
     fontSize: typography.size.meta,
-    lineHeight: 18,
-    marginBottom: spacing.md,
-    paddingHorizontal: spacing.xs,
+    lineHeight: 16,
+    marginBottom: spacing.sm,
+    alignSelf: 'center',
+    width: '85%',
   },
   listContent: {
     gap: spacing.sm,
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.lg,
+    alignItems: 'center',
   },
   itemRow: {
+    width: '100%',
     flexDirection: 'row',
-    gap: spacing.xs,
-    alignItems: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   itemButton: {
-    flex: 1,
+    width: '85%',
+    alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: colors.surface.level2,
+    backgroundColor: 'rgba(37, 32, 51, 0.92)',
     borderRadius: borderRadius.md,
     padding: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.border.subtle,
+    borderColor: 'rgba(180, 122, 255, 0.22)',
     minHeight: 44,
-  },
-  rotateButton: {
-    width: 54,
-    minHeight: 44,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.surface.level2,
-    borderWidth: 1,
-    borderColor: colors.border.subtle,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
-  },
-  rotateButtonText: {
-    color: colors.text.mid,
-    fontSize: typography.size.meta,
-    fontWeight: typography.weight.label,
-  },
-  rotateButtonTextActive: {
-    color: colors.base,
   },
   swatch: {
     width: 14,
     height: 14,
     borderRadius: 7,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
   },
   textContainer: {
     flex: 1,
@@ -311,14 +237,16 @@ const styles = StyleSheet.create({
     fontSize: typography.size.meta,
   },
   customButton: {
+    width: '85%',
+    alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: colors.surface.level2,
+    backgroundColor: 'rgba(18, 120, 90, 0.2)',
     borderRadius: borderRadius.md,
     padding: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.border.subtle,
+    borderColor: 'rgba(40, 200, 150, 0.3)',
     marginTop: spacing.sm,
     minHeight: 44,
   },

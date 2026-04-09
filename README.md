@@ -55,11 +55,13 @@ Festival/
 │       ├── 20260319000000_initial_schema.sql
 │       └── 20260319000001_rls_policies.sql
 ├── docs/                         # Project documentation
-│   ├── data-model.md             # 17-entity schema
-│   ├── design-spec.md            # Module specifications
-│   ├── onboarding.md             # Onboarding flows
-│   ├── ui-decisions.md           # Design direction
-│   └── supabase-setup.md         # Database setup guide
+│   ├── README.md                 # Docs index
+│   ├── product/                  # Product specs and system design
+│   ├── setup/                    # Setup and infra guides
+│   ├── handoffs/                 # Feature handoff docs
+│   ├── reports/                  # Implementation reports
+│   ├── sessions/                 # Dated session notes
+│   └── test-notes.md             # Active QA notes
 ├── .env                          # Environment variables (Supabase)
 ├── .env.example                  # Environment template
 └── CLAUDE.md                     # Project context for Claude Code
@@ -67,28 +69,11 @@ Festival/
 
 ## Current Status
 
-✅ **Complete**
-- Expo project scaffolded with TypeScript and Expo Router
-- Design system tokens defined (colors, typography, spacing)
-- App Home screen (Level 1) with tab navigation
-- 3 festival cards, 3 community posts, 3 app update cards
-- Supabase database schema (17 tables)
-- Row Level Security (RLS) policies
-- Supabase client configured
-- TypeScript types for database
+Status changes frequently and is tracked in docs rather than this README snapshot:
 
-🚧 **In Progress**
-- Database migrations (ready to run)
-- Environment configuration
-
-📋 **Next Steps**
-1. Run Supabase migrations to create tables
-2. Build Trip Dashboard (Level 2) screen
-3. Implement authentication flow
-4. Connect real data to App Home screen
-5. Build Camp Grid module with drag-and-drop
-6. Add Lineup Scheduler with voting
-7. Build Budget Tracker with settle-up view
+- `docs/handoffs/feature-handoff-index.md` for current module status and next priorities
+- `docs/test-notes.md` for active QA issues and follow-up items
+- `docs/sessions/` for dated implementation history
 
 ## Tech Stack
 

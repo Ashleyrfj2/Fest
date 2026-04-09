@@ -3,8 +3,9 @@
  * Manages lineup state, voting, consensus calculation, and conflict detection
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getFestivalPresetArtists } from '@/lib/lineupFestivalArtists';
 import {
   LineupArtist,
   ArtistVote,
@@ -36,6 +37,60 @@ export function useLineup(tripId: string | undefined, userId: string | undefined
   const [userGoingNow, setUserGoingNow] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const presetImportAttemptedRef = useRef<Set<string>>(new Set());
+
+  const autoImportFestivalPreset = useCallback(async () => {
+    if (!tripId || presetImportAttemptedRef.current.has(tripId)) {
+      return;
+    }
+
+    presetImportAttemptedRef.current.add(tripId);
+
+    try {
+      const { count, error: countError } = await supabase
+        .from('lineup_artists')
+        .select('id', { count: 'exact', head: true })
+        .eq('trip_id', tripId);
+
+      if (countError) {
+        throw countError;
+      }
+
+      if ((count ?? 0) > 0) {
+        return;
+      }
+
+      const { data: trip, error: tripError } = await supabase
+        .from('trips')
+        .select('festival_name')
+        .eq('id', tripId)
+        .single();
+
+      if (tripError || !trip?.festival_name) {
+        return;
+      }
+
+      const presetArtists = getFestivalPresetArtists(trip.festival_name);
+      if (!presetArtists.length) {
+        return;
+      }
+
+      const { error: insertError } = await supabase.from('lineup_artists').insert(
+        presetArtists.map((name) => ({
+          trip_id: tripId,
+          name,
+        }))
+      );
+
+      if (insertError) {
+        throw insertError;
+      }
+    } catch (importError) {
+      // Allow retry if import fails due to transient network or auth errors.
+      presetImportAttemptedRef.current.delete(tripId);
+      console.error('Error importing lineup preset artists:', importError);
+    }
+  }, [tripId]);
 
   /**
    * Detect schedule conflicts between artists with must_see votes
@@ -183,7 +238,19 @@ export function useLineup(tripId: string | undefined, userId: string | undefined
 
   // Initial load and realtime subscription
   useEffect(() => {
-    loadLineupData();
+    let isActive = true;
+
+    const initialize = async () => {
+      await autoImportFestivalPreset();
+
+      if (!isActive) {
+        return;
+      }
+
+      await loadLineupData();
+    };
+
+    initialize();
 
     if (!tripId) return;
 
@@ -204,10 +271,11 @@ export function useLineup(tripId: string | undefined, userId: string | undefined
       .subscribe();
 
     return () => {
+      isActive = false;
       artistsSubscription.unsubscribe();
       votesSubscription.unsubscribe();
     };
-  }, [tripId, loadLineupData]);
+  }, [tripId, loadLineupData, autoImportFestivalPreset]);
 
   /**
    * Add new artist to lineup
