@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { User } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { colors, borderRadius, spacing, typography } from '@/lib/tokens';
@@ -134,17 +135,17 @@ export default function GuestSetupScreen() {
   // Show loading while creating account
   if (isCreatingAccount) {
     return (
-      <View style={styles.loadingContainer}>
+      <SafeAreaView edges={['top']} style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.accent.gold} />
         <Text style={styles.loadingText}>Setting up your account...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   // Show error if account creation failed
   if (error && !displayName) {
     return (
-      <View style={styles.errorContainer}>
+      <SafeAreaView edges={['top']} style={styles.errorContainer}>
         <Text style={styles.errorTitle}>Oops!</Text>
         <Text style={styles.errorMessage}>{error}</Text>
         <TouchableOpacity
@@ -154,20 +155,21 @@ export default function GuestSetupScreen() {
         >
           <Text style={styles.retryButtonText}>Go back</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView edges={['top']} style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.iconContainer}>
@@ -238,8 +240,9 @@ export default function GuestSetupScreen() {
         <Text style={styles.infoText}>
           You can add an email later to sync across devices
         </Text>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -247,6 +250,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.base,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,

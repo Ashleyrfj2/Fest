@@ -36,6 +36,7 @@ import { colors, borderRadius, spacing, typography } from '@/lib/tokens';
 import { Database } from '@/lib/database.types';
 import { QuickStatsHeader, ActivityFeed, ModuleCard, CrewSection } from '@/components/trips/dashboard';
 import { MODULES } from '@/components/trips/dashboard/modules';
+import { SafetyPromptBanner } from '@/components/SafetyProfile/SafetyPromptBanner';
 import { useModuleProgress } from '@/lib/hooks/useModuleProgress';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
@@ -46,6 +47,9 @@ type ActivityLog = Database['public']['Tables']['activity_logs']['Row'] & {
   user?: Database['public']['Tables']['users']['Row'];
 };
 
+const visitedModuleIdsByTrip = new Map<string, Set<string>>();
+const dismissedSafetyPromptByTrip = new Set<string>();
+
 export default function TripDashboardScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { userProfile } = useAuth();
@@ -53,12 +57,23 @@ export default function TripDashboardScreen() {
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [visitedModuleIds, setVisitedModuleIds] = useState<string[]>([]);
+  const [isSafetyPromptDismissed, setIsSafetyPromptDismissed] = useState(false);
 
   // Get real progress from all modules
   const tripProgress = useModuleProgress(id || '', members);
 
   useEffect(() => {
     loadTripData();
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) {
+      return;
+    }
+
+    setVisitedModuleIds(Array.from(visitedModuleIdsByTrip.get(id) ?? []));
+    setIsSafetyPromptDismissed(dismissedSafetyPromptByTrip.has(id));
   }, [id]);
 
   async function loadTripData() {
@@ -116,6 +131,13 @@ export default function TripDashboardScreen() {
   }
 
   function handleModulePress(moduleId: string) {
+    if (id) {
+      const nextVisitedModules = new Set(visitedModuleIdsByTrip.get(id) ?? []);
+      nextVisitedModules.add(moduleId);
+      visitedModuleIdsByTrip.set(id, nextVisitedModules);
+      setVisitedModuleIds(Array.from(nextVisitedModules));
+    }
+
     if (moduleId === 'camp_grid') {
       router.push(`/trips/${id}/camp-grid`);
       return;
@@ -204,6 +226,10 @@ export default function TripDashboardScreen() {
   const completionPercent = tripProgress.overallPercent;
   const currentMember = members.find((m) => m.user_id === userProfile?.id);
   const isLeader = currentMember?.role === 'leader';
+  const shouldShowSafetyPrompt =
+    !isSafetyPromptDismissed &&
+    !tripProgress.safetySelfComplete &&
+    visitedModuleIds.length >= 2;
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
@@ -270,6 +296,26 @@ export default function TripDashboardScreen() {
           crewSize={members.length}
           completionPercent={completionPercent}
         />
+
+        {shouldShowSafetyPrompt && (
+          <View style={styles.section}>
+            <SafetyPromptBanner
+              onOpen={() => {
+                if (id) {
+                  dismissedSafetyPromptByTrip.add(id);
+                  setIsSafetyPromptDismissed(true);
+                }
+                router.push(`/trips/${id}/safety-profile?tripId=${id}`);
+              }}
+              onDismiss={() => {
+                if (id) {
+                  dismissedSafetyPromptByTrip.add(id);
+                  setIsSafetyPromptDismissed(true);
+                }
+              }}
+            />
+          </View>
+        )}
 
         {/* Primary Module: Camp Grid */}
         <View style={styles.section}>

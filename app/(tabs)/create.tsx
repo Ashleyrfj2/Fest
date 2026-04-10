@@ -1,12 +1,13 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, typography, spacing } from '@/lib/tokens';
 
 export default function CreateScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       <Text style={styles.title}>Create New Trip</Text>
       <Text style={styles.subtitle}>Start planning your next festival adventure</Text>
-    </View>
+    </SafeAreaView>
   );
 }
 

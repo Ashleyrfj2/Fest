@@ -9,6 +9,7 @@ import {
   clamp,
   snapFeetToCell,
 } from '@/lib/campGridTypes';
+import { useAuth } from '@/lib/auth/AuthContext';
 import { getCampGridDb, initCampGridDb } from '@/lib/sqlite/db';
 import { supabase } from '@/lib/supabase';
 
@@ -277,8 +278,10 @@ export function useCampGridDB(tripId: string | undefined) {
   const [isSavingLayout, setIsSavingLayout] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const { authUser, isLoading: isAuthLoading } = useAuth();
 
   const canLoad = Boolean(tripId);
+  const canSyncWithSharedDb = Boolean(authUser?.id) && !isAuthLoading;
 
   const loadData = useCallback(async () => {
     if (!tripId) return;
@@ -291,13 +294,15 @@ export function useCampGridDB(tripId: string | undefined) {
       const localSnapshot = await readLocalSnapshot(tripId);
       let remoteSnapshot: Awaited<ReturnType<typeof readRemoteSnapshot>> | null = null;
 
-      try {
-        remoteSnapshot = await readRemoteSnapshot(
-          tripId,
-          localSnapshot.grid?.measurementUnit ?? DEFAULT_GRID.measurementUnit
-        );
-      } catch (remoteError: any) {
-        console.error('Failed to load shared camp grid data:', remoteError);
+      if (canSyncWithSharedDb) {
+        try {
+          remoteSnapshot = await readRemoteSnapshot(
+            tripId,
+            localSnapshot.grid?.measurementUnit ?? DEFAULT_GRID.measurementUnit
+          );
+        } catch {
+          remoteSnapshot = null;
+        }
       }
 
       if (remoteSnapshot?.grid) {
@@ -340,7 +345,7 @@ export function useCampGridDB(tripId: string | undefined) {
     } finally {
       setIsLoading(false);
     }
-  }, [tripId]);
+  }, [canSyncWithSharedDb, tripId]);
 
   useEffect(() => {
     if (!canLoad) {
@@ -489,7 +494,7 @@ export function useCampGridDB(tripId: string | undefined) {
   }, []);
 
   const saveLayoutToGroup = useCallback(async () => {
-    if (!tripId || !grid) return false;
+    if (!tripId || !grid || !canSyncWithSharedDb) return false;
 
     try {
       setIsSavingLayout(true);
@@ -564,7 +569,7 @@ export function useCampGridDB(tripId: string | undefined) {
     } finally {
       setIsSavingLayout(false);
     }
-  }, [grid, items, tripId]);
+  }, [canSyncWithSharedDb, grid, items, tripId]);
 
   const hasConfiguredGrid = useMemo(() => Boolean(grid?.festivalPreset), [grid?.festivalPreset]);
 

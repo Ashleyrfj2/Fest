@@ -15,9 +15,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  SafeAreaView,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Plus } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -145,7 +145,7 @@ export default function BudgetTrackerScreen() {
 
   if (isTripLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView edges={['top']} style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Loading trip...</Text>
@@ -156,7 +156,7 @@ export default function BudgetTrackerScreen() {
 
   if (tripError) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView edges={['top']} style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorTitle}>Error</Text>
           <Text style={styles.errorMessage}>{tripError}</Text>
@@ -167,7 +167,7 @@ export default function BudgetTrackerScreen() {
 
   if (!trip) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView edges={['top']} style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorTitle}>Trip Not Found</Text>
           <Text style={styles.errorMessage}>Unable to load this trip</Text>
@@ -177,7 +177,7 @@ export default function BudgetTrackerScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>

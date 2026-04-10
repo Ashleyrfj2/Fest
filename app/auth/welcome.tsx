@@ -15,14 +15,16 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Zap, Mail, Sparkles } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, borderRadius, spacing, typography } from '@/lib/tokens';
 
 export default function WelcomeScreen() {
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-    >
+    <SafeAreaView edges={['top']} style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+      >
       {/* Hero Section */}
       <View style={styles.hero}>
         <View style={styles.iconContainer}>
@@ -85,7 +87,8 @@ export default function WelcomeScreen() {
         Guest accounts can be upgraded to email accounts later.{'\n'}
         No credit card ever required.
       </Text>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -93,6 +96,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.base,
+  },
+  scrollView: {
+    flex: 1,
   },
   content: {
     flexGrow: 1,

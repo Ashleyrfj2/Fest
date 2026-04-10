@@ -778,6 +778,9 @@ export type Database = {
           blood_type: string | null
           created_at: string
           current_medications: string[] | null
+          emergency_access_blob: string | null
+          emergency_access_pin_hash: string | null
+          emergency_access_pin_salt: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           emergency_contact_relationship: string | null
@@ -797,6 +800,9 @@ export type Database = {
           blood_type?: string | null
           created_at?: string
           current_medications?: string[] | null
+          emergency_access_blob?: string | null
+          emergency_access_pin_hash?: string | null
+          emergency_access_pin_salt?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relationship?: string | null
@@ -816,6 +822,9 @@ export type Database = {
           blood_type?: string | null
           created_at?: string
           current_medications?: string[] | null
+          emergency_access_blob?: string | null
+          emergency_access_pin_hash?: string | null
+          emergency_access_pin_salt?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relationship?: string | null

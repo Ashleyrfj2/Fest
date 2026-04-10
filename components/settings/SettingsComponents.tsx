@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { ArrowLeft, ChevronRight } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { borderRadius, colors, spacing, typography } from '@/lib/tokens';
 
 type SettingsPageFrameProps = {
@@ -18,7 +19,7 @@ export function SettingsPageFrame({
   children,
 }: SettingsPageFrameProps) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
@@ -40,7 +41,7 @@ export function SettingsPageFrame({
 
         {children}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

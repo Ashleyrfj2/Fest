@@ -19,6 +19,7 @@ import * as SecureStore from 'expo-secure-store';
 const ENCRYPTION_KEY_PREFIX = 'safety_profile_key_';
 const KEY_SIZE_BYTES = 32; // 256 bits for AES-256
 const IV_SIZE_BYTES = 12; // 96 bits for GCM
+const PIN_SALT_SIZE_BYTES = 16;
 
 /**
  * Securely generate or retrieve the user's encryption key
@@ -189,6 +190,96 @@ export async function deleteEncryptionKey(userId: string): Promise<void> {
 // Helper Functions
 // ============================================================================
 
+/**
+ * Generate a random salt for emergency PIN hashing and key derivation.
+ */
+export async function generateEmergencyPinSalt(): Promise<string> {
+  const saltBytes = await Crypto.getRandomBytesAsync(PIN_SALT_SIZE_BYTES);
+  return uint8ArrayToBase64(Uint8Array.from(saltBytes));
+}
+
+/**
+ * Hash a PIN with salt for verification (stored server-side).
+ */
+export async function hashEmergencyPin(pin: string, salt: string): Promise<string> {
+  return Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    `${salt}:${pin}`
+  );
+}
+
+async function deriveEmergencyPinKey(pin: string, salt: string): Promise<Uint8Array> {
+  const digestHex = await hashEmergencyPin(pin, salt);
+  return hexToUint8Array(digestHex);
+}
+
+/**
+ * Encrypt emergency payload that can be unlocked with owner PIN.
+ */
+export async function encryptEmergencyAccessPayload(
+  payloadJson: string,
+  pin: string,
+  salt: string
+): Promise<string> {
+  const key = await deriveEmergencyPinKey(pin, salt);
+  const iv = Uint8Array.from(await Crypto.getRandomBytesAsync(IV_SIZE_BYTES));
+  const encoder = new TextEncoder();
+  const plaintextBytes = encoder.encode(payloadJson);
+
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    key,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt']
+  );
+
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv, tagLength: 128 },
+    cryptoKey,
+    plaintextBytes
+  );
+
+  const combined = new Uint8Array(iv.length + ciphertext.byteLength);
+  combined.set(iv, 0);
+  combined.set(new Uint8Array(ciphertext), iv.length);
+  return uint8ArrayToBase64(combined);
+}
+
+/**
+ * Decrypt emergency payload with owner PIN.
+ */
+export async function decryptEmergencyAccessPayload(
+  blob: string,
+  pin: string,
+  salt: string
+): Promise<string | null> {
+  try {
+    const key = await deriveEmergencyPinKey(pin, salt);
+    const combined = base64ToUint8Array(blob);
+    const iv = combined.slice(0, IV_SIZE_BYTES);
+    const encryptedData = Uint8Array.from(combined.slice(IV_SIZE_BYTES));
+
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      key,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['decrypt']
+    );
+
+    const plaintextBytes = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv, tagLength: 128 },
+      cryptoKey,
+      encryptedData
+    );
+
+    const decoder = new TextDecoder();
+    return decoder.decode(plaintextBytes);
+  } catch {
+    return null;
+  }
+}
 function uint8ArrayToBase64(bytes: Uint8Array): string {
   // Convert to binary string
   let binary = '';
@@ -210,6 +301,13 @@ function base64ToUint8Array(base64: string): Uint8Array {
   return bytes;
 }
 
+function hexToUint8Array(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+  }
+  return bytes;
+}
 /**
  * Test encryption/decryption flow
  * Use for validation during development

@@ -37,6 +37,9 @@ export interface TripProgress {
   // Individual module progress
   moduleProgress: Record<string, ModuleProgress>;
   
+  // Module-specific helpers
+  safetySelfComplete: boolean;      // Whether the current user's profile is complete
+  
   // Metadata
   includedCount: number;            // Number of modules in aggregate
   implementedCount: number;         // Number of implemented modules

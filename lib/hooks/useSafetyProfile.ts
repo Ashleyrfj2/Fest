@@ -28,6 +28,10 @@ import {
   decryptString,
   encryptStringArray,
   decryptStringArray,
+  generateEmergencyPinSalt,
+  hashEmergencyPin,
+  encryptEmergencyAccessPayload,
+  decryptEmergencyAccessPayload,
 } from '@/lib/crypto/safetyEncryption';
 import {
   initSafetyDb,
@@ -45,6 +49,8 @@ export function useSafetyProfile(tripId: string) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const hasEmergencyAccessPin = Boolean(myProfile?.has_emergency_access_pin);
 
   // Initialize DB on mount
   useEffect(() => {
@@ -214,6 +220,8 @@ export function useSafetyProfile(tripId: string) {
       setSaving(true);
       setError(null);
 
+      const existingEncrypted = await getSafetyProfileLocal(tripId, userProfile.id);
+
       // Encrypt all sensitive fields
       const encrypted: EncryptedSafetyProfile = {
         id: myProfile?.id || crypto.randomUUID(),
@@ -252,6 +260,9 @@ export function useSafetyProfile(tripId: string) {
         ),
         blood_type: await encryptString(formData.blood_type || null, userProfile.id),
         notes: await encryptString(formData.notes || null, userProfile.id),
+        emergency_access_blob: existingEncrypted?.emergency_access_blob || null,
+        emergency_access_pin_salt: existingEncrypted?.emergency_access_pin_salt || null,
+        emergency_access_pin_hash: existingEncrypted?.emergency_access_pin_hash || null,
         created_at: myProfile?.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -299,6 +310,9 @@ export function useSafetyProfile(tripId: string) {
           current_medications: encrypted.current_medications,
           blood_type: encrypted.blood_type,
           notes: encrypted.notes,
+          emergency_access_blob: encrypted.emergency_access_blob,
+          emergency_access_pin_salt: encrypted.emergency_access_pin_salt,
+          emergency_access_pin_hash: encrypted.emergency_access_pin_hash,
           updated_at: encrypted.updated_at,
         });
 
@@ -323,6 +337,7 @@ export function useSafetyProfile(tripId: string) {
       id: encrypted.id,
       trip_id: encrypted.trip_id,
       user_id: encrypted.user_id,
+      has_emergency_access_pin: Boolean(encrypted.emergency_access_pin_hash),
       full_name: await decryptString(encrypted.full_name, userId),
       phone: await decryptString(encrypted.phone, userId),
       hometown: await decryptString(encrypted.hometown, userId),
@@ -358,14 +373,162 @@ export function useSafetyProfile(tripId: string) {
     };
   }
 
+  async function setEmergencyAccessPin(pin: string): Promise<void> {
+    if (!userProfile?.id) {
+      throw new Error('User not authenticated');
+    }
+
+    if (!/^\d{4,8}$/.test(pin)) {
+      throw new Error('PIN must be 4-8 digits');
+    }
+
+    if (!myProfile) {
+      throw new Error('Create and save your safety profile before setting a PIN');
+    }
+
+    const encryptedLocalProfile = await getSafetyProfileLocal(tripId, userProfile.id);
+    if (!encryptedLocalProfile) {
+      throw new Error('Unable to find local safety profile to update');
+    }
+
+    const emergencyPayload = {
+      full_name: myProfile.full_name,
+      phone: myProfile.phone,
+      hometown: myProfile.hometown,
+      emergency_contact_name: myProfile.emergency_contact_name,
+      emergency_contact_relationship: myProfile.emergency_contact_relationship,
+      emergency_contact_phone: myProfile.emergency_contact_phone,
+      allergies_food: myProfile.allergies_food,
+      allergies_environmental: myProfile.allergies_environmental,
+      allergies_medication: myProfile.allergies_medication,
+      current_medications: myProfile.current_medications,
+      blood_type: myProfile.blood_type,
+      notes: myProfile.notes,
+    };
+
+    const salt = await generateEmergencyPinSalt();
+    const pinHash = await hashEmergencyPin(pin, salt);
+    const emergencyBlob = await encryptEmergencyAccessPayload(
+      JSON.stringify(emergencyPayload),
+      pin,
+      salt
+    );
+
+    const updatedEncryptedProfile: EncryptedSafetyProfile = {
+      ...encryptedLocalProfile,
+      emergency_access_blob: emergencyBlob,
+      emergency_access_pin_salt: salt,
+      emergency_access_pin_hash: pinHash,
+      updated_at: new Date().toISOString(),
+    };
+
+    await saveSafetyProfileLocal(updatedEncryptedProfile as any);
+    await syncToSupabase(updatedEncryptedProfile);
+
+    setMyProfile((prev) => (prev ? { ...prev, has_emergency_access_pin: true } : prev));
+  }
+
+  async function clearEmergencyAccessPin(): Promise<void> {
+    if (!userProfile?.id) {
+      throw new Error('User not authenticated');
+    }
+
+    const encryptedLocalProfile = await getSafetyProfileLocal(tripId, userProfile.id);
+    if (!encryptedLocalProfile) {
+      throw new Error('Unable to find local safety profile to update');
+    }
+
+    const updatedEncryptedProfile: EncryptedSafetyProfile = {
+      ...encryptedLocalProfile,
+      emergency_access_blob: null,
+      emergency_access_pin_salt: null,
+      emergency_access_pin_hash: null,
+      updated_at: new Date().toISOString(),
+    };
+
+    await saveSafetyProfileLocal(updatedEncryptedProfile as any);
+    await syncToSupabase(updatedEncryptedProfile);
+
+    setMyProfile((prev) => (prev ? { ...prev, has_emergency_access_pin: false } : prev));
+  }
+
+  async function unlockEmergencyProfile(targetUserId: string, pin: string): Promise<SafetyProfile> {
+    if (!/^\d{4,8}$/.test(pin)) {
+      throw new Error('PIN must be 4-8 digits');
+    }
+
+    let encryptedProfile = await getSafetyProfileLocal(tripId, targetUserId);
+
+    if (!encryptedProfile) {
+      const { data, error: fetchError } = await supabase
+        .from('safety_profiles')
+        .select('*')
+        .eq('trip_id', tripId)
+        .eq('user_id', targetUserId)
+        .single();
+
+      if (fetchError || !data) {
+        throw new Error('No safety profile found for this member');
+      }
+
+      encryptedProfile = data;
+      await saveSafetyProfileLocal(data as any);
+      await markSafetyProfileSynced(data.id);
+    }
+
+    const salt = encryptedProfile.emergency_access_pin_salt;
+    const storedHash = encryptedProfile.emergency_access_pin_hash;
+    const blob = encryptedProfile.emergency_access_blob;
+
+    if (!salt || !storedHash || !blob) {
+      throw new Error('This member has not enabled emergency PIN access');
+    }
+
+    const enteredHash = await hashEmergencyPin(pin, salt);
+    if (enteredHash !== storedHash) {
+      throw new Error('Incorrect emergency PIN');
+    }
+
+    const decryptedPayload = await decryptEmergencyAccessPayload(blob, pin, salt);
+    if (!decryptedPayload) {
+      throw new Error('Unable to decrypt emergency data');
+    }
+
+    const parsed = JSON.parse(decryptedPayload);
+    return {
+      id: encryptedProfile.id,
+      trip_id: encryptedProfile.trip_id,
+      user_id: encryptedProfile.user_id,
+      has_emergency_access_pin: true,
+      full_name: parsed.full_name ?? null,
+      phone: parsed.phone ?? null,
+      hometown: parsed.hometown ?? null,
+      emergency_contact_name: parsed.emergency_contact_name ?? null,
+      emergency_contact_relationship: parsed.emergency_contact_relationship ?? null,
+      emergency_contact_phone: parsed.emergency_contact_phone ?? null,
+      allergies_food: parsed.allergies_food ?? null,
+      allergies_environmental: parsed.allergies_environmental ?? null,
+      allergies_medication: parsed.allergies_medication ?? null,
+      current_medications: parsed.current_medications ?? null,
+      blood_type: parsed.blood_type ?? null,
+      notes: parsed.notes ?? null,
+      created_at: encryptedProfile.created_at,
+      updated_at: encryptedProfile.updated_at,
+    };
+  }
+
   return {
     myProfile,
     groupProfiles,
     loading,
     saving,
     error,
+    hasEmergencyAccessPin,
     saveSafetyProfile,
     loadGroupProfiles,
+    setEmergencyAccessPin,
+    clearEmergencyAccessPin,
+    unlockEmergencyProfile,
     refreshProfile: loadMyProfile,
   };
 }

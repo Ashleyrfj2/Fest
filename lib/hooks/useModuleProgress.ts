@@ -29,6 +29,7 @@ export function useModuleProgress(tripId: string, tripMembers: { user_id?: strin
   const [tripProgress, setTripProgress] = useState<TripProgress>({
     overallPercent: 0,
     moduleProgress: {},
+    safetySelfComplete: false,
     includedCount: 0,
     implementedCount: 0,
     isLoading: true,
@@ -52,6 +53,7 @@ export function useModuleProgress(tripId: string, tripMembers: { user_id?: strin
     let includedCount = 0;
     let implementedCount = 0;
     let anyErrors = false;
+    let safetySelfComplete = false;
 
     // =========================================================================
     // SUPPLY LIST PROGRESS
@@ -187,6 +189,20 @@ export function useModuleProgress(tripId: string, tripMembers: { user_id?: strin
         return hasEmergencyContact && hasMedicalInfo;
       }).length;
 
+      const currentUserSafetyProfile = userProfile?.id
+        ? safety.groupProfiles.find((profile) => profile.user_id === userProfile.id)
+        : null;
+      const currentUserHasEmergencyContact = Boolean(
+        currentUserSafetyProfile?.emergency_contact_name?.trim() &&
+          currentUserSafetyProfile?.emergency_contact_phone?.trim()
+      );
+      const currentUserHasMedicalInfo = Boolean(
+        currentUserSafetyProfile?.blood_type?.trim() ||
+          currentUserSafetyProfile?.current_medications?.length ||
+          currentUserSafetyProfile?.notes?.trim()
+      );
+      safetySelfComplete = Boolean(currentUserHasEmergencyContact && currentUserHasMedicalInfo);
+
       const safetyPercent = memberCount > 0 ? Math.round((completeProfiles / memberCount) * 100) : 0;
 
       moduleProgress.safety = validateModuleProgress({
@@ -242,12 +258,13 @@ export function useModuleProgress(tripId: string, tripMembers: { user_id?: strin
     setTripProgress({
       overallPercent,
       moduleProgress,
+      safetySelfComplete,
       includedCount,
       implementedCount,
       isLoading: supplyList.isLoading || travel.isLoading || packing.isLoading || safety.loading,
       anyErrors,
     });
-  }, [supplyList.items, travel.vehicles, travel.flights, packing.items, safety.groupProfiles, tripMembers.length]);
+  }, [supplyList.items, travel.vehicles, travel.flights, packing.items, safety.groupProfiles, tripMembers.length, userProfile?.id]);
 
   return tripProgress;
 }

@@ -23,6 +23,7 @@ import {
   ScrollView,
   Switch,
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { X, Plus } from 'lucide-react-native';
 import { colors, borderRadius, spacing, typography } from '@/lib/tokens';
 import { BudgetEntry } from '@/lib/budgetTypes';
@@ -203,9 +204,12 @@ export function AddExpenseModal({
       visible={isOpen}
       animationType="slide"
       transparent={false}
+      presentationStyle="fullScreen"
+      statusBarTranslucent={false}
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
+      <SafeAreaProvider>
+        <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>
             {editingEntry ? 'Edit Expense' : 'Add Expense'}
@@ -387,7 +391,8 @@ export function AddExpenseModal({
             )}
           </TouchableOpacity>
         </View>
-      </View>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }

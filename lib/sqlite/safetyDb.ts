@@ -47,6 +47,9 @@ export async function initSafetyDb(): Promise<void> {
       current_medications TEXT,
       blood_type TEXT,
       notes TEXT,
+      emergency_access_blob TEXT,
+      emergency_access_pin_salt TEXT,
+      emergency_access_pin_hash TEXT,
       
       -- Metadata
       created_at TEXT NOT NULL,
@@ -69,6 +72,33 @@ export async function initSafetyDb(): Promise<void> {
       ON safety_profiles(needs_sync) 
       WHERE needs_sync = 1;
   `);
+
+  // Backfill columns for users upgrading from older schema versions.
+  const tableInfo = (await db.getAllAsync(
+    `PRAGMA table_info(safety_profiles)`
+  )) as Array<{ name: string }>;
+  const existingColumns = new Set(tableInfo.map((column) => column.name));
+
+  const requiredColumns = [
+    { name: 'emergency_access_blob', type: 'TEXT' },
+    { name: 'emergency_access_pin_salt', type: 'TEXT' },
+    { name: 'emergency_access_pin_hash', type: 'TEXT' },
+  ];
+
+  for (const column of requiredColumns) {
+    if (existingColumns.has(column.name)) {
+      continue;
+    }
+
+    try {
+      await db.execAsync(`ALTER TABLE safety_profiles ADD COLUMN ${column.name} ${column.type}`);
+    } catch (error: any) {
+      const message = String(error?.message || error || '');
+      if (!message.toLowerCase().includes('duplicate column')) {
+        throw error;
+      }
+    }
+  }
 }
 
 /**
@@ -90,6 +120,9 @@ export async function saveSafetyProfileLocal(profile: {
   current_medications: string | null;
   blood_type: string | null;
   notes: string | null;
+  emergency_access_blob?: string | null;
+  emergency_access_pin_salt?: string | null;
+  emergency_access_pin_hash?: string | null;
   created_at: string;
   updated_at: string;
 }): Promise<void> {
@@ -102,8 +135,9 @@ export async function saveSafetyProfileLocal(profile: {
       emergency_contact_name, emergency_contact_relationship, emergency_contact_phone,
       allergies_food, allergies_environmental, allergies_medication,
       current_medications, blood_type, notes,
+      emergency_access_blob, emergency_access_pin_salt, emergency_access_pin_hash,
       created_at, updated_at, needs_sync
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
     [
       profile.id,
       profile.trip_id,
@@ -120,6 +154,9 @@ export async function saveSafetyProfileLocal(profile: {
       profile.current_medications,
       profile.blood_type,
       profile.notes,
+      profile.emergency_access_blob ?? null,
+      profile.emergency_access_pin_salt ?? null,
+      profile.emergency_access_pin_hash ?? null,
       profile.created_at,
       profile.updated_at,
     ]

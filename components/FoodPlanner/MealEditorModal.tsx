@@ -15,7 +15,7 @@ import {
   FlatList,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { X, Plus, Trash2, ChefHat } from 'lucide-react-native';
 import { colors, typography, spacing, borderRadius } from '@/lib/tokens';
 import {
@@ -130,8 +130,9 @@ export function MealEditorModal({
   const slotMeta = getMealSlotMetadata(slot as any);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={false}>
-      <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
+    <Modal visible={visible} animationType="slide" transparent={false} presentationStyle="fullScreen" statusBarTranslucent={false}>
+      <SafeAreaProvider>
+        <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onCancel} disabled={isSaving}>
@@ -161,7 +162,7 @@ export function MealEditorModal({
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.scrollView}>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
           {/* Meal Name */}
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>Meal Name</Text>
@@ -304,7 +305,8 @@ export function MealEditorModal({
 
           <View style={styles.spacer} />
         </ScrollView>
-      </SafeAreaView>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
@@ -322,7 +324,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.subtle,
-    paddingTop: spacing.lg,
   },
   headerTitle: {
     fontSize: typography.size.appTitle,
@@ -351,6 +352,8 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
     padding: spacing.lg,
   },
   section: {

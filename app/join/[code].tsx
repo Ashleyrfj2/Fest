@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Calendar, MapPin, Users, CheckCircle } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { isValidInviteCode, isInviteExpired } from '@/lib/invites/invite-utils';
@@ -159,15 +160,15 @@ export default function JoinTripScreen() {
 
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color={colors.accent.gold} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.container, styles.centered]}>
         <Text style={styles.errorTitle}>Oops!</Text>
         <Text style={styles.errorMessage}>{error}</Text>
         <TouchableOpacity
@@ -177,7 +178,7 @@ export default function JoinTripScreen() {
         >
           <Text style={styles.buttonText}>Go to Home</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -187,7 +188,7 @@ export default function JoinTripScreen() {
 
   if (alreadyMember) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.container, styles.centered]}>
         <View style={styles.successIcon}>
           <CheckCircle size={64} color={colors.accent.gold} strokeWidth={2} />
         </View>
@@ -202,12 +203,12 @@ export default function JoinTripScreen() {
         >
           <Text style={styles.buttonText}>Go to Trip</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
@@ -268,7 +269,7 @@ export default function JoinTripScreen() {
           You'll be able to see trip details, contribute to planning, and chat with your crew
         </Text>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

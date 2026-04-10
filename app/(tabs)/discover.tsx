@@ -1,12 +1,13 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, typography, spacing } from '@/lib/tokens';
 
 export default function DiscoverScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       <Text style={styles.title}>Discover</Text>
       <Text style={styles.subtitle}>Browse festivals and community groups</Text>
-    </View>
+    </SafeAreaView>
   );
 }
 

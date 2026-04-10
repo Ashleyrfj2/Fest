@@ -9,6 +9,7 @@ export interface SafetyProfile {
   id: string;
   trip_id: string;
   user_id: string;
+  has_emergency_access_pin: boolean;
   
   // Personal Info (encrypted)
   full_name: string | null;
@@ -57,6 +58,11 @@ export interface EncryptedSafetyProfile {
   current_medications: string | null; // encrypted JSON array
   blood_type: string | null;
   notes: string | null;
+
+  // Emergency access payload encrypted with user-defined PIN key
+  emergency_access_blob: string | null;
+  emergency_access_pin_salt: string | null;
+  emergency_access_pin_hash: string | null;
   
   created_at: string;
   updated_at: string;

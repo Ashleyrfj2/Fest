@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Activity, AlertCircle } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useActivityFeed } from '@/lib/hooks/useActivityFeed';
 import { borderRadius, colors, spacing, typography } from '@/lib/tokens';
 import { Database } from '@/lib/database.types';
@@ -52,19 +53,19 @@ export default function ActivityScreen() {
 
   if (showInitialLoading) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView edges={['top']} style={styles.container}>
         <View style={styles.screenHeader}>
           <Text style={styles.title}>Activity</Text>
         </View>
         <View style={styles.centeredState}>
           <Text style={styles.subtitle}>Loading activity...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       <FlatList
         data={rows}
         keyExtractor={(row) => row.id}
@@ -146,7 +147,7 @@ export default function ActivityScreen() {
           );
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
