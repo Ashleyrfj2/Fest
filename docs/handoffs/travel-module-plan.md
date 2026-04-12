@@ -1,8 +1,8 @@
 # Travel Module Plan
 
-## Status: ✅ COMPLETE (April 7, 2026)
+## Status: ⚠️ FOLLOW-UP REQUIRED (Updated April 12, 2026)
 
-All planned work has been implemented and verified. See [Session Notes - 2026-04-07](../sessions/session-notes-2026-04-07.md) for full details.
+Initial implementation was completed on April 7, but April 12 QA reopened blocker fixes. See [Travel QA Audit - 2026-04-12](../reports/travel-qa-audit-2026-04-12.md) for current findings.
 
 ---
 
@@ -124,4 +124,21 @@ All planned work completed and verified:
 **Next Steps:** Run full Travel QA audit, then proceed to next feature from roadmap.
 
 See [Session Notes - 2026-04-07](../sessions/session-notes-2026-04-07.md) for detailed implementation notes.
+
+---
+
+## QA Addendum (April 12, 2026)
+
+Travel QA was executed and returned **FAIL** with blockers:
+
+1. Viewer role can still mutate Travel data (permission gap).
+2. Meetup pin changes are not trip-realtime subscribed.
+
+Report:
+- [Travel QA Audit - 2026-04-12](../reports/travel-qa-audit-2026-04-12.md)
+
+### Current To-Do
+- Enforce role restrictions for viewer in Travel UI and write paths.
+- Add `trips` table realtime subscription for meetup pin updates.
+- Re-run Travel QA after fixes and update this plan status.
 

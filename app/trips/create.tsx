@@ -159,7 +159,7 @@ export default function CreateTripScreen() {
         {/* Back Button */}
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => router.replace('/(tabs)/index')}
           activeOpacity={0.7}
         >
           <ArrowLeft size={24} color={colors.text.mid} strokeWidth={2} />

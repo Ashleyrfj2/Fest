@@ -3,7 +3,7 @@
  * Real-time data management for vehicles, flights, and meetup
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth/AuthContext';
 import {
@@ -25,9 +25,11 @@ export function useTravel(tripId: string) {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [flights, setFlights] = useState<FlightDetail[]>([]);
   const [tripMeetupPin, setTripMeetupPin] = useState<MeetupPin | null>(null);
+  const [totalMembers, setTotalMembers] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { userProfile } = useAuth();
+  const vehicleIdsRef = useRef<Set<string>>(new Set());
 
   function normalizeMeetupPin(pin: unknown): MeetupPin | null {
     if (!pin || typeof pin !== 'object') {
@@ -91,8 +93,16 @@ export function useTravel(tripId: string) {
 
       if (tripError) throw tripError;
 
+      const { count: memberCount, error: membersError } = await supabase
+        .from('group_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('trip_id', tripId);
+
+      if (membersError) throw membersError;
+
       setVehicles((vehicleData as Vehicle[]) || []);
       setFlights((flightData as FlightDetail[]) || []);
+      setTotalMembers(memberCount ?? 0);
 
       const tripMeetupPinData = normalizeMeetupPin(tripData?.meetup_pin);
       const firstVehicleWithPin = (vehicleData || []).find((vehicle) => vehicle.meetup_pin);
@@ -119,6 +129,21 @@ export function useTravel(tripId: string) {
   }, [tripId]);
 
   useEffect(() => {
+    vehicleIdsRef.current = new Set(vehicles.map((vehicle) => vehicle.id));
+  }, [vehicles]);
+
+  const handlePassengerChange = useCallback(
+    (payload: { new?: { vehicle_id?: string }; old?: { vehicle_id?: string } }) => {
+      const vehicleId = payload.new?.vehicle_id ?? payload.old?.vehicle_id;
+
+      if (!vehicleId || vehicleIdsRef.current.has(vehicleId)) {
+        void fetchData();
+      }
+    },
+    [fetchData]
+  );
+
+  useEffect(() => {
     fetchData();
 
     const travelChannel = supabase
@@ -140,7 +165,7 @@ export function useTravel(tripId: string) {
           schema: 'public',
           table: 'vehicle_passengers',
         },
-        () => fetchData()
+        (payload) => handlePassengerChange(payload as { new?: { vehicle_id?: string }; old?: { vehicle_id?: string } })
       )
       .on(
         'postgres_changes',
@@ -157,7 +182,7 @@ export function useTravel(tripId: string) {
     return () => {
       supabase.removeChannel(travelChannel);
     };
-  }, [tripId, fetchData]);
+  }, [tripId, fetchData, handlePassengerChange]);
 
   const addVehicle = useCallback(
     async (vehicleData: Omit<VehicleInsert, 'trip_id' | 'driver_id'>) => {
@@ -484,11 +509,19 @@ export function useTravel(tripId: string) {
     [fetchData, tripId, userProfile?.id]
   );
 
+  const assignedMemberIds = new Set<string>();
+  vehicles.forEach((vehicle) => {
+    assignedMemberIds.add(vehicle.driver_id);
+    (vehicle.passengers || []).forEach((passenger) => {
+      assignedMemberIds.add(passenger.user_id);
+    });
+  });
+
   const progress: TravelProgress = {
-    totalMembers: 0,
-    membersWithRides: vehicles.reduce((sum, v) => sum + (v.passengers?.length || 0), 0),
+    totalMembers,
+    membersWithRides: assignedMemberIds.size,
     membersNeedingPickup: flights.filter((f) => f.needs_pickup && !f.pickup_vehicle_id).length,
-    membersAssigned: vehicles.reduce((sum, v) => sum + (v.passengers?.length || 0), 0) + vehicles.length,
+    membersAssigned: assignedMemberIds.size,
   };
 
   return {

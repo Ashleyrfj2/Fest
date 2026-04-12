@@ -197,6 +197,10 @@ export default function TripDashboardScreen() {
     return Math.max(0, diffDays);
   }
 
+  function handleBackToHome() {
+    router.replace('/(tabs)/index');
+  }
+
   // Loading state
   if (isLoading) {
     return (
@@ -213,7 +217,7 @@ export default function TripDashboardScreen() {
         <Text style={styles.errorText}>Trip not found</Text>
         <TouchableOpacity
           style={styles.backToHomeButton}
-          onPress={() => router.back()}
+          onPress={handleBackToHome}
           activeOpacity={0.7}
         >
           <Text style={styles.backToHomeText}>Back to Home</Text>
@@ -242,7 +246,7 @@ export default function TripDashboardScreen() {
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={handleBackToHome}
             activeOpacity={0.7}
           >
             <ArrowLeft size={24} color={colors.text.mid} strokeWidth={2} />

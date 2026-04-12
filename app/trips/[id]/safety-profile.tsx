@@ -167,7 +167,16 @@ export default function SafetyProfileScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => {
+            if (tripId) {
+              router.replace({ pathname: '/trips/[id]', params: { id: tripId } });
+              return;
+            }
+            router.back();
+          }}
+          style={styles.backButton}
+        >
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Safety & Emergency Info</Text>

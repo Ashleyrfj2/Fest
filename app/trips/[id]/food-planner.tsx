@@ -166,7 +166,13 @@ export default function FoodPlannerScreen() {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => {
+            if (tripId) {
+              router.replace({ pathname: '/trips/[id]', params: { id: tripId } });
+              return;
+            }
+            router.back();
+          }}
           activeOpacity={0.7}
         >
           <ArrowLeft size={24} color={colors.text.mid} strokeWidth={2} />

@@ -23,31 +23,55 @@
 - TypeScript regressions from the refreshed schema were fixed.
 - See [Session Notes - 2026-04-05](../sessions/session-notes-2026-04-05.md) for details.
 
-## Recommended Next Features
-1. Run full QA audit on Travel module (forms, map, state persistence).
-2. Review remaining test notes for outstanding issues (Lineup component needs work).
-3. Continue with next feature from product roadmap.
+## Latest Update (April 12, 2026)
+- Dispatched all four planned next steps to specialized agents.
+- Completed:
+  - Food Planner dietary icon bug fix.
+  - Lint gate setup (`lint`, `lint:fix`, CI workflow).
+- QA runs completed with blockers:
+  - Travel QA: **FAIL** with 1 high + 1 medium blocker.
+  - Safety + Camp Grid validation: **FAIL** with critical/high reliability blockers.
+- Reports:
+  - [Travel QA Audit - 2026-04-12](../reports/travel-qa-audit-2026-04-12.md)
+  - [Safety + Camp Grid Validation - 2026-04-12](../reports/safety-camp-grid-validation-report-2026-04-12.md)
+
+## Current Priority Queue (Post-Dispatch)
+1. **P0:** Prevent Camp Grid shared-layout data loss after remote-load failure.
+	- Context: [Safety + Camp Grid Validation - 2026-04-12](../reports/safety-camp-grid-validation-report-2026-04-12.md)
+2. **P0:** Preserve Safety emergency PIN fields on normal profile save.
+	- Context: [Safety + Camp Grid Validation - 2026-04-12](../reports/safety-camp-grid-validation-report-2026-04-12.md)
+3. **P0:** Enforce Travel viewer write restrictions in UI and mutation paths.
+	- Context: [Travel QA Audit - 2026-04-12](../reports/travel-qa-audit-2026-04-12.md)
+4. **P1:** Add Travel meetup pin realtime subscription on `trips` updates.
+	- Context: [Travel QA Audit - 2026-04-12](../reports/travel-qa-audit-2026-04-12.md)
+5. **P1:** Resolve remaining TypeScript errors in safety/crypto files.
+6. **P1:** Re-run targeted QA for Travel and Safety/Camp Grid after fixes.
 
 ## Handoff Documents
 - [Trip Dashboard](trip-dashboard-handoff.md)
 - [Supply List](supply-list-handoff.md)
 - [Safety / Emergency Info](safety-profile-handoff.md)
 - [Travel Plans](travel-plans-handoff.md) — ✅ Complete & Shipped
-- [Travel Module Plan](travel-module-plan.md) — ✅ Completed April 7
+- [Travel Module Plan](travel-module-plan.md) — ⚠️ Follow-up Required (QA blockers reopened Apr 12)
 - [Camp Grid](camp-grid-handoff.md)
+- [Food Planner Dietary Icons](food-planner-dietary-icons-handoff.md)
+- [Travel QA Audit](travel-qa-audit-handoff.md)
+- [Safety and Camp Grid Validation](safety-camp-grid-validation-handoff.md)
+- [Lint Gate Implementation](lint-gate-handoff.md)
 
 ## Current Status by Module
-- **Travel**: ✅ Complete (modals fixed, safe-area resolved, pin metadata implemented)
+- **Travel**: ⚠️ QA follow-up required (permission + realtime blockers)
 - **Trip Dashboard**: ✅ Complete
-- **Food Planner**: ✅ Complete
+- **Food Planner**: ✅ Complete (dietary icon bug fixed Apr 12)
 - **Lineup Scheduler**: ✅ Complete (component has UI bug, see test-notes.md)
 - **Budget Tracker**: ✅ Complete
 - **Supply List**: ✅ Complete
-- **Camp Grid**: 🚧 In Progress
-- **Safety Profile**: ✅ Complete
+- **Camp Grid**: 🚨 Critical blocker open (potential data-loss path)
+- **Safety Profile**: ⚠️ High-priority reliability fixes required
 - **Packing Checklist**: 🚧 Planned
+- **Tooling / Quality Gate**: ✅ Lint gate implemented (Apr 12)
 
 ## Notes
 - Keep this index aligned to the current docs and session notes.
 - Session notes are the source of truth for implementation state between major handoff document revisions.
-- All core modules are now in place; focus next work on QA and outstanding bugs.
+- All core modules are now in place; focus next work on blocker remediation and QA re-validation.

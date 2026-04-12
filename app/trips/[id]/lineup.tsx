@@ -81,6 +81,14 @@ export default function LineupSchedulerScreen() {
     }
   }
 
+  function handleBackToTripDashboard() {
+    if (tripId) {
+      router.replace({ pathname: '/trips/[id]', params: { id: tripId } });
+      return;
+    }
+    router.back();
+  }
+
   // Load trip members for going now signals
   useEffect(() => {
     loadTripMembers();
@@ -199,7 +207,7 @@ export default function LineupSchedulerScreen() {
         <Text style={styles.errorText}>Error: {error}</Text>
         <TouchableOpacity
           style={styles.retryButton}
-          onPress={() => router.back()}
+          onPress={handleBackToTripDashboard}
         >
           <Text style={styles.retryButtonText}>Go Back</Text>
         </TouchableOpacity>
@@ -211,7 +219,7 @@ export default function LineupSchedulerScreen() {
     <SafeAreaView edges={['top']} style={styles.container}>
       {/* Header */}
       <View style={styles.headerBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={handleBackToTripDashboard} style={styles.backButton}>
           <ArrowLeft size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <View>

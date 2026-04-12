@@ -220,7 +220,13 @@ export default function CampGridScreen() {
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => {
+              if (id) {
+                router.replace({ pathname: '/trips/[id]', params: { id } });
+                return;
+              }
+              router.back();
+            }}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="Go back"

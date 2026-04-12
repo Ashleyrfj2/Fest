@@ -4,6 +4,10 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ## Outstanding Issues
 
+### Session Update (April 12, 2026 - Food Planner Dietary Icon Fix, Verified)
+- Implemented: replaced emoji-based dietary flag rendering with deterministic Lucide icon rendering in Food Planner meal cards and meal editor modal.
+- Verified: dietary icons now render correctly (no question-mark glyphs) in the dietary selector and saved meal badges while keeping existing dietary flag values unchanged.
+
 ### Session Update (April 10, 2026 - Safe-Area Pass, Verified)
 - Implemented: added app-level SafeAreaProvider in app root layout.
 - Implemented: added SafeAreaView coverage for tabs, auth routes, onboarding route, and join route.
@@ -20,10 +24,21 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 - [x] Confirmed no double top padding in Food Planner modal.
 
 ### Open Bugs (Reported April 10, 2026)
-- [ ] Food Planner: dietary flag icons are incorrect and currently render as question marks
+- [x] Food Planner: dietary flag icons are incorrect and currently render as question marks (verified fixed April 12, 2026)
 - [x] Packing Checklist: screen/header interferes with the notification bar or top safe area on device, which blocks swipe-back and can make the X/save controls unusable (verified fixed)
 - [x] Bottom menu/tab icons do not route correctly beyond Home in the current app build under audit (verified fixed)
 - [x] Safe-area follow-up: re-check all routes against the April 7 safe-area pass because current device behavior appears to regress in some routes such as packing list (verified fixed in current build)
+
+### Open Bugs (Reported April 12, 2026 - Agent QA Dispatch)
+- [ ] Camp Grid: critical risk of destructive overwrite when remote load fails and user saves default local layout
+- [ ] Safety Profile: normal profile save can clear emergency PIN fields when local encrypted row is missing
+- [ ] Travel: viewer role can still perform write actions (flight create/update and ride join/remove)
+- [ ] Travel: meetup pin is not subscribed to trip-level realtime updates, causing potential stale state across users
+- [ ] Safety/Crypto TypeScript errors remain in `app/trips/[id]/safety-emergency.tsx` and `lib/crypto/safetyEncryption.ts`
+
+References:
+- `docs/reports/travel-qa-audit-2026-04-12.md`
+- `docs/reports/safety-camp-grid-validation-report-2026-04-12.md`
 
 ## Completed Fixes (April 10, 2026)
 - ✅ Added global SafeAreaProvider at app root and aligned screen-level safe-area wrappers on user-facing routes.

@@ -16,12 +16,23 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { X, Plus, Trash2, ChefHat } from 'lucide-react-native';
+import {
+  X,
+  Plus,
+  Trash2,
+  Vegan,
+  WheatOff,
+  NutOff,
+  MilkOff,
+  CircleSlash,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { colors, typography, spacing, borderRadius } from '@/lib/tokens';
 import {
   Meal,
   DIETARY_FLAGS,
   DIETARY_FLAG_METADATA,
+  DietaryFlag,
   getMealSlotMetadata,
 } from '@/lib/foodPlannerTypes';
 import { Database } from '@/lib/database.types';
@@ -44,6 +55,14 @@ interface MealEditorModalProps {
   }) => Promise<void>;
   onCancel: () => void;
 }
+
+const DIETARY_FLAG_ICONS: Record<DietaryFlag, LucideIcon> = {
+  vegan: Vegan,
+  gluten_free: WheatOff,
+  nut_free: NutOff,
+  dairy_free: MilkOff,
+  other: CircleSlash,
+};
 
 export function MealEditorModal({
   visible,
@@ -262,6 +281,9 @@ export function MealEditorModal({
             <View style={styles.dietaryFlagsGrid}>
               {DIETARY_FLAGS.map((flag) => {
                 const meta = DIETARY_FLAG_METADATA[flag];
+                const DietaryIcon = DIETARY_FLAG_ICONS[flag];
+                const isSelected = dietaryFlags.includes(flag);
+
                 return (
                   <TouchableOpacity
                     key={flag}
@@ -269,15 +291,21 @@ export function MealEditorModal({
                     disabled={isSaving}
                     style={[
                       styles.dietaryOption,
-                      dietaryFlags.includes(flag) &&
+                      isSelected &&
                         styles.dietaryOptionSelected,
                     ]}
                   >
-                    <Text style={styles.dietaryOptionIcon}>{meta.icon}</Text>
+                    <View style={styles.dietaryOptionIcon}>
+                      <DietaryIcon
+                        size={20}
+                        color={isSelected ? colors.accent.gold : colors.text.mid}
+                        strokeWidth={2.1}
+                      />
+                    </View>
                     <Text
                       style={[
                         styles.dietaryOptionLabel,
-                        dietaryFlags.includes(flag) &&
+                        isSelected &&
                           styles.dietaryOptionLabelSelected,
                       ]}
                     >
@@ -475,8 +503,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface.level3,
   },
   dietaryOptionIcon: {
-    fontSize: 24,
     marginBottom: spacing.xs,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dietaryOptionLabel: {
     fontSize: typography.size.label,

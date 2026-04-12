@@ -11,9 +11,20 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { MoreVertical, Copy, Trash2, ChefHat } from 'lucide-react-native';
+import {
+  MoreVertical,
+  Copy,
+  Trash2,
+  ChefHat,
+  Vegan,
+  WheatOff,
+  NutOff,
+  MilkOff,
+  CircleSlash,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { colors, typography, spacing, borderRadius } from '@/lib/tokens';
-import { Meal, DIETARY_FLAG_METADATA, getMealSlotMetadata, DietaryFlag } from '@/lib/foodPlannerTypes';
+import { Meal, DIETARY_FLAG_METADATA, DietaryFlag } from '@/lib/foodPlannerTypes';
 import { Database } from '@/lib/database.types';
 
 type User = Database['public']['Tables']['users']['Row'];
@@ -29,6 +40,14 @@ interface MealCardProps {
   onDuplicate: () => void;
   onDelete: () => Promise<void>;
 }
+
+const DIETARY_FLAG_ICONS: Record<DietaryFlag, LucideIcon> = {
+  vegan: Vegan,
+  gluten_free: WheatOff,
+  nut_free: NutOff,
+  dairy_free: MilkOff,
+  other: CircleSlash,
+};
 
 export function MealCard({
   meal,
@@ -74,13 +93,19 @@ export function MealCard({
           {dietaryFlags.length > 0 && (
             <View style={styles.dietaryFlags}>
               {dietaryFlags.slice(0, 2).map((flag) => {
-                const meta = DIETARY_FLAG_METADATA[flag as DietaryFlag];
+                const dietaryFlag = flag as DietaryFlag;
+                const meta = DIETARY_FLAG_METADATA[dietaryFlag];
+                if (!meta) {
+                  return null;
+                }
+                const DietaryIcon = DIETARY_FLAG_ICONS[dietaryFlag] ?? CircleSlash;
+
                 return (
                   <View
                     key={flag}
                     style={[styles.dietaryBadge, { backgroundColor: meta.color }]}
                   >
-                    <Text style={styles.dietaryIcon}>{meta.icon}</Text>
+                    <DietaryIcon size={12} color={colors.base} strokeWidth={2.1} />
                   </View>
                 );
               })}
@@ -205,9 +230,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  dietaryIcon: {
-    fontSize: 12,
   },
   dietaryText: {
     fontSize: typography.size.meta,
