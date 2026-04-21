@@ -23,12 +23,12 @@ Successfully implemented the Travel Plans module for FestNest - a comprehensive 
 - **Helper Types**: TravelData, VehicleWithPassengers, TravelProgress
 
 ### 2. **Data Hook** (`lib/hooks/useTravel.ts`)
-- **Real-time sync** via Supabase subscriptions for all travel entities
+- **Real-time sync** via Supabase subscriptions for vehicles, passengers, flights, and trip-level meetup pin updates
 - **Vehicle operations**: add, update, delete with activity logging
-- **Passenger operations**: add/remove with waypoint support
-- **Flight operations**: upsert pattern (one flight per user per trip)
+- **Passenger operations**: add/remove with waypoint support (editor/leader write roles)
+- **Flight operations**: upsert pattern (one flight per user per trip) with editor/leader write roles
 - **Outfit operations**: post creation and voting (up/down)
-- **Meetup pin management**: shared group location coordination
+- **Meetup pin management**: shared trip-level group location coordination
 - **Progress tracking**: members with rides, needing pickup, assigned
 
 ### 3. **Map Integration** (`components/Travel/MeetupMap.tsx`)
@@ -36,7 +36,7 @@ Successfully implemented the Travel Plans module for FestNest - a comprehensive 
 - **Interactive map** with draggable pin for group meetup location
 - **Center to location** button for quick navigation
 - **Edit mode** for adding/moving the meetup pin
-- **Permission-aware**: Only editors can modify the pin
+- **Permission-aware**: Only editors/leaders can modify the pin
 
 ### 4. **Vehicle Components**
 
@@ -44,9 +44,9 @@ Successfully implemented the Travel Plans module for FestNest - a comprehensive 
 - Displays vehicle details (make/model, capacity, departure info)
 - Shows driver with avatar
 - Lists all passengers with "YOU" badge for current user
-- "Join Ride" button when seats available
-- Remove passenger capability for editors/drivers
-- Edit/delete controls for vehicle owners
+- "Join Ride" button when seats available (editor/leader roles)
+- Remove passenger capability for editors/leaders
+- Edit/delete controls for editors/leaders
 
 #### **VehicleFormModal** (`components/Travel/VehicleFormModal.tsx`)
 - Add/edit vehicle form with validation
@@ -61,7 +61,7 @@ Successfully implemented the Travel Plans module for FestNest - a comprehensive 
 - Displays flight details (airline, flight number, airport, time)
 - Pickup status indicator (needs pickup / pickup arranged)
 - Color-coded status (warning for needs pickup, success for arranged)
-- Edit/delete for flight owner or editors
+- Edit/delete for editors/leaders
 
 #### **FlightFormModal** (`components/Travel/FlightFormModal.tsx`)
 - Comprehensive flight details form
@@ -85,7 +85,7 @@ Successfully implemented the Travel Plans module for FestNest - a comprehensive 
   3. **Meetup Map** - Shared group meetup location
   4. **Outfit Voting** - Festival outfit coordination
 - **Real-time updates** across all sections
-- **Permission-aware controls** (editors can manage vehicles)
+- **Permission-aware controls** (editors/leaders can manage vehicle, passenger, flight, and meetup writes)
 - **Empty states** for each section with clear calls-to-action
 - **Loading and error states** with user-friendly messages
 
@@ -96,15 +96,16 @@ Successfully implemented the Travel Plans module for FestNest - a comprehensive 
 All entities already exist in the database (no migrations needed):
 
 ```sql
--- vehicles table with driver, capacity, route, and meetup pin
+-- vehicles table with driver, capacity, and route
 -- vehicle_passengers join table with pickup waypoint support
 -- flight_details with unique constraint (one per user per trip)
 -- outfit_posts with photo URL and caption
 -- outfit_votes with up/down enum
+-- trips table with meetup_pin JSONB for shared trip-level meetup state
 ```
 
 **Key Design Decisions:**
-- Meetup pin stored on vehicles (could be trip-level in future)
+- Meetup pin stored on `trips.meetup_pin` (trip-level), with legacy vehicle-pin read fallback for compatibility
 - Flight details enforce one per user per trip via unique constraint
 - Outfit voting uses upsert pattern to prevent duplicate votes
 - All operations log to activity_logs for feed integration
@@ -121,15 +122,14 @@ All entities already exist in the database (no migrations needed):
 ### ✅ **Authentication**
 - Uses existing `useAuth` hook for user context
 - Permission checks via group_members role (leader/editor/viewer)
-- User-specific actions (join ride, add flight, vote)
+- Role-gated actions (editors/leaders can mutate Travel data; viewers are read-only)
 
 ### ✅ **Real-time Sync**
 - Supabase real-time subscriptions for:
   - vehicles
   - vehicle_passengers
   - flight_details
-  - outfit_posts
-  - outfit_votes
+  - trips (meetup_pin updates)
 - Optimistic UI updates for instant feedback
 
 ### ✅ **Activity Logging**
@@ -172,14 +172,14 @@ All entities already exist in the database (no migrations needed):
 - ✅ Set capacity and departure details
 - ✅ Add/remove passengers dynamically
 - ✅ Track available seats in real-time
-- ✅ Edit vehicle details (owner only)
-- ✅ Delete vehicles (owner/editors)
+- ✅ Edit vehicle details (editors/leaders)
+- ✅ Delete vehicles (editors/leaders)
 
 ### ✈️ **Flight Management**
 - ✅ Add flight details (airline, number, airport, time)
 - ✅ Mark "needs pickup from airport"
 - ✅ One flight per user per trip (upsert pattern)
-- ✅ Edit/delete own flight
+- ✅ Edit/delete flights (editors/leaders)
 - ✅ Visual indicator for pickup needs
 
 ### 📍 **Meetup Coordination**
@@ -223,11 +223,12 @@ All entities already exist in the database (no migrations needed):
 - [x] Outfit votes update in real-time
 
 ### ✅ **Permissions**
-- [x] Viewers can join rides but not create vehicles
-- [x] Editors can create/edit/delete vehicles
-- [x] Users can only edit their own flights
+- [x] Viewers are read-only in Travel (no ride/flight/pin write actions)
+- [x] Editors/leaders can create/edit/delete vehicles
+- [x] Editors/leaders can add/remove passengers
+- [x] Editors/leaders can create/edit/delete flights
 - [x] Anyone can vote on outfits
-- [x] Only editors can modify meetup pin
+- [x] Only editors/leaders can modify meetup pin
 
 ### ✅ **Edge Cases**
 - [x] Empty state handling (no vehicles, flights, outfits)

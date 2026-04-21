@@ -88,7 +88,7 @@ export function VehicleCard({
           </View>
         </View>
 
-        {(isEditor || isDriver) && (
+        {isEditor && (
           <View style={styles.headerActions}>
             <TouchableOpacity
               style={styles.actionButton}
@@ -172,7 +172,7 @@ export function VehicleCard({
           <Text style={styles.sectionLabel}>
             PASSENGERS ({passengers.length}/{vehicle.capacity - 1})
           </Text>
-          {availableSeats > 0 && !isPassenger && !isDriver && (
+          {isEditor && availableSeats > 0 && !isPassenger && !isDriver && (
             <TouchableOpacity
               style={styles.joinButton}
               onPress={() => onAddPassenger(vehicle.id)}
@@ -200,7 +200,7 @@ export function VehicleCard({
               {passenger.user_id === currentUserId && (
                 <View style={styles.youBadge}><Text style={styles.youBadgeText}>YOU</Text></View>
               )}
-              {(isEditor || isDriver || passenger.user_id === currentUserId) && (
+              {isEditor && (
                 <TouchableOpacity
                   style={styles.removeButton}
                   onPress={() => handleRemovePassenger(passenger.user_id)}

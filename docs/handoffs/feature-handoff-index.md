@@ -23,7 +23,17 @@
 - TypeScript regressions from the refreshed schema were fixed.
 - See [Session Notes - 2026-04-05](../sessions/session-notes-2026-04-05.md) for details.
 
-## Latest Update (April 12, 2026)
+## Latest Update (April 20, 2026)
+- Travel blocker remediation is complete.
+  - Viewer write restrictions are enforced in Travel UI and hook mutation paths.
+  - Meetup pin realtime subscription is active on `trips` updates.
+- Travel re-validation now passes for Travel scope.
+- Workspace TypeScript is still blocked by non-Travel safety/crypto errors.
+- Reports:
+  - [Travel QA Audit - 2026-04-12](../reports/travel-qa-audit-2026-04-12.md)
+  - [Safety + Camp Grid Validation - 2026-04-12](../reports/safety-camp-grid-validation-report-2026-04-12.md)
+
+## Historical Update (April 12, 2026)
 - Dispatched all four planned next steps to specialized agents.
 - Completed:
   - Food Planner dietary icon bug fix.
@@ -35,24 +45,20 @@
   - [Travel QA Audit - 2026-04-12](../reports/travel-qa-audit-2026-04-12.md)
   - [Safety + Camp Grid Validation - 2026-04-12](../reports/safety-camp-grid-validation-report-2026-04-12.md)
 
-## Current Priority Queue (Post-Dispatch)
+## Current Priority Queue (April 20)
 1. **P0:** Prevent Camp Grid shared-layout data loss after remote-load failure.
 	- Context: [Safety + Camp Grid Validation - 2026-04-12](../reports/safety-camp-grid-validation-report-2026-04-12.md)
 2. **P0:** Preserve Safety emergency PIN fields on normal profile save.
 	- Context: [Safety + Camp Grid Validation - 2026-04-12](../reports/safety-camp-grid-validation-report-2026-04-12.md)
-3. **P0:** Enforce Travel viewer write restrictions in UI and mutation paths.
-	- Context: [Travel QA Audit - 2026-04-12](../reports/travel-qa-audit-2026-04-12.md)
-4. **P1:** Add Travel meetup pin realtime subscription on `trips` updates.
-	- Context: [Travel QA Audit - 2026-04-12](../reports/travel-qa-audit-2026-04-12.md)
-5. **P1:** Resolve remaining TypeScript errors in safety/crypto files.
-6. **P1:** Re-run targeted QA for Travel and Safety/Camp Grid after fixes.
+3. **P1:** Resolve remaining TypeScript errors in safety/crypto files.
+4. **P1:** Re-run targeted QA for Safety/Camp Grid after fixes.
 
 ## Handoff Documents
 - [Trip Dashboard](trip-dashboard-handoff.md)
 - [Supply List](supply-list-handoff.md)
 - [Safety / Emergency Info](safety-profile-handoff.md)
 - [Travel Plans](travel-plans-handoff.md) — ✅ Complete & Shipped
-- [Travel Module Plan](travel-module-plan.md) — ⚠️ Follow-up Required (QA blockers reopened Apr 12)
+- [Travel Module Plan](travel-module-plan.md) — ✅ Remediation complete (Apr 20)
 - [Camp Grid](camp-grid-handoff.md)
 - [Food Planner Dietary Icons](food-planner-dietary-icons-handoff.md)
 - [Travel QA Audit](travel-qa-audit-handoff.md)
@@ -60,7 +66,7 @@
 - [Lint Gate Implementation](lint-gate-handoff.md)
 
 ## Current Status by Module
-- **Travel**: ⚠️ QA follow-up required (permission + realtime blockers)
+- **Travel**: ✅ Complete (QA blockers remediated Apr 20)
 - **Trip Dashboard**: ✅ Complete
 - **Food Planner**: ✅ Complete (dietary icon bug fixed Apr 12)
 - **Lineup Scheduler**: ✅ Complete (component has UI bug, see test-notes.md)

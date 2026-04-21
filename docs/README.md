@@ -1,26 +1,27 @@
 # Docs Index
 
-## Latest Status (April 12, 2026)
+## Latest Status (April 20, 2026)
 
 - Completed:
   - Food Planner dietary icon bug fix is implemented and verified.
   - Lint gate baseline is implemented (`lint`, `lint:fix`, CI workflow).
+  - Travel QA blocker remediation is implemented and verified:
+    - Viewer write restrictions are enforced in Travel UI and mutation paths.
+    - Meetup pin realtime subscription is wired on `trips` updates.
   - Agent dispatch planning docs and handoff briefs are in place.
 - QA completed with blockers:
-  - Travel QA found role-permission and realtime gaps.
   - Safety + Camp Grid validation found critical/high reliability issues.
 - Current focus:
   1. Camp Grid remote-load failure data-loss guard.
   2. Safety emergency PIN field-preservation fixes.
-  3. Travel role restrictions and meetup realtime subscription fixes.
-  4. Clear remaining TypeScript errors in safety files.
+  3. Clear remaining TypeScript errors in safety files.
 
 See the latest reports:
-- `reports/travel-qa-audit-2026-04-12.md`
+- `reports/travel-qa-audit-2026-04-12.md` (includes April 20 remediation update)
 - `reports/safety-camp-grid-validation-report-2026-04-12.md`
 
 See the latest session summary:
-- `sessions/session-notes-2026-04-12.md`
+- `sessions/session-notes-2026-04-20.md`
 
 Documentation is organized by purpose:
 

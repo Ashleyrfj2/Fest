@@ -23,7 +23,7 @@ This file maps each active next step to the best available agent and provides a 
 ### Step 2: Travel QA audit
 - Best Agent: Travel Module QA Engineer
 - Handoff Doc: docs/handoffs/travel-qa-audit-handoff.md
-- Status: ✅ Completed (QA result: FAIL)
+- Status: ✅ Completed (initial QA FAIL, remediation verified PASS in Travel scope)
 - Evidence:
   - docs/reports/travel-qa-audit-2026-04-12.md
 - Delegation Prompt:
@@ -64,9 +64,7 @@ This file maps each active next step to the best available agent and provides a 
    - Suggested agent: Full stack mobile engineer with maps and collaboration
 2. Safety emergency PIN field-preservation + local/remote fallback hardening
    - Suggested agent: Privacy and security-minded mobile engineer
-3. Travel permission and realtime follow-ups
-   - Suggested agent: Travel Module Data Engineer
-4. Safety/Crypto TypeScript error cleanup
+3. Safety/Crypto TypeScript error cleanup
    - Suggested agent: Senior Mobile Engineer
-5. QA re-validation pass
-   - Suggested agents: Travel Module QA Engineer and Senior QA Engineer
+4. QA re-validation pass
+    - Suggested agents: Senior QA Engineer (Safety/Camp Grid) and Travel Module QA Engineer (regression confirmation as needed)

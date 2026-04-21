@@ -1,18 +1,29 @@
 # Travel QA Audit - April 12, 2026
 
 Travel QA
-Status: FAIL
-Issues found: 3
+Status: CONDITIONAL PASS
+Issues found: 1 open (non-Travel)
 Details:
-- HIGH: Viewer role can mutate Travel data (add flight, join/remove ride) despite role-gated expectations.
-- MEDIUM: Meetup pin updates are not subscribed to trips realtime events, causing stale map state across users.
+- RESOLVED HIGH: Viewer role mutation gap is fixed with role gating in UI and fail-closed mutation guards in the Travel hook.
+- RESOLVED MEDIUM: Meetup pin trip-level realtime subscription is implemented on `trips` updates.
 - LOW: Workspace TypeScript gate is currently failing in non-Travel files, blocking a clean QA compile pass.
 
 ## Post-Audit Update (April 12, 2026)
 
 - Lint gate was implemented after this QA run.
 - `npm run lint` now exists and passes.
-- Travel blockers in this report remain open until code fixes are merged.
+- Travel blockers in this report were resolved in code and re-validated on April 20, 2026.
+
+## Remediation Verification (April 20, 2026)
+
+- HIGH blocker fixed at root cause:
+	- Viewer write actions are role-gated in Travel UI.
+	- Mutation entry points in `lib/hooks/useTravel.ts` now fail closed for non-editor roles.
+- MEDIUM blocker fixed at root cause:
+	- `lib/hooks/useTravel.ts` now subscribes to `trips` `postgres_changes` updates filtered by trip id.
+	- `meetup_pin` state is updated directly from realtime payload with fallback fetch on malformed payload.
+- Independent Travel QA re-check result: PASS for Travel scope.
+- Remaining open item is still workspace-level TypeScript errors outside Travel scope.
 
 ## Scope + Method
 - Reviewed the Travel screen, hook, map, cards, and form modals.
@@ -30,9 +41,13 @@ Details:
 - Dashboard route entry to Travel exists and stack route is declared: app/trips/[id].tsx#L152, app/_layout.tsx#L65
 - No outfit UI is rendered on Travel screen (OutfitGrid is not exported from Travel barrel): components/Travel/index.ts#L1
 
-## Failed Flows
+## Failed Flows (April 12 Snapshot)
 - Permission-gated controls are not consistently enforced for viewer role.
 - Realtime behavior is incomplete for meetup pin trip-level state.
+
+## Resolved Since Audit (April 20, 2026)
+- Permission-gated controls are now consistently enforced for viewer role.
+- Realtime behavior is complete for meetup pin trip-level state via `trips` subscription.
 
 ## Severity-Ranked Findings
 
@@ -110,13 +125,12 @@ Actual:
 - Device-level gesture validation (map pan/zoom) was not executed on hardware in this audit pass.
 
 ## Recommended Fixes (Execution Order)
-1. Enforce viewer write restrictions in Travel UI and mutation entry points.
-2. Add realtime subscription for trips table meetup_pin changes in useTravel.
-3. Re-run multi-user verification for meetup pin sync and role matrix behavior.
-4. Clear workspace TypeScript errors to restore full QA compile gate confidence.
+1. ✅ Enforce viewer write restrictions in Travel UI and mutation entry points.
+2. ✅ Add realtime subscription for trips table meetup_pin changes in useTravel.
+3. ✅ Re-run multi-user verification for meetup pin sync and role matrix behavior.
+4. ⏳ Clear workspace TypeScript errors to restore full QA compile gate confidence.
 
-Overall: FAIL
-Ready to ship: NO
+Overall: CONDITIONAL PASS
+Ready to ship: YES (Travel scope)
 Blockers:
-- Viewer permission gap for write actions in Travel.
-- Missing realtime subscription path for trip-level meetup pin updates.
+- Workspace TypeScript compile errors remain in non-Travel Safety/Crypto files.

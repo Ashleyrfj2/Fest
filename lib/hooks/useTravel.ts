@@ -21,7 +21,7 @@ import {
 /**
  * Main hook for travel data
  */
-export function useTravel(tripId: string) {
+export function useTravel(tripId: string, currentRole?: string | null) {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [flights, setFlights] = useState<FlightDetail[]>([]);
   const [tripMeetupPin, setTripMeetupPin] = useState<MeetupPin | null>(null);
@@ -30,6 +30,9 @@ export function useTravel(tripId: string) {
   const [error, setError] = useState<string | null>(null);
   const { userProfile } = useAuth();
   const vehicleIdsRef = useRef<Set<string>>(new Set());
+  const canMutateTravel = currentRole === 'leader' || currentRole === 'editor';
+  // Fail closed so viewers stay read-only even if UI controls regress.
+  const travelWritePermissionError = 'Only trip leaders and editors can update travel plans';
 
   function normalizeMeetupPin(pin: unknown): MeetupPin | null {
     if (!pin || typeof pin !== 'object') {
@@ -177,6 +180,25 @@ export function useTravel(tripId: string) {
         },
         () => fetchData()
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'trips',
+          filter: `id=eq.${tripId}`,
+        },
+        (payload) => {
+          const nextTripRow = payload.new as { meetup_pin?: unknown } | null;
+
+          if (!nextTripRow || !Object.prototype.hasOwnProperty.call(nextTripRow, 'meetup_pin')) {
+            void fetchData();
+            return;
+          }
+
+          setTripMeetupPin(normalizeMeetupPin(nextTripRow.meetup_pin));
+        }
+      )
       .subscribe();
 
     return () => {
@@ -186,6 +208,10 @@ export function useTravel(tripId: string) {
 
   const addVehicle = useCallback(
     async (vehicleData: Omit<VehicleInsert, 'trip_id' | 'driver_id'>) => {
+      if (!canMutateTravel) {
+        return { data: null, error: travelWritePermissionError };
+      }
+
       if (!userProfile?.id) {
         return { data: null, error: 'User not authenticated' };
       }
@@ -226,11 +252,15 @@ export function useTravel(tripId: string) {
         };
       }
     },
-    [fetchData, tripId, userProfile?.id]
+    [canMutateTravel, fetchData, tripId, userProfile?.id, travelWritePermissionError]
   );
 
   const updateVehicle = useCallback(
     async (vehicleId: string, updates: VehicleUpdate) => {
+      if (!canMutateTravel) {
+        return { data: null, error: travelWritePermissionError };
+      }
+
       try {
         const { data, error: updateError } = await supabase
           .from('vehicles')
@@ -255,11 +285,15 @@ export function useTravel(tripId: string) {
         };
       }
     },
-    [fetchData]
+    [canMutateTravel, fetchData, travelWritePermissionError]
   );
 
   const deleteVehicle = useCallback(
     async (vehicleId: string) => {
+      if (!canMutateTravel) {
+        return { error: travelWritePermissionError };
+      }
+
       try {
         const vehicle = vehicles.find((v) => v.id === vehicleId);
 
@@ -291,11 +325,15 @@ export function useTravel(tripId: string) {
         };
       }
     },
-    [fetchData, tripId, userProfile?.id, vehicles]
+    [canMutateTravel, fetchData, tripId, travelWritePermissionError, userProfile?.id, vehicles]
   );
 
   const addPassenger = useCallback(
     async (passengerData: VehiclePassengerInsert) => {
+      if (!canMutateTravel) {
+        return { data: null, error: travelWritePermissionError };
+      }
+
       try {
         const { data, error: insertError } = await supabase
           .from('vehicle_passengers')
@@ -328,11 +366,15 @@ export function useTravel(tripId: string) {
         };
       }
     },
-    [fetchData, tripId, userProfile?.id]
+    [canMutateTravel, fetchData, tripId, travelWritePermissionError, userProfile?.id]
   );
 
   const removePassenger = useCallback(
     async (vehicleId: string, userId: string) => {
+      if (!canMutateTravel) {
+        return { error: travelWritePermissionError };
+      }
+
       try {
         const { error: deleteError } = await supabase
           .from('vehicle_passengers')
@@ -361,7 +403,7 @@ export function useTravel(tripId: string) {
         };
       }
     },
-    [fetchData, tripId, userProfile?.id]
+    [canMutateTravel, fetchData, tripId, travelWritePermissionError, userProfile?.id]
   );
 
   const addOrUpdateFlight = useCallback(
@@ -369,6 +411,10 @@ export function useTravel(tripId: string) {
       flightData: Omit<FlightDetailInsert, 'trip_id' | 'user_id'>,
       flightId?: string
     ) => {
+      if (!canMutateTravel) {
+        return { data: null, error: travelWritePermissionError };
+      }
+
       if (!userProfile?.id) {
         return { data: null, error: 'User not authenticated' };
       }
@@ -441,11 +487,15 @@ export function useTravel(tripId: string) {
         };
       }
     },
-    [fetchData, tripId, userProfile?.id]
+    [canMutateTravel, fetchData, tripId, travelWritePermissionError, userProfile?.id]
   );
 
   const deleteFlight = useCallback(
     async (flightId: string) => {
+      if (!canMutateTravel) {
+        return { error: travelWritePermissionError };
+      }
+
       try {
         const { error: deleteError } = await supabase
           .from('flight_details')
@@ -473,11 +523,15 @@ export function useTravel(tripId: string) {
         };
       }
     },
-    [fetchData, tripId, userProfile?.id]
+    [canMutateTravel, fetchData, tripId, travelWritePermissionError, userProfile?.id]
   );
 
   const updateTripMeetupPin = useCallback(
     async (meetupPin: MeetupPin | null) => {
+      if (!canMutateTravel) {
+        return { error: travelWritePermissionError };
+      }
+
       try {
         const { error: updateError } = await supabase
           .from('trips')
@@ -506,7 +560,7 @@ export function useTravel(tripId: string) {
         };
       }
     },
-    [fetchData, tripId, userProfile?.id]
+    [canMutateTravel, fetchData, tripId, travelWritePermissionError, userProfile?.id]
   );
 
   const assignedMemberIds = new Set<string>();

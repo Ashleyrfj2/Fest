@@ -62,7 +62,7 @@ export default function TravelScreen() {
     addOrUpdateFlight,
     deleteFlight,
     updateTripMeetupPin,
-  } = useTravel(tripId);
+  } = useTravel(tripId, currentRole);
 
   // Load user role
   React.useEffect(() => {
@@ -321,13 +321,15 @@ export default function TravelScreen() {
               <Plane size={20} color={colors.accent.gold} strokeWidth={2} />
               <Text style={styles.sectionTitle}>Flights</Text>
             </View>
-            <TouchableOpacity
-              style={styles.sectionAddButton}
-              onPress={() => handleOpenFlightModal()}
-              activeOpacity={0.7}
-            >
-              <Plus size={20} color={colors.base} strokeWidth={2} />
-            </TouchableOpacity>
+            {isEditor && (
+              <TouchableOpacity
+                style={styles.sectionAddButton}
+                onPress={() => handleOpenFlightModal()}
+                activeOpacity={0.7}
+              >
+                <Plus size={20} color={colors.base} strokeWidth={2} />
+              </TouchableOpacity>
+            )}
           </View>
 
           {flights.length > 0 ? (
@@ -336,7 +338,6 @@ export default function TravelScreen() {
                 <FlightCard
                   key={flight.id}
                   flight={flight}
-                  currentUserId={userProfile?.id}
                   isEditor={isEditor}
                   onEdit={handleOpenFlightModal}
                   onDelete={handleDeleteFlight}
@@ -346,14 +347,16 @@ export default function TravelScreen() {
           ) : (
             <View style={styles.emptySection}>
               <Text style={styles.emptyText}>No flights added yet</Text>
-              <TouchableOpacity
-                style={styles.emptyAddButton}
-                onPress={() => handleOpenFlightModal()}
-                activeOpacity={0.7}
-              >
-                <Plus size={16} color={colors.base} strokeWidth={2} />
-                <Text style={styles.emptyAddButtonText}>Add Your Flight</Text>
-              </TouchableOpacity>
+              {isEditor && (
+                <TouchableOpacity
+                  style={styles.emptyAddButton}
+                  onPress={() => handleOpenFlightModal()}
+                  activeOpacity={0.7}
+                >
+                  <Plus size={16} color={colors.base} strokeWidth={2} />
+                  <Text style={styles.emptyAddButtonText}>Add Your Flight</Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
         </View>

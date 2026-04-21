@@ -17,7 +17,6 @@ import { FlightDetail } from '@/lib/travelTypes';
 
 interface FlightCardProps {
   flight: FlightDetail;
-  currentUserId?: string;
   isEditor: boolean;
   onEdit: (flight: FlightDetail) => void;
   onDelete: (flightId: string) => void;
@@ -25,12 +24,10 @@ interface FlightCardProps {
 
 export function FlightCard({
   flight,
-  currentUserId,
   isEditor,
   onEdit,
   onDelete,
 }: FlightCardProps) {
-  const isOwnFlight = currentUserId === flight.user_id;
   const flightLabel = [flight.airline, flight.flight_number].filter(Boolean).join(' ');
 
   function handleDeletePress() {
@@ -62,7 +59,7 @@ export function FlightCard({
           </View>
         </View>
 
-        {(isEditor || isOwnFlight) && (
+        {isEditor && (
           <View style={styles.headerActions}>
             <TouchableOpacity
               style={styles.actionButton}

@@ -1,8 +1,8 @@
 # Travel Module Plan
 
-## Status: ⚠️ FOLLOW-UP REQUIRED (Updated April 12, 2026)
+## Status: ✅ REMEDIATION COMPLETE (Updated April 20, 2026)
 
-Initial implementation was completed on April 7, but April 12 QA reopened blocker fixes. See [Travel QA Audit - 2026-04-12](../reports/travel-qa-audit-2026-04-12.md) for current findings.
+Initial implementation was completed on April 7. April 12 QA reopened blocker fixes, and those blockers were remediated and re-validated on April 20. See [Travel QA Audit - 2026-04-12](../reports/travel-qa-audit-2026-04-12.md) for full history and remediation update.
 
 ---
 
@@ -13,7 +13,7 @@ Travel Module UI Engineer, Travel Module Data Engineer, Travel Module Maps Engin
 Finish the Travel feature as the trip’s coordination layer for vehicles, passengers, flights, pickup details, and a shared meetup location, while keeping the implementation tight, mobile-friendly, and consistent with the current app.
 
 ## Why This Plan Exists
-The Travel module is already documented as shipped in the implementation report, but the live app still has test-reported regressions and a few unfinished user flows. This plan narrows the active scope, removes outfit work from the module for now, and gives each specialist a clear lane.
+The Travel module was documented as shipped in the implementation report, then April 12 QA reopened blocker fixes. This plan captured the focused remediation scope, removed outfit work from the module, and assigned clear specialist lanes until blockers were closed.
 
 ## Current Scope
 - Vehicle creation and management.
@@ -137,8 +137,9 @@ Travel QA was executed and returned **FAIL** with blockers:
 Report:
 - [Travel QA Audit - 2026-04-12](../reports/travel-qa-audit-2026-04-12.md)
 
-### Current To-Do
-- Enforce role restrictions for viewer in Travel UI and write paths.
-- Add `trips` table realtime subscription for meetup pin updates.
-- Re-run Travel QA after fixes and update this plan status.
+### Remediation Outcome (April 20, 2026)
+- ✅ Enforced role restrictions for viewer in Travel UI and write paths.
+- ✅ Added `trips` table realtime subscription for meetup pin updates.
+- ✅ Re-ran Travel QA after fixes and updated status to PASS for Travel scope.
+- ⚠️ Remaining non-Travel compile issue: workspace TypeScript still fails in Safety/Crypto files.
 

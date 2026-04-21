@@ -8,6 +8,11 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 - Implemented: replaced emoji-based dietary flag rendering with deterministic Lucide icon rendering in Food Planner meal cards and meal editor modal.
 - Verified: dietary icons now render correctly (no question-mark glyphs) in the dietary selector and saved meal badges while keeping existing dietary flag values unchanged.
 
+### Session Update (April 20, 2026 - Travel Blocker Remediation, Verified)
+- Implemented: Travel viewer write restrictions at both UI controls and hook mutation entry points.
+- Implemented: trip-level meetup pin realtime subscription on `trips` updates.
+- Verified: Travel scope blockers from April 12 QA are closed; remaining compile errors are still non-Travel Safety/Crypto files.
+
 ### Session Update (April 10, 2026 - Safe-Area Pass, Verified)
 - Implemented: added app-level SafeAreaProvider in app root layout.
 - Implemented: added SafeAreaView coverage for tabs, auth routes, onboarding route, and join route.
@@ -32,8 +37,8 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 ### Open Bugs (Reported April 12, 2026 - Agent QA Dispatch)
 - [ ] Camp Grid: critical risk of destructive overwrite when remote load fails and user saves default local layout
 - [ ] Safety Profile: normal profile save can clear emergency PIN fields when local encrypted row is missing
-- [ ] Travel: viewer role can still perform write actions (flight create/update and ride join/remove)
-- [ ] Travel: meetup pin is not subscribed to trip-level realtime updates, causing potential stale state across users
+- [x] Travel: viewer role write actions are now blocked for non-editor roles (verified fixed April 20, 2026)
+- [x] Travel: meetup pin is now subscribed to trip-level realtime updates (verified fixed April 20, 2026)
 - [ ] Safety/Crypto TypeScript errors remain in `app/trips/[id]/safety-emergency.tsx` and `lib/crypto/safetyEncryption.ts`
 
 References:
