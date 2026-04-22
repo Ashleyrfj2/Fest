@@ -79,6 +79,4 @@ Top blockers found:
 
 ### Next To-Do
 - Add Camp Grid remote-load failure guard and block destructive save path.
-- Preserve emergency PIN fields from authoritative source during normal safety saves.
-- Resolve remaining safety/crypto TypeScript errors.
 - Re-run this QA handoff and flip status to PASS.

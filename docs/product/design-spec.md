@@ -102,6 +102,11 @@
 | Fill in own safety profile | ✅ | ✅ | ✅ |
 | Manage members / transfer leadership | ✅ | ❌ | ❌ |
 
+### Planned Guest Demo Restriction
+- Unregistered guest accounts should eventually be limited to a read-only trip dashboard demo.
+- Module entry and create/edit flows should remain blocked until registration or sign-in.
+- This guest-demo tier is planned work and is not yet part of the current permission matrix.
+
 ## Tech Stack
 
 - **Framework:** React Native (cross-platform iOS + Android)

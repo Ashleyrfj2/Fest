@@ -5,7 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/lib/auth/AuthContext';
 
 function RootLayoutNav() {
-  const { session, userProfile, isLoading } = useAuth();
+  const { session, userProfile, isLoading, isGhostAccount } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -18,6 +18,8 @@ function RootLayoutNav() {
     const inTrips = segments[0] === 'trips';
     const inJoin = segments[0] === 'join';
     const inSettings = segments[0] === 'settings';
+    const allSegments = segments as string[];
+    const inTripModuleRoute = inTrips && segments.length >= 3;
 
     // Allow /join/[code] route without session (for invite preview)
     if (inJoin) {
@@ -38,12 +40,24 @@ function RootLayoutNav() {
         router.replace('/onboarding/set-profile');
       }
     } else {
+      // Guests can view trip dashboards but cannot deep-link into module routes.
+      if (isGhostAccount && inTripModuleRoute) {
+        const tripId = allSegments[1];
+
+        if (typeof tripId === 'string' && tripId.length > 0) {
+          router.replace(`/trips/${tripId}`);
+        } else {
+          router.replace('/(tabs)');
+        }
+        return;
+      }
+
       // User has session + profile, ensure they're in the main app
       if (!inTabs && !inTrips && !inAuth && !inSettings) {
         router.replace('/(tabs)');
       }
     }
-  }, [session, userProfile, isLoading, segments]);
+  }, [session, userProfile, isLoading, isGhostAccount, segments]);
 
   return (
     <>

@@ -32,6 +32,11 @@ Users choose their path on the welcome screen.
 - App tracks usage time via `AuthContext`
 - After 5+ minutes, email prompt banner appears
 
+**Planned Restriction**
+- Guests should eventually be limited to a view-only trip dashboard demo.
+- Module entry and trip creation should be blocked until the user registers or signs in.
+- This is pending implementation and is not current behavior.
+
 **4. Email Prompt (Optional Upgrade)**
 - Soft prompt after 5 minutes of usage
 - Skippable - user can dismiss
@@ -158,6 +163,7 @@ To test the auth flow:
 ## Future Enhancements
 
 - [ ] Email/password sign-in screen for returning users
+- [ ] Guest demo mode with read-only dashboard preview and blocked module entry
 - [ ] Password reset flow
 - [ ] Social auth providers (Google, Apple)
 - [ ] Multi-device sync indicator

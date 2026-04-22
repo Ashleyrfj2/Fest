@@ -222,13 +222,14 @@ export async function encryptEmergencyAccessPayload(
   salt: string
 ): Promise<string> {
   const key = await deriveEmergencyPinKey(pin, salt);
+  const keyBuffer = uint8ArrayToArrayBuffer(key);
   const iv = Uint8Array.from(await Crypto.getRandomBytesAsync(IV_SIZE_BYTES));
   const encoder = new TextEncoder();
   const plaintextBytes = encoder.encode(payloadJson);
 
   const cryptoKey = await crypto.subtle.importKey(
     'raw',
-    key,
+    keyBuffer,
     { name: 'AES-GCM', length: 256 },
     false,
     ['encrypt']
@@ -256,13 +257,14 @@ export async function decryptEmergencyAccessPayload(
 ): Promise<string | null> {
   try {
     const key = await deriveEmergencyPinKey(pin, salt);
+    const keyBuffer = uint8ArrayToArrayBuffer(key);
     const combined = base64ToUint8Array(blob);
     const iv = combined.slice(0, IV_SIZE_BYTES);
-    const encryptedData = Uint8Array.from(combined.slice(IV_SIZE_BYTES));
+    const encryptedData = combined.slice(IV_SIZE_BYTES);
 
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
-      key,
+      keyBuffer,
       { name: 'AES-GCM', length: 256 },
       false,
       ['decrypt']
@@ -271,7 +273,7 @@ export async function decryptEmergencyAccessPayload(
     const plaintextBytes = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv, tagLength: 128 },
       cryptoKey,
-      encryptedData
+      uint8ArrayToArrayBuffer(encryptedData)
     );
 
     const decoder = new TextDecoder();
@@ -307,6 +309,12 @@ function hexToUint8Array(hex: string): Uint8Array {
     bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
   }
   return bytes;
+}
+
+function uint8ArrayToArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const buffer = new ArrayBuffer(bytes.length);
+  new Uint8Array(buffer).set(bytes);
+  return buffer;
 }
 /**
  * Test encryption/decryption flow

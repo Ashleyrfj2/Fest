@@ -1,8 +1,8 @@
 # Session Notes - April 20, 2026
 
 Date: April 20, 2026  
-Focus: Travel blocker remediation verification, root-cause enforcement, and docs synchronization  
-Status: Complete (Travel blockers resolved; non-Travel TypeScript issues remain)
+Focus: Travel blocker remediation verification, safety PIN preservation remediation, and docs synchronization  
+Status: Complete (Travel blockers resolved; safety PIN preservation and safety/crypto typecheck fixes landed)
 
 ---
 
@@ -56,9 +56,8 @@ This session focused on closing the open Travel QA blockers from April 12 using 
 ## Validation Snapshot
 
 - Travel touched files diagnostics: no editor errors.
-- Workspace compile gate: still failing in non-Travel files.
-  - `app/trips/[id]/safety-emergency.tsx`
-  - `lib/crypto/safetyEncryption.ts`
+- Safety PIN preservation path updated in `useSafetyProfile` with authoritative encrypted-field preservation and fail-closed guards.
+- Workspace compile gate: `npx tsc --noEmit` passes after safety/crypto fixes.
 
 ---
 
@@ -82,11 +81,9 @@ This session focused on closing the open Travel QA blockers from April 12 using 
 
 ### P0
 1. Camp Grid: prevent destructive save after remote-load failure.
-2. Safety: preserve emergency PIN fields during normal profile saves.
 
 ### P1
-1. Resolve remaining TypeScript errors in safety/crypto files.
-2. Re-run targeted Safety/Camp Grid QA once fixes land.
+1. Re-run targeted Safety/Camp Grid QA once fixes land.
 
 ---
 
@@ -94,9 +91,5 @@ This session focused on closing the open Travel QA blockers from April 12 using 
 
 1. Camp Grid blocker fix:
    - Suggested: Full stack mobile engineer with maps and collaboration
-2. Safety emergency-field preservation and fallback hardening:
-   - Suggested: Privacy and security-minded mobile engineer
-3. Safety/Crypto TypeScript cleanup:
-   - Suggested: Senior Mobile Engineer
-4. QA re-validation for Safety/Camp Grid:
+2. QA re-validation for Safety/Camp Grid:
    - Suggested: Senior QA Engineer

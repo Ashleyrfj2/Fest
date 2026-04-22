@@ -8,13 +8,16 @@
   - Travel QA blocker remediation is implemented and verified:
     - Viewer write restrictions are enforced in Travel UI and mutation paths.
     - Meetup pin realtime subscription is wired on `trips` updates.
+  - Safety/Crypto TypeScript cleanup is implemented and verified (`npx tsc --noEmit` passes).
+  - Safety emergency PIN field-preservation remediation is implemented and verified.
+    - Normal safety profile saves preserve encrypted emergency PIN fields.
+    - Save flow fails closed on inconsistent partial emergency PIN field state.
   - Agent dispatch planning docs and handoff briefs are in place.
 - QA completed with blockers:
   - Safety + Camp Grid validation found critical/high reliability issues.
 - Current focus:
   1. Camp Grid remote-load failure data-loss guard.
-  2. Safety emergency PIN field-preservation fixes.
-  3. Clear remaining TypeScript errors in safety files.
+  2. Re-run targeted Safety/Camp Grid QA after recent safety fixes.
 
 See the latest reports:
 - `reports/travel-qa-audit-2026-04-12.md` (includes April 20 remediation update)

@@ -11,7 +11,17 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 ### Session Update (April 20, 2026 - Travel Blocker Remediation, Verified)
 - Implemented: Travel viewer write restrictions at both UI controls and hook mutation entry points.
 - Implemented: trip-level meetup pin realtime subscription on `trips` updates.
-- Verified: Travel scope blockers from April 12 QA are closed; remaining compile errors are still non-Travel Safety/Crypto files.
+- Verified: Travel scope blockers from April 12 QA are closed; non-Travel compile issues were tracked separately and fixed later on April 20.
+
+### Session Update (April 20, 2026 - Safety/Crypto TypeScript Cleanup, Verified)
+- Implemented: normalized `group_members` relation typing in safety emergency member loading.
+- Implemented: fixed Web Crypto `importKey`/decrypt buffer typing by passing explicit `ArrayBuffer` key/cipher inputs.
+- Verified: `npx tsc --noEmit` now passes with zero TypeScript errors.
+
+### Session Update (April 20, 2026 - Safety PIN Preservation on Profile Save, Verified)
+- Implemented: hardened `useSafetyProfile.saveSafetyProfile` to resolve and preserve emergency PIN encrypted fields from local/remote encrypted rows.
+- Implemented: normal profile saves now fail closed on inconsistent partial PIN field state and do not upsert PIN fields to Supabase.
+- Verified: non-PIN edits no longer clear `emergency_access_blob`, `emergency_access_pin_salt`, or `emergency_access_pin_hash`.
 
 ### Session Update (April 10, 2026 - Safe-Area Pass, Verified)
 - Implemented: added app-level SafeAreaProvider in app root layout.
@@ -36,10 +46,10 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ### Open Bugs (Reported April 12, 2026 - Agent QA Dispatch)
 - [ ] Camp Grid: critical risk of destructive overwrite when remote load fails and user saves default local layout
-- [ ] Safety Profile: normal profile save can clear emergency PIN fields when local encrypted row is missing
+- [x] Safety Profile: normal profile save can clear emergency PIN fields when local encrypted row is missing (verified fixed April 20, 2026)
 - [x] Travel: viewer role write actions are now blocked for non-editor roles (verified fixed April 20, 2026)
 - [x] Travel: meetup pin is now subscribed to trip-level realtime updates (verified fixed April 20, 2026)
-- [ ] Safety/Crypto TypeScript errors remain in `app/trips/[id]/safety-emergency.tsx` and `lib/crypto/safetyEncryption.ts`
+- [x] Safety/Crypto TypeScript errors in `app/trips/[id]/safety-emergency.tsx` and `lib/crypto/safetyEncryption.ts` are fixed (verified April 20, 2026)
 
 References:
 - `docs/reports/travel-qa-audit-2026-04-12.md`

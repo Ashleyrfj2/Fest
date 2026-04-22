@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon } from '@/components/Icon';
 import { EmailPromptBanner } from '@/components/EmailPromptBanner';
+import { GuestAccessModal } from '@/components/auth/GuestAccessModal';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { colors, typography, spacing, borderRadius, shadows } from '@/lib/tokens';
@@ -110,9 +111,10 @@ const appUpdates = [
 ];
 
 export default function HomeScreen() {
-  const { shouldPromptForEmail, userProfile } = useAuth();
+  const { shouldPromptForEmail, userProfile, isGhostAccount } = useAuth();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showGuestAccessModal, setShowGuestAccessModal] = useState(false);
 
   useEffect(() => {
     loadTrips();
@@ -208,7 +210,13 @@ export default function HomeScreen() {
             <Text style={styles.sectionLabel}>YOUR FESTIVALS</Text>
             <Pressable
               style={styles.createButton}
-              onPress={() => router.push('/trips/create')}
+              onPress={() => {
+                if (isGhostAccount) {
+                  setShowGuestAccessModal(true);
+                  return;
+                }
+                router.push('/trips/create');
+              }}
             >
               <Icon name="plus" size={20} color={colors.accent.gold} />
               <Text style={styles.createButtonText}>Create Trip</Text>
@@ -252,6 +260,13 @@ export default function HomeScreen() {
         {/* Bottom padding for tab bar */}
         <View style={{ height: 20 }} />
       </ScrollView>
+
+      <GuestAccessModal
+        visible={showGuestAccessModal}
+        onClose={() => setShowGuestAccessModal(false)}
+        title="Create trips after registration"
+        description="Guest mode can browse trip demos, but creating new trips requires a saved account."
+      />
     </SafeAreaView>
   );
 }

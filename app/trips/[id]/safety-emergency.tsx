@@ -25,6 +25,11 @@ type Member = {
   } | null;
 };
 
+type GroupMemberRow = {
+  user_id: string;
+  user: { display_name: string } | Array<{ display_name: string }> | null;
+};
+
 export default function SafetyEmergencyScreen() {
   const { tripId } = useLocalSearchParams<{ tripId: string }>();
   const { userProfile } = useAuth();
@@ -62,8 +67,13 @@ export default function SafetyEmergencyScreen() {
 
       if (error) throw error;
 
-      const filtered = (data as Member[]).filter((m) => m.user_id !== userProfile.id);
-      setMembers(filtered);
+      const normalizedMembers: Member[] = ((data as GroupMemberRow[] | null) ?? [])
+        .map((row) => ({
+          user_id: row.user_id,
+          user: Array.isArray(row.user) ? (row.user[0] ?? null) : row.user,
+        }))
+        .filter((m) => m.user_id !== userProfile.id);
+      setMembers(normalizedMembers);
     } catch (err) {
       console.error('[SafetyEmergencyScreen] Failed to load members:', err);
       Alert.alert('Error', 'Could not load trip members.');

@@ -52,6 +52,57 @@ export function useSafetyProfile(tripId: string) {
 
   const hasEmergencyAccessPin = Boolean(myProfile?.has_emergency_access_pin);
 
+  type EmergencyAccessFields = Pick<
+    EncryptedSafetyProfile,
+    'emergency_access_blob' | 'emergency_access_pin_salt' | 'emergency_access_pin_hash'
+  >;
+
+  function hasCompleteEmergencyAccessFields(
+    profile: Partial<EncryptedSafetyProfile> | null | undefined
+  ): profile is Partial<EncryptedSafetyProfile> & {
+    emergency_access_blob: string;
+    emergency_access_pin_salt: string;
+    emergency_access_pin_hash: string;
+  } {
+    return Boolean(
+      profile?.emergency_access_blob &&
+        profile?.emergency_access_pin_salt &&
+        profile?.emergency_access_pin_hash
+    );
+  }
+
+  function hasAnyEmergencyAccessField(
+    profile: Partial<EncryptedSafetyProfile> | null | undefined
+  ): boolean {
+    return Boolean(
+      profile?.emergency_access_blob ||
+        profile?.emergency_access_pin_salt ||
+        profile?.emergency_access_pin_hash
+    );
+  }
+
+  function toEmergencyAccessFields(
+    profile: Partial<EncryptedSafetyProfile>
+  ): EmergencyAccessFields {
+    return {
+      emergency_access_blob: profile.emergency_access_blob ?? null,
+      emergency_access_pin_salt: profile.emergency_access_pin_salt ?? null,
+      emergency_access_pin_hash: profile.emergency_access_pin_hash ?? null,
+    };
+  }
+
+  function getNewerProfile(
+    a: Partial<EncryptedSafetyProfile>,
+    b: Partial<EncryptedSafetyProfile>
+  ): Partial<EncryptedSafetyProfile> {
+    const aTime = Date.parse(a.updated_at || '');
+    const bTime = Date.parse(b.updated_at || '');
+
+    if (Number.isNaN(aTime)) return b;
+    if (Number.isNaN(bTime)) return a;
+    return bTime > aTime ? b : a;
+  }
+
   // Initialize DB on mount
   useEffect(() => {
     initSafetyDb();
@@ -133,6 +184,72 @@ export function useSafetyProfile(tripId: string) {
       console.error('[SafetyProfile] Sync error:', err);
       // Don't throw - offline mode should still work
     }
+  }
+
+  async function getEncryptedProfileFromSupabase(
+    userId: string
+  ): Promise<EncryptedSafetyProfile | null> {
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('safety_profiles')
+        .select('*')
+        .eq('trip_id', tripId)
+        .eq('user_id', userId)
+        .single();
+
+      if (fetchError) {
+        if (fetchError.code === 'PGRST116') {
+          return null;
+        }
+        throw fetchError;
+      }
+
+      return (data as EncryptedSafetyProfile) || null;
+    } catch (err) {
+      console.error('[SafetyProfile] Remote encrypted profile fetch failed:', err);
+      return null;
+    }
+  }
+
+  async function resolveEmergencyAccessFieldsForSave(
+    localProfile: EncryptedSafetyProfile | null
+  ): Promise<EmergencyAccessFields> {
+    const remoteProfile = await getEncryptedProfileFromSupabase(userProfile!.id);
+    const localHasComplete = hasCompleteEmergencyAccessFields(localProfile);
+    const remoteHasComplete = hasCompleteEmergencyAccessFields(remoteProfile);
+    const localHasAny = hasAnyEmergencyAccessField(localProfile);
+    const remoteHasAny = hasAnyEmergencyAccessField(remoteProfile);
+
+    if ((localHasAny && !localHasComplete) || (remoteHasAny && !remoteHasComplete)) {
+      throw new Error(
+        'Emergency PIN data is in an invalid state. Refresh and re-save your emergency PIN before editing your profile.'
+      );
+    }
+
+    if (localHasComplete && remoteHasComplete) {
+      const newer = getNewerProfile(localProfile!, remoteProfile!);
+      return toEmergencyAccessFields(newer);
+    }
+
+    if (localHasComplete) {
+      return toEmergencyAccessFields(localProfile!);
+    }
+
+    if (remoteHasComplete) {
+      return toEmergencyAccessFields(remoteProfile!);
+    }
+
+    if (myProfile?.has_emergency_access_pin) {
+      throw new Error(
+        'Emergency PIN is enabled but encrypted PIN data is unavailable. Reconnect and refresh before saving profile changes.'
+      );
+    }
+
+    return {
+      emergency_access_blob: null,
+      emergency_access_pin_salt: null,
+      emergency_access_pin_hash: null,
+    };
   }
 
   /**
@@ -220,7 +337,13 @@ export function useSafetyProfile(tripId: string) {
       setSaving(true);
       setError(null);
 
-      const existingEncrypted = await getSafetyProfileLocal(tripId, userProfile.id);
+      const existingEncrypted = (await getSafetyProfileLocal(
+        tripId,
+        userProfile.id
+      )) as EncryptedSafetyProfile | null;
+      const emergencyAccessFields = await resolveEmergencyAccessFieldsForSave(
+        existingEncrypted
+      );
 
       // Encrypt all sensitive fields
       const encrypted: EncryptedSafetyProfile = {
@@ -260,9 +383,7 @@ export function useSafetyProfile(tripId: string) {
         ),
         blood_type: await encryptString(formData.blood_type || null, userProfile.id),
         notes: await encryptString(formData.notes || null, userProfile.id),
-        emergency_access_blob: existingEncrypted?.emergency_access_blob || null,
-        emergency_access_pin_salt: existingEncrypted?.emergency_access_pin_salt || null,
-        emergency_access_pin_hash: existingEncrypted?.emergency_access_pin_hash || null,
+        ...emergencyAccessFields,
         created_at: myProfile?.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -275,7 +396,8 @@ export function useSafetyProfile(tripId: string) {
       setMyProfile(decrypted);
 
       // Background sync to Supabase
-      syncToSupabase(encrypted);
+      // Normal profile edits must never mutate emergency PIN fields.
+      syncToSupabase(encrypted, { includeEmergencyAccessFields: false });
 
       return decrypted;
     } catch (err) {
@@ -290,8 +412,12 @@ export function useSafetyProfile(tripId: string) {
   /**
    * Sync encrypted profile to Supabase
    */
-  async function syncToSupabase(encrypted: EncryptedSafetyProfile) {
+  async function syncToSupabase(
+    encrypted: EncryptedSafetyProfile,
+    options?: { includeEmergencyAccessFields?: boolean }
+  ) {
     try {
+      const includeEmergencyAccessFields = options?.includeEmergencyAccessFields ?? true;
       const { error: upsertError } = await supabase
         .from('safety_profiles')
         .upsert({
@@ -310,9 +436,13 @@ export function useSafetyProfile(tripId: string) {
           current_medications: encrypted.current_medications,
           blood_type: encrypted.blood_type,
           notes: encrypted.notes,
-          emergency_access_blob: encrypted.emergency_access_blob,
-          emergency_access_pin_salt: encrypted.emergency_access_pin_salt,
-          emergency_access_pin_hash: encrypted.emergency_access_pin_hash,
+          ...(includeEmergencyAccessFields
+            ? {
+                emergency_access_blob: encrypted.emergency_access_blob,
+                emergency_access_pin_salt: encrypted.emergency_access_pin_salt,
+                emergency_access_pin_hash: encrypted.emergency_access_pin_hash,
+              }
+            : {}),
           updated_at: encrypted.updated_at,
         });
 

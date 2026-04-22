@@ -12,9 +12,14 @@ Ready to ship: NO
 - `npm run lint` is now available and passing.
 - Remaining blockers in this report are still active until code fixes land.
 
+## Update (April 20, 2026)
+
+- Finding 3 (Safety/Crypto TypeScript errors) is resolved.
+- `npx tsc --noEmit` now passes with zero TypeScript errors.
+
 ## Release Gate Summary
 
-- Typecheck: FAIL (`npx tsc --noEmit`)
+- Typecheck: PASS (updated April 20, 2026)
 - Lint: PASS (post-audit update; script now available)
 - Targeted tests: NOT AVAILABLE (no project test script found)
 - Critical/High findings: PRESENT
@@ -114,11 +119,11 @@ Status: CONFIRMED (still present)
   - Preserve emergency fields from authoritative source (current remote row or in-memory encrypted snapshot) when local row missing.
   - Add guard: refuse normal save if emergency fields cannot be safely preserved.
 
-### 3) [High] Typecheck is failing in Safety emergency and crypto paths
+### 3) [High] Typecheck was failing in Safety emergency and crypto paths (Resolved April 20, 2026)
 - Impact:
-  - Build gate fails; increases regression risk and blocks reliable release.
+  - Previously blocked build gate reliability until April 20 fix.
 - Evidence:
-  - `npx tsc --noEmit` returned 3 errors.
+  - Historical: `npx tsc --noEmit` returned 3 errors.
 - Location:
   - `app/trips/[id]/safety-emergency.tsx:65`
   - `lib/crypto/safetyEncryption.ts:229`
@@ -129,6 +134,7 @@ Status: CONFIRMED (still present)
 - Fix:
   - Normalize/strongly type `group_members` relational `user` shape before filtering/rendering.
   - Provide `ArrayBuffer`-compatible key material typing for `importKey` calls.
+  - Validation: `npx tsc --noEmit` passes with zero errors.
 
 ### 4) [Medium] PIN set/disable lifecycle hard-fails when local encrypted row is unavailable
 - Impact:
@@ -190,7 +196,7 @@ Status: CONFIRMED (still present)
 
 1. P0: Block destructive Camp Grid save after remote-load failure; add explicit retry/error state.
 2. P0: Fix Safety save payload preservation so emergency PIN fields cannot be nulled by normal profile save.
-3. P0: Resolve current TypeScript errors in `safety-emergency` and `safetyEncryption`.
+3. ✅ P0 completed (April 20, 2026): Resolved TypeScript errors in `safety-emergency` and `safetyEncryption`.
 4. P1: Add remote fallback/rehydration for PIN set/disable operations when local row missing.
 5. P1: Add stale-cache mitigation for emergency unlock (refresh-on-fail or timestamp-based invalidation).
 6. P2: Upgrade emergency PIN hash/KDF strategy and include migration versioning.

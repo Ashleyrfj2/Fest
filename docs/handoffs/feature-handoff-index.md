@@ -28,7 +28,10 @@
   - Viewer write restrictions are enforced in Travel UI and hook mutation paths.
   - Meetup pin realtime subscription is active on `trips` updates.
 - Travel re-validation now passes for Travel scope.
-- Workspace TypeScript is still blocked by non-Travel safety/crypto errors.
+- Safety emergency PIN preservation remediation is complete.
+  - Normal profile saves now preserve encrypted emergency PIN fields.
+  - Save flow now fails closed on inconsistent partial emergency PIN field state.
+- Safety/crypto TypeScript fixes are complete.
 - Reports:
   - [Travel QA Audit - 2026-04-12](../reports/travel-qa-audit-2026-04-12.md)
   - [Safety + Camp Grid Validation - 2026-04-12](../reports/safety-camp-grid-validation-report-2026-04-12.md)
@@ -48,10 +51,7 @@
 ## Current Priority Queue (April 20)
 1. **P0:** Prevent Camp Grid shared-layout data loss after remote-load failure.
 	- Context: [Safety + Camp Grid Validation - 2026-04-12](../reports/safety-camp-grid-validation-report-2026-04-12.md)
-2. **P0:** Preserve Safety emergency PIN fields on normal profile save.
-	- Context: [Safety + Camp Grid Validation - 2026-04-12](../reports/safety-camp-grid-validation-report-2026-04-12.md)
-3. **P1:** Resolve remaining TypeScript errors in safety/crypto files.
-4. **P1:** Re-run targeted QA for Safety/Camp Grid after fixes.
+2. **P1:** Re-run targeted QA for Safety/Camp Grid after fixes.
 
 ## Handoff Documents
 - [Trip Dashboard](trip-dashboard-handoff.md)
@@ -73,7 +73,7 @@
 - **Budget Tracker**: ✅ Complete
 - **Supply List**: ✅ Complete
 - **Camp Grid**: 🚨 Critical blocker open (potential data-loss path)
-- **Safety Profile**: ⚠️ High-priority reliability fixes required
+- **Safety Profile**: ✅ Emergency PIN preservation and typecheck fixes landed (Apr 20); pending QA re-validation
 - **Packing Checklist**: 🚧 Planned
 - **Tooling / Quality Gate**: ✅ Lint gate implemented (Apr 12)
 

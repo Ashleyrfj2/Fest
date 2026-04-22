@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { ArrowLeft, Calendar, MapPin } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Lock, MapPin } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { generateInviteCode, generateInviteExpiry } from '@/lib/invites/invite-utils';
@@ -29,9 +29,10 @@ import {
   getFestivalTripOption,
   POPULAR_FESTIVAL_OPTIONS,
 } from '@/lib/festivalTripOptions';
+import { GuestAccessModal } from '@/components/auth/GuestAccessModal';
 
 export default function CreateTripScreen() {
-  const { userProfile } = useAuth();
+  const { userProfile, isGhostAccount } = useAuth();
   const [tripName, setTripName] = useState('');
   const [festivalName, setFestivalName] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -39,6 +40,7 @@ export default function CreateTripScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showFestivalSuggestions, setShowFestivalSuggestions] = useState(false);
+  const [showGuestAccessModal, setShowGuestAccessModal] = useState(false);
 
   const filteredFestivals = POPULAR_FESTIVAL_OPTIONS.filter((festival) =>
     festival.name.toLowerCase().includes(festivalName.toLowerCase())
@@ -57,6 +59,11 @@ export default function CreateTripScreen() {
   }
 
   const handleCreateTrip = async () => {
+    if (isGhostAccount) {
+      setShowGuestAccessModal(true);
+      return;
+    }
+
     // Validation
     if (!tripName.trim()) {
       setError('Please enter a trip name');
@@ -147,15 +154,42 @@ export default function CreateTripScreen() {
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
+      {isGhostAccount ? (
+        <View style={styles.guestBlockedContainer}>
+          <View style={styles.guestBlockedCard}>
+            <View style={styles.guestBlockedIconWrap}>
+              <Lock size={20} color={colors.base} strokeWidth={2} />
+            </View>
+            <Text style={styles.guestBlockedTitle}>Trip creation is locked in guest mode</Text>
+            <Text style={styles.guestBlockedBody}>
+              Register or sign in to create trips and invite your crew.
+            </Text>
+            <TouchableOpacity
+              style={styles.guestBlockedButton}
+              onPress={() => setShowGuestAccessModal(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.guestBlockedButtonText}>Register or Sign In</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.backToHomeButton}
+              onPress={() => router.replace('/(tabs)/index')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.backToHomeButtonText}>Back to Home</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : (
+        <KeyboardAvoidingView
+          style={styles.container}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+          >
         {/* Back Button */}
         <TouchableOpacity
           style={styles.backButton}
@@ -306,8 +340,16 @@ export default function CreateTripScreen() {
         <Text style={styles.infoText}>
           You'll get a shareable invite link to send to your crew
         </Text>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      )}
+
+      <GuestAccessModal
+        visible={showGuestAccessModal}
+        onClose={() => setShowGuestAccessModal(false)}
+        title="Create trips after registration"
+        description="Guest mode can preview dashboards only. Save your account to create trips and access modules."
+      />
     </SafeAreaView>
   );
 }
@@ -319,6 +361,65 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.base,
+  },
+  guestBlockedContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xxl,
+  },
+  guestBlockedCard: {
+    backgroundColor: colors.surface.level1,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border.medium,
+    padding: spacing.xl,
+  },
+  guestBlockedIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.accent.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  guestBlockedTitle: {
+    fontSize: typography.size.cardTitle,
+    fontWeight: typography.weight.cardTitle,
+    color: colors.text.primary,
+    marginBottom: spacing.sm,
+  },
+  guestBlockedBody: {
+    fontSize: typography.size.body,
+    fontWeight: typography.weight.body,
+    color: colors.text.mid,
+    lineHeight: 20,
+    marginBottom: spacing.lg,
+  },
+  guestBlockedButton: {
+    backgroundColor: colors.accent.gold,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  guestBlockedButtonText: {
+    color: colors.base,
+    fontSize: typography.size.body,
+    fontWeight: typography.weight.cardTitle,
+  },
+  backToHomeButton: {
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border.medium,
+    backgroundColor: colors.surface.level2,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  backToHomeButtonText: {
+    color: colors.text.mid,
+    fontSize: typography.size.body,
+    fontWeight: typography.weight.label,
   },
   scrollView: {
     flex: 1,

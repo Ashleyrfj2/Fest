@@ -28,6 +28,7 @@ import {
   Settings,
   Share2,
   Calendar,
+  Lock,
 } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -38,6 +39,7 @@ import { QuickStatsHeader, ActivityFeed, ModuleCard, CrewSection } from '@/compo
 import { MODULES } from '@/components/trips/dashboard/modules';
 import { SafetyPromptBanner } from '@/components/SafetyProfile/SafetyPromptBanner';
 import { useModuleProgress } from '@/lib/hooks/useModuleProgress';
+import { GuestAccessModal } from '@/components/auth/GuestAccessModal';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
 type GroupMember = Database['public']['Tables']['group_members']['Row'] & {
@@ -52,13 +54,14 @@ const dismissedSafetyPromptByTrip = new Set<string>();
 
 export default function TripDashboardScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { userProfile } = useAuth();
+  const { userProfile, isGhostAccount } = useAuth();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [visitedModuleIds, setVisitedModuleIds] = useState<string[]>([]);
   const [isSafetyPromptDismissed, setIsSafetyPromptDismissed] = useState(false);
+  const [showGuestAccessModal, setShowGuestAccessModal] = useState(false);
 
   // Get real progress from all modules
   const tripProgress = useModuleProgress(id || '', members);
@@ -131,6 +134,11 @@ export default function TripDashboardScreen() {
   }
 
   function handleModulePress(moduleId: string) {
+    if (isGhostAccount) {
+      setShowGuestAccessModal(true);
+      return;
+    }
+
     if (id) {
       const nextVisitedModules = new Set(visitedModuleIdsByTrip.get(id) ?? []);
       nextVisitedModules.add(moduleId);
@@ -301,6 +309,18 @@ export default function TripDashboardScreen() {
           completionPercent={completionPercent}
         />
 
+        {isGhostAccount && (
+          <View style={styles.readOnlyBanner}>
+            <View style={styles.readOnlyBannerHeader}>
+              <Lock size={16} color={colors.accent.gold} strokeWidth={2} />
+              <Text style={styles.readOnlyBannerTitle}>Read-only demo mode</Text>
+            </View>
+            <Text style={styles.readOnlyBannerBody}>
+              You can explore this dashboard preview, but module access is locked until you register or sign in.
+            </Text>
+          </View>
+        )}
+
         {shouldShowSafetyPrompt && (
           <View style={styles.section}>
             <SafetyPromptBanner
@@ -368,6 +388,13 @@ export default function TripDashboardScreen() {
           />
         </View>
       </ScrollView>
+
+      <GuestAccessModal
+        visible={showGuestAccessModal}
+        onClose={() => setShowGuestAccessModal(false)}
+        title="Modules unlock after registration"
+        description="Guest mode keeps this dashboard view-only. Create or sign in to a saved account to open modules and make changes."
+      />
     </SafeAreaView>
   );
 }
@@ -458,6 +485,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
+  },
+  readOnlyBanner: {
+    marginBottom: spacing.xl,
+    padding: spacing.lg,
+    backgroundColor: colors.surface.level1,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border.medium,
+  },
+  readOnlyBannerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  readOnlyBannerTitle: {
+    fontSize: typography.size.body,
+    fontWeight: typography.weight.cardTitle,
+    color: colors.text.primary,
+  },
+  readOnlyBannerBody: {
+    fontSize: typography.size.body,
+    fontWeight: typography.weight.body,
+    color: colors.text.mid,
+    lineHeight: 20,
   },
   datesText: {
     fontSize: typography.size.body,

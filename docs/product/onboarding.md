@@ -30,6 +30,11 @@
 - Subtle animation/confetti on first join
 - Empty states: leader's modules show "Set up" CTAs; joiners see "Leader is setting this up" placeholders
 
+**Planned guest-demo change**
+- Unregistered guests should eventually see this dashboard in read-only demo mode only.
+- Module cards should be visible but non-interactive until registration/sign-in is complete.
+- This planned restriction is not implemented yet.
+
 ### Step 4 — Fill in safety profile (soft prompt)
 - Banner: "Add your emergency info so your crew can help if needed"
 - Skippable; re-prompted once per session until complete
@@ -48,6 +53,9 @@
 - Home screen: two CTAs — "Create a trip" and "Join with a link"
 - 3-field form: trip name, festival name (with type-ahead suggestions), start + end dates
 - If known festival selected: offer to pre-load campsite dimensions + starter packing list
+
+**Planned guest restriction**
+- Guests should eventually be blocked from this create-trip flow until they register or sign in.
 
 ### Step 2 — Set leader profile
 - Same display name + avatar color screen as join path

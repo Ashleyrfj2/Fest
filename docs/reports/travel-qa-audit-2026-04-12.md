@@ -1,12 +1,12 @@
 # Travel QA Audit - April 12, 2026
 
 Travel QA
-Status: CONDITIONAL PASS
-Issues found: 1 open (non-Travel)
+Status: PASS
+Issues found: 0 open
 Details:
 - RESOLVED HIGH: Viewer role mutation gap is fixed with role gating in UI and fail-closed mutation guards in the Travel hook.
 - RESOLVED MEDIUM: Meetup pin trip-level realtime subscription is implemented on `trips` updates.
-- LOW: Workspace TypeScript gate is currently failing in non-Travel files, blocking a clean QA compile pass.
+- RESOLVED LOW: Workspace TypeScript gate is clean after Safety/Crypto fixes.
 
 ## Post-Audit Update (April 12, 2026)
 
@@ -23,7 +23,7 @@ Details:
 	- `lib/hooks/useTravel.ts` now subscribes to `trips` `postgres_changes` updates filtered by trip id.
 	- `meetup_pin` state is updated directly from realtime payload with fallback fetch on malformed payload.
 - Independent Travel QA re-check result: PASS for Travel scope.
-- Remaining open item is still workspace-level TypeScript errors outside Travel scope.
+- Workspace compile gate update (April 20, 2026): `npx tsc --noEmit` passes with zero TypeScript errors.
 
 ## Scope + Method
 - Reviewed the Travel screen, hook, map, cards, and form modals.
@@ -120,6 +120,9 @@ Expected:
 Actual:
 - Compile fails (outside Travel scope but affects overall QA gate).
 
+Update (April 20, 2026):
+- Resolved. Safety/Crypto TypeScript issues were fixed and compile gate now passes.
+
 ## Partial / Usability Concerns
 - No blocking UI defects found in Travel empty states; copy is readable and action-oriented.
 - Device-level gesture validation (map pan/zoom) was not executed on hardware in this audit pass.
@@ -128,9 +131,9 @@ Actual:
 1. ✅ Enforce viewer write restrictions in Travel UI and mutation entry points.
 2. ✅ Add realtime subscription for trips table meetup_pin changes in useTravel.
 3. ✅ Re-run multi-user verification for meetup pin sync and role matrix behavior.
-4. ⏳ Clear workspace TypeScript errors to restore full QA compile gate confidence.
+4. ✅ Clear workspace TypeScript errors to restore full QA compile gate confidence.
 
-Overall: CONDITIONAL PASS
-Ready to ship: YES (Travel scope)
+Overall: PASS
+Ready to ship: YES
 Blockers:
-- Workspace TypeScript compile errors remain in non-Travel Safety/Crypto files.
+- None.
