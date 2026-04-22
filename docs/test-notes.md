@@ -23,6 +23,13 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 - Implemented: normal profile saves now fail closed on inconsistent partial PIN field state and do not upsert PIN fields to Supabase.
 - Verified: non-PIN edits no longer clear `emergency_access_blob`, `emergency_access_pin_salt`, or `emergency_access_pin_hash`.
 
+### Session Update (April 22, 2026 - Safety + Camp Grid Re-validation)
+- Verified: Camp Grid destructive overwrite blocker is fixed; failed remote loads now produce blocked/retry state and save re-checks remote item IDs before any delete.
+- Verified: `npx tsc --noEmit` and `npm run lint` both pass.
+- Finding: Safety PIN set/update/disable still needs local-to-remote rehydrate fallback when the local encrypted row is missing.
+- Finding: Safety emergency unlock still needs stale-cache mitigation when a valid PIN was rotated on another device.
+- Report: `docs/reports/safety-camp-grid-revalidation-report-2026-04-22.md`
+
 ### Session Update (April 10, 2026 - Safe-Area Pass, Verified)
 - Implemented: added app-level SafeAreaProvider in app root layout.
 - Implemented: added SafeAreaView coverage for tabs, auth routes, onboarding route, and join route.
@@ -45,15 +52,18 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 - [x] Safe-area follow-up: re-check all routes against the April 7 safe-area pass because current device behavior appears to regress in some routes such as packing list (verified fixed in current build)
 
 ### Open Bugs (Reported April 12, 2026 - Agent QA Dispatch)
-- [ ] Camp Grid: critical risk of destructive overwrite when remote load fails and user saves default local layout
+- [x] Camp Grid: critical risk of destructive overwrite when remote load fails and user saves default local layout (verified fixed April 22, 2026)
 - [x] Safety Profile: normal profile save can clear emergency PIN fields when local encrypted row is missing (verified fixed April 20, 2026)
 - [x] Travel: viewer role write actions are now blocked for non-editor roles (verified fixed April 20, 2026)
 - [x] Travel: meetup pin is now subscribed to trip-level realtime updates (verified fixed April 20, 2026)
 - [x] Safety/Crypto TypeScript errors in `app/trips/[id]/safety-emergency.tsx` and `lib/crypto/safetyEncryption.ts` are fixed (verified April 20, 2026)
+- [ ] Safety Profile: emergency PIN set/update/disable needs remote fallback when local encrypted row is missing
+- [ ] Safety Profile: emergency unlock needs stale-cache mitigation after PIN rotation on another device
 
 References:
 - `docs/reports/travel-qa-audit-2026-04-12.md`
 - `docs/reports/safety-camp-grid-validation-report-2026-04-12.md`
+- `docs/reports/safety-camp-grid-revalidation-report-2026-04-22.md`
 
 ## Completed Fixes (April 10, 2026)
 - ✅ Added global SafeAreaProvider at app root and aligned screen-level safe-area wrappers on user-facing routes.

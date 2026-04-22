@@ -35,9 +35,10 @@ This file maps each active next step to the best available agent and provides a 
 ### Step 3: Safety PIN + Camp Grid auth/sync validation
 - Best Agent: Senior QA Engineer
 - Handoff Doc: docs/handoffs/safety-camp-grid-validation-handoff.md
-- Status: ✅ Completed (QA result: FAIL)
+- Status: ✅ Re-validation completed April 22, 2026 (QA result: FAIL; Camp Grid P0 closed, Safety P1 cache/freshness issues remain)
 - Evidence:
   - docs/reports/safety-camp-grid-validation-report-2026-04-12.md
+  - docs/reports/safety-camp-grid-revalidation-report-2026-04-22.md
 - Delegation Prompt:
   - Execute the validation plan in docs/handoffs/safety-camp-grid-validation-handoff.md.
   - Focus on Safety emergency PIN lifecycle and Camp Grid auth transition sync behavior.
@@ -60,9 +61,9 @@ This file maps each active next step to the best available agent and provides a 
   - Report file-level changes and run validation commands.
 
 ## Next Dispatch Order (Implementation)
-1. Safety + Camp Grid targeted QA re-validation pass
-  - Suggested agent: Senior QA Engineer
-2. Safety emergency PIN local/remote fallback hardening (set/disable + unlock freshness)
+1. Safety emergency PIN local/remote fallback hardening (set/disable + unlock freshness)
   - Suggested agent: Privacy and security-minded mobile engineer
+2. Safety + Camp Grid targeted QA re-validation pass after Safety fallback hardening
+  - Suggested agent: Senior QA Engineer
 3. Camp Grid reliability follow-up polish (guard telemetry and UX refinement)
   - Suggested agent: Full stack mobile engineer with maps and collaboration
