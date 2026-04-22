@@ -36,7 +36,7 @@ This checklist is for auditing Festival from the user side only: tapping through
 These are the clearest repo-confirmed items that you can usually skip during manual audit unless you specifically want polish feedback.
 
 - [x] Discover tab is currently a placeholder screen
-- [x] Known bug already confirmed: Food Planner dietary flag icons currently render as question marks instead of correct icons
+- [x] Previously reported Food Planner dietary icon issue is verified fixed (April 12, 2026)
 - [x] Previously reported Packing Checklist top safe-area overlap issue is verified fixed in the current build
 - [x] Previously reported bottom menu/tab routing issue is verified fixed in the current build
 - [x] Sign-in forgot password flow is not implemented yet
@@ -288,7 +288,7 @@ Current build read: Implemented.
 - [ ] Deleting a meal works
 - [ ] Day/slot organization is clear
 - [ ] Any ingredients or linked list behavior works as expected
-- [x] Known bug already confirmed: dietary flag icons are incorrect and currently render as question marks
+- [x] Previously reported dietary icon bug is verified fixed (April 12, 2026)
 - [ ] Role restrictions behave correctly
 - [ ] Data persists after leaving and reopening
 

@@ -38,6 +38,9 @@ export default function CampGridScreen() {
     hasUnsavedChanges,
     isSavingLayout,
     lastSavedAt,
+    remoteLoadStatus,
+    pendingDestructiveDeleteCount,
+    retryRemoteLoad,
     upsertGrid,
     addItem,
     updateItemPosition,
@@ -49,6 +52,7 @@ export default function CampGridScreen() {
   const itemLibraryWidth = Math.round(clamp(viewportWidth * 0.19, 166, 194));
   const isCompactHeader = viewportWidth < 880;
   const saveButtonMinWidth = isCompactHeader ? 104 : 126;
+  const remoteSyncBlocked = remoteLoadStatus === 'failed';
 
   useFocusEffect(
     useCallback(() => {
@@ -136,6 +140,8 @@ export default function CampGridScreen() {
 
   const saveStatusText = isSavingLayout
     ? 'Saving layout...'
+    : remoteSyncBlocked
+      ? 'Shared sync needed before destructive save'
     : hasUnsavedChanges
       ? 'Unsaved group changes'
       : lastSavedAt
@@ -144,6 +150,8 @@ export default function CampGridScreen() {
 
   const saveStatusTone = isSavingLayout
     ? styles.saveStatusSaving
+    : remoteSyncBlocked
+      ? styles.saveStatusBlocked
     : hasUnsavedChanges
       ? styles.saveStatusUnsaved
       : lastSavedAt
@@ -152,6 +160,8 @@ export default function CampGridScreen() {
 
   const saveStatusDisplayText = isSavingLayout
     ? 'Saving'
+    : remoteSyncBlocked
+      ? 'Retry Sync'
     : hasUnsavedChanges
       ? 'Unsaved'
       : lastSavedAt
@@ -161,6 +171,69 @@ export default function CampGridScreen() {
   const saveButtonText = isSavingLayout
     ? (isCompactHeader ? 'Saving' : 'Saving...')
     : (isCompactHeader ? 'Save' : 'Save Layout');
+
+  async function handleSaveLayout(allowDestructiveOverwrite = false) {
+    const result = await saveLayoutToGroup({ allowDestructiveOverwrite });
+
+    if (result.ok) {
+      Alert.alert('Camp Grid Saved', 'The latest layout has been saved for your group.');
+      return;
+    }
+
+    if (result.blockedReason === 'not-authorized') {
+      Alert.alert('Save unavailable', 'You do not have permission to save this shared layout right now.');
+      return;
+    }
+
+    if (result.blockedReason === 'remote-load-failed') {
+      Alert.alert(
+        'Sync needed',
+        'We could not verify the shared layout. Retry sync before saving.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Retry Sync',
+            onPress: () => {
+              void retryRemoteLoad();
+            },
+          },
+        ]
+      );
+      return;
+    }
+
+    if (result.blockedReason === 'destructive-overwrite-risk') {
+      const deleteCount = result.deleteCount || pendingDestructiveDeleteCount;
+      const itemLabel = deleteCount === 1 ? 'item' : 'items';
+      Alert.alert(
+        'Confirm overwrite',
+        `Saving now may remove ${deleteCount} shared ${itemLabel}. Retry sync first, or confirm overwrite to continue.`,
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Retry Sync',
+            onPress: () => {
+              void retryRemoteLoad();
+            },
+          },
+          {
+            text: 'Overwrite',
+            style: 'destructive',
+            onPress: () => {
+              void handleSaveLayout(true);
+            },
+          },
+        ]
+      );
+      return;
+    }
+  }
 
   async function handleSidebarDrop(template: CampItemTemplate, point: { x: number; y: number }) {
     setDragPreview(null);
@@ -245,11 +318,8 @@ export default function CampGridScreen() {
                 { minWidth: saveButtonMinWidth },
                 isSavingLayout && styles.saveButtonDisabled,
               ]}
-              onPress={async () => {
-                const didSave = await saveLayoutToGroup();
-                if (didSave) {
-                  Alert.alert('Camp Grid Saved', 'The latest layout has been saved for your group.');
-                }
+              onPress={() => {
+                void handleSaveLayout();
               }}
               disabled={isSavingLayout}
               activeOpacity={0.8}
@@ -463,6 +533,9 @@ const styles = StyleSheet.create({
   },
   saveStatusUnsaved: {
     color: colors.danger,
+  },
+  saveStatusBlocked: {
+    color: colors.warning,
   },
   saveStatusSaved: {
     color: colors.success,

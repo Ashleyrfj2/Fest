@@ -16,8 +16,8 @@
 - QA completed with blockers:
   - Safety + Camp Grid validation found critical/high reliability issues.
 - Current focus:
-  1. Camp Grid remote-load failure data-loss guard.
-  2. Re-run targeted Safety/Camp Grid QA after recent safety fixes.
+  1. Re-run targeted Safety/Camp Grid QA after the Camp Grid remote-load guard implementation.
+  2. Complete remaining Safety reliability hardening (PIN fallback/rehydration + stale-cache unlock mitigation).
 
 See the latest reports:
 - `reports/travel-qa-audit-2026-04-12.md` (includes April 20 remediation update)

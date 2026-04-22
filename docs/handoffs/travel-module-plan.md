@@ -141,5 +141,5 @@ Report:
 - ✅ Enforced role restrictions for viewer in Travel UI and write paths.
 - ✅ Added `trips` table realtime subscription for meetup pin updates.
 - ✅ Re-ran Travel QA after fixes and updated status to PASS for Travel scope.
-- ⚠️ Remaining non-Travel compile issue: workspace TypeScript still fails in Safety/Crypto files.
+- ✅ Workspace TypeScript gate is clean after April 20 Safety/Crypto fixes.
 

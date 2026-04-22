@@ -49,7 +49,7 @@ These are used on festival cards, progress bars, and accent elements to make gro
 | Screen | Status | Notes |
 |---|---|---|
 | App Home (Level 1) | In progress | Layout and hierarchy solid, aesthetic being refined |
-| Trip Dashboard (Level 2) | Designed, not built | Information hierarchy decided (action-first vs timeline-first vs social-first — TBD) |
+| Trip Dashboard (Level 2) | Implemented | Live route and module entry surface are in app; continue iterative UX polish and leader-settings completion |
 | Camp Grid | In progress | Live route with grid dragging, library drag-to-place, rotation, custom items, and explicit group save |
 | Lineup Scheduler | Not started | Voting UI with group consensus view |
 | Budget Tracker | Not started | Settle-up summary focus |

@@ -7,7 +7,7 @@ Senior mobile product designer or mobile frontend lead.
 Build the Level 2 Trip Dashboard as the main per-trip home surface. This screen should feel like the operational center of the trip: quick status, crew visibility, module entry points, and next actions.
 
 ## Why This Is Next
-This is the orchestration layer for the product. The docs say the trip dashboard is designed but not yet built, and it is the place where every major module is entered from. Without it, feature work becomes fragmented.
+This handoff is retained as historical build context. The Trip Dashboard is implemented; use this document for design refinements and follow-on enhancements.
 
 ## Source Context
 - [Trip system](../product/trip-system.md)

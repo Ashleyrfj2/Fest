@@ -48,10 +48,10 @@
   - [Travel QA Audit - 2026-04-12](../reports/travel-qa-audit-2026-04-12.md)
   - [Safety + Camp Grid Validation - 2026-04-12](../reports/safety-camp-grid-validation-report-2026-04-12.md)
 
-## Current Priority Queue (April 20)
-1. **P0:** Prevent Camp Grid shared-layout data loss after remote-load failure.
-	- Context: [Safety + Camp Grid Validation - 2026-04-12](../reports/safety-camp-grid-validation-report-2026-04-12.md)
-2. **P1:** Re-run targeted QA for Safety/Camp Grid after fixes.
+## Current Priority Queue (April 22)
+1. **P0:** Run targeted Safety/Camp Grid QA re-validation after Camp Grid guard implementation.
+  - Context: [Safety + Camp Grid Validation - 2026-04-12](../reports/safety-camp-grid-validation-report-2026-04-12.md)
+2. **P1:** Complete remaining Safety resilience hardening (PIN set/disable fallback + stale-cache unlock mitigation).
 
 ## Handoff Documents
 - [Trip Dashboard](trip-dashboard-handoff.md)
@@ -69,12 +69,12 @@
 - **Travel**: ✅ Complete (QA blockers remediated Apr 20)
 - **Trip Dashboard**: ✅ Complete
 - **Food Planner**: ✅ Complete (dietary icon bug fixed Apr 12)
-- **Lineup Scheduler**: ✅ Complete (component has UI bug, see test-notes.md)
+- **Lineup Scheduler**: ✅ Complete
 - **Budget Tracker**: ✅ Complete
 - **Supply List**: ✅ Complete
-- **Camp Grid**: 🚨 Critical blocker open (potential data-loss path)
+- **Camp Grid**: 🟡 Guard implementation landed (Apr 22), pending targeted QA re-validation
 - **Safety Profile**: ✅ Emergency PIN preservation and typecheck fixes landed (Apr 20); pending QA re-validation
-- **Packing Checklist**: 🚧 Planned
+- **Packing Checklist**: ✅ Complete (implemented and wired; continue behavior QA and polish)
 - **Tooling / Quality Gate**: ✅ Lint gate implemented (Apr 12)
 
 ## Notes

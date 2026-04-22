@@ -45,6 +45,20 @@ interface LocalItemRow {
   updated_at: string;
 }
 
+type RemoteLoadStatus = 'not-attempted' | 'loading' | 'success' | 'failed';
+type LocalDataOrigin = 'existing-local' | 'default-created' | 'remote-hydrated' | null;
+type SaveBlockedReason = 'none' | 'remote-load-failed' | 'destructive-overwrite-risk' | 'not-authorized';
+
+interface SaveLayoutOptions {
+  allowDestructiveOverwrite?: boolean;
+}
+
+interface SaveLayoutResult {
+  ok: boolean;
+  blockedReason: SaveBlockedReason;
+  deleteCount: number;
+}
+
 function createCampItemId() {
   const bytes = Crypto.getRandomBytes(16);
   bytes[6] = (bytes[6] & 0x0f) | 0x40;
@@ -278,6 +292,10 @@ export function useCampGridDB(tripId: string | undefined) {
   const [isSavingLayout, setIsSavingLayout] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [remoteLoadStatus, setRemoteLoadStatus] = useState<RemoteLoadStatus>('not-attempted');
+  const [remoteLoadError, setRemoteLoadError] = useState<string | null>(null);
+  const [localDataOrigin, setLocalDataOrigin] = useState<LocalDataOrigin>(null);
+  const [pendingDestructiveDeleteCount, setPendingDestructiveDeleteCount] = useState(0);
   const { authUser, isLoading: isAuthLoading } = useAuth();
 
   const canLoad = Boolean(tripId);
@@ -295,14 +313,22 @@ export function useCampGridDB(tripId: string | undefined) {
       let remoteSnapshot: Awaited<ReturnType<typeof readRemoteSnapshot>> | null = null;
 
       if (canSyncWithSharedDb) {
+        setRemoteLoadStatus('loading');
         try {
           remoteSnapshot = await readRemoteSnapshot(
             tripId,
             localSnapshot.grid?.measurementUnit ?? DEFAULT_GRID.measurementUnit
           );
-        } catch {
+          setRemoteLoadStatus('success');
+          setRemoteLoadError(null);
+        } catch (remoteErr: any) {
           remoteSnapshot = null;
+          setRemoteLoadStatus('failed');
+          setRemoteLoadError(remoteErr?.message ?? 'Failed to load shared layout');
         }
+      } else {
+        setRemoteLoadStatus('not-attempted');
+        setRemoteLoadError(null);
       }
 
       if (remoteSnapshot?.grid) {
@@ -314,14 +340,17 @@ export function useCampGridDB(tripId: string | undefined) {
           await writeLocalSnapshot(remoteSnapshot.grid, remoteSnapshot.items, remoteSnapshot.updatedAt ?? new Date().toISOString());
           setGrid(remoteSnapshot.grid);
           setItems(remoteSnapshot.items);
+          setLocalDataOrigin('remote-hydrated');
           setHasUnsavedChanges(false);
           setLastSavedAt(remoteSnapshot.updatedAt);
+          setPendingDestructiveDeleteCount(0);
           return;
         }
 
         if (localSnapshot.grid) {
           setGrid(localSnapshot.grid);
           setItems(localSnapshot.items);
+          setLocalDataOrigin('existing-local');
           setHasUnsavedChanges(true);
           setLastSavedAt(remoteSnapshot.updatedAt);
           return;
@@ -331,6 +360,7 @@ export function useCampGridDB(tripId: string | undefined) {
       if (localSnapshot.grid) {
         setGrid(localSnapshot.grid);
         setItems(localSnapshot.items);
+        setLocalDataOrigin('existing-local');
         setHasUnsavedChanges(Boolean(localSnapshot.items.length || localSnapshot.grid.festivalPreset));
         return;
       }
@@ -338,6 +368,7 @@ export function useCampGridDB(tripId: string | undefined) {
       const defaultSnapshot = await ensureDefaultLocalGrid(tripId);
       setGrid(defaultSnapshot.grid);
       setItems(defaultSnapshot.items);
+      setLocalDataOrigin('default-created');
       setHasUnsavedChanges(false);
     } catch (err: any) {
       console.error('Failed to load camp grid data:', err);
@@ -493,12 +524,56 @@ export function useCampGridDB(tripId: string | undefined) {
     setHasUnsavedChanges(true);
   }, []);
 
-  const saveLayoutToGroup = useCallback(async () => {
-    if (!tripId || !grid || !canSyncWithSharedDb) return false;
+  const saveLayoutToGroup = useCallback(async (options?: SaveLayoutOptions): Promise<SaveLayoutResult> => {
+    const allowDestructiveOverwrite = Boolean(options?.allowDestructiveOverwrite);
+
+    if (!tripId || !grid || !canSyncWithSharedDb) {
+      return {
+        ok: false,
+        blockedReason: 'not-authorized',
+        deleteCount: 0,
+      };
+    }
 
     try {
       setIsSavingLayout(true);
       setError(null);
+
+      const { data: existingRemoteItems, error: existingError } = await supabase
+        .from('camp_items')
+        .select('id')
+        .eq('grid_id', tripId);
+
+      if (existingError) {
+        setError(existingError.message ?? 'Failed to load shared layout before saving');
+        setPendingDestructiveDeleteCount(0);
+        return {
+          ok: false,
+          blockedReason: 'remote-load-failed',
+          deleteCount: 0,
+        };
+      }
+
+      const localIds = new Set(items.map((item) => item.id));
+      const idsToDelete = (existingRemoteItems ?? [])
+        .map((row: any) => row.id as string)
+        .filter((id) => !localIds.has(id));
+
+      setPendingDestructiveDeleteCount(idsToDelete.length);
+
+      const remoteTrustEstablished = remoteLoadStatus === 'success';
+      const requiresOverwriteConfirmation =
+        idsToDelete.length > 0 &&
+        (!remoteTrustEstablished || localDataOrigin === 'default-created') &&
+        !allowDestructiveOverwrite;
+
+      if (requiresOverwriteConfirmation) {
+        return {
+          ok: false,
+          blockedReason: 'destructive-overwrite-risk',
+          deleteCount: idsToDelete.length,
+        };
+      }
 
       const { error: gridError } = await supabase.from('camp_grids').upsert(
         {
@@ -514,20 +589,6 @@ export function useCampGridDB(tripId: string | undefined) {
       if (gridError) {
         throw gridError;
       }
-
-      const { data: existingRemoteItems, error: existingError } = await supabase
-        .from('camp_items')
-        .select('id')
-        .eq('grid_id', tripId);
-
-      if (existingError) {
-        throw existingError;
-      }
-
-      const localIds = new Set(items.map((item) => item.id));
-      const idsToDelete = (existingRemoteItems ?? [])
-        .map((row: any) => row.id as string)
-        .filter((id) => !localIds.has(id));
 
       if (idsToDelete.length) {
         const { error: deleteError } = await supabase.from('camp_items').delete().in('id', idsToDelete);
@@ -561,15 +622,24 @@ export function useCampGridDB(tripId: string | undefined) {
 
       setHasUnsavedChanges(false);
       setLastSavedAt(new Date().toISOString());
-      return true;
+      setPendingDestructiveDeleteCount(0);
+      return {
+        ok: true,
+        blockedReason: 'none',
+        deleteCount: idsToDelete.length,
+      };
     } catch (err: any) {
       console.error('Failed to save camp grid to shared database:', err);
       setError(err?.message ?? 'Failed to save camp grid to shared database');
-      return false;
+      return {
+        ok: false,
+        blockedReason: 'none',
+        deleteCount: 0,
+      };
     } finally {
       setIsSavingLayout(false);
     }
-  }, [canSyncWithSharedDb, grid, items, tripId]);
+  }, [canSyncWithSharedDb, grid, items, localDataOrigin, remoteLoadStatus, tripId]);
 
   const hasConfiguredGrid = useMemo(() => Boolean(grid?.festivalPreset), [grid?.festivalPreset]);
 
@@ -582,6 +652,11 @@ export function useCampGridDB(tripId: string | undefined) {
     hasUnsavedChanges,
     isSavingLayout,
     lastSavedAt,
+    remoteLoadStatus,
+    remoteLoadError,
+    localDataOrigin,
+    pendingDestructiveDeleteCount,
+    retryRemoteLoad: loadData,
     reload: loadData,
     upsertGrid,
     addItem,

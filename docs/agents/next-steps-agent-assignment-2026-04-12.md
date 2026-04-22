@@ -60,11 +60,9 @@ This file maps each active next step to the best available agent and provides a 
   - Report file-level changes and run validation commands.
 
 ## Next Dispatch Order (Implementation)
-1. Camp Grid critical data-loss guard
-   - Suggested agent: Full stack mobile engineer with maps and collaboration
-2. Safety emergency PIN field-preservation + local/remote fallback hardening
-   - Suggested agent: Privacy and security-minded mobile engineer
-3. Safety/Crypto TypeScript error cleanup
-   - Suggested agent: Senior Mobile Engineer
-4. QA re-validation pass
-    - Suggested agents: Senior QA Engineer (Safety/Camp Grid) and Travel Module QA Engineer (regression confirmation as needed)
+1. Safety + Camp Grid targeted QA re-validation pass
+  - Suggested agent: Senior QA Engineer
+2. Safety emergency PIN local/remote fallback hardening (set/disable + unlock freshness)
+  - Suggested agent: Privacy and security-minded mobile engineer
+3. Camp Grid reliability follow-up polish (guard telemetry and UX refinement)
+  - Suggested agent: Full stack mobile engineer with maps and collaboration

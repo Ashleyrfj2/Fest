@@ -87,4 +87,4 @@ Blockers found (April 12 snapshot):
 - ✅ Implemented Travel permission enforcement for viewer role in UI and mutation entry points.
 - ✅ Implemented `trips` realtime subscription for meetup pin changes.
 - ✅ Re-ran this QA handoff and flipped Travel scope status to PASS.
-- ⚠️ Non-Travel workspace TypeScript issues still remain in safety/crypto files.
+- ✅ Workspace TypeScript gate is now passing after Safety/Crypto remediation.

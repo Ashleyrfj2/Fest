@@ -68,8 +68,8 @@ Ready to ship: NO
 
 ### Specific risk check from session-notes-2026-04-10
 
-Status: CONFIRMED (still present)
-- Normal profile save still reconstructs emergency fields from local-only encrypted row; missing local row can null these fields and push nulls upstream (Finding 2).
+Status: RESOLVED (April 20, 2026)
+- Normal profile saves now preserve emergency PIN encrypted fields and fail closed on inconsistent partial PIN field state (Finding 2).
 
 ## Findings (Severity Ranked)
 
@@ -99,9 +99,9 @@ Status: CONFIRMED (still present)
   - Surface explicit remote-load failure state + retry action.
   - Block destructive save until a successful remote read or explicit user confirmation for overwrite.
 
-### 2) [High] Emergency PIN fields can still be cleared during normal profile save
+### 2) [High] Emergency PIN fields could be cleared during normal profile save (Resolved April 20, 2026)
 - Impact:
-  - Emergency unlock can be unintentionally disabled (blob/salt/hash nulled) after a non-PIN profile edit.
+  - Historical risk: emergency unlock could be unintentionally disabled (blob/salt/hash nulled) after a non-PIN profile edit.
 - Evidence:
   - Save path reads emergency fields from local-only encrypted row.
   - If local row is absent, emergency fields are set to null in payload used for upsert.
@@ -118,6 +118,7 @@ Status: CONFIRMED (still present)
 - Fix:
   - Preserve emergency fields from authoritative source (current remote row or in-memory encrypted snapshot) when local row missing.
   - Add guard: refuse normal save if emergency fields cannot be safely preserved.
+  - Validation: verified in April 20 session and reflected in test-notes.
 
 ### 3) [High] Typecheck was failing in Safety emergency and crypto paths (Resolved April 20, 2026)
 - Impact:
@@ -195,7 +196,7 @@ Status: CONFIRMED (still present)
 ## Prioritized Follow-up Tasks
 
 1. P0: Block destructive Camp Grid save after remote-load failure; add explicit retry/error state.
-2. P0: Fix Safety save payload preservation so emergency PIN fields cannot be nulled by normal profile save.
+2. ✅ P0 completed (April 20, 2026): Safety save payload preserves emergency PIN fields and fails closed on inconsistent partial PIN state.
 3. ✅ P0 completed (April 20, 2026): Resolved TypeScript errors in `safety-emergency` and `safetyEncryption`.
 4. P1: Add remote fallback/rehydration for PIN set/disable operations when local row missing.
 5. P1: Add stale-cache mitigation for emergency unlock (refresh-on-fail or timestamp-based invalidation).
