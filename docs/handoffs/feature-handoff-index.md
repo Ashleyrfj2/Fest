@@ -49,9 +49,12 @@
   - [Safety + Camp Grid Validation - 2026-04-12](../reports/safety-camp-grid-validation-report-2026-04-12.md)
 
 ## Current Priority Queue (April 22)
-1. **P0:** Run targeted Safety/Camp Grid QA re-validation after Camp Grid guard implementation.
-  - Context: [Safety + Camp Grid Validation - 2026-04-12](../reports/safety-camp-grid-validation-report-2026-04-12.md)
-2. **P1:** Complete remaining Safety resilience hardening (PIN set/disable fallback + stale-cache unlock mitigation).
+1. **P1:** Complete remaining Safety resilience hardening (PIN set/disable fallback + stale-cache unlock mitigation).
+  - Context: [Safety + Camp Grid Re-validation - 2026-04-22](../reports/safety-camp-grid-revalidation-report-2026-04-22.md)
+2. **P2:** Add focused regression coverage for Safety PIN preservation, missing-local-row PIN mutation, stale-cache unlock, and Camp Grid destructive-save guard.
+  - Context: [Safety + Camp Grid Re-validation - 2026-04-22](../reports/safety-camp-grid-revalidation-report-2026-04-22.md)
+3. **P2:** Re-run targeted Safety/Camp Grid QA after Safety hardening lands.
+  - Context: [Safety + Camp Grid Re-validation - 2026-04-22](../reports/safety-camp-grid-revalidation-report-2026-04-22.md)
 
 ## Handoff Documents
 - [Trip Dashboard](trip-dashboard-handoff.md)
@@ -72,12 +75,12 @@
 - **Lineup Scheduler**: ✅ Complete
 - **Budget Tracker**: ✅ Complete
 - **Supply List**: ✅ Complete
-- **Camp Grid**: 🟡 Guard implementation landed (Apr 22), pending targeted QA re-validation
-- **Safety Profile**: ✅ Emergency PIN preservation and typecheck fixes landed (Apr 20); pending QA re-validation
+- **Camp Grid**: ✅ Apr 22 guard fix validated; follow-up work is regression coverage and optional polish
+- **Safety Profile**: 🟡 Emergency PIN preservation and typecheck fixes landed (Apr 20); two reliability issues remain open from Apr 22 re-validation
 - **Packing Checklist**: ✅ Complete (implemented and wired; continue behavior QA and polish)
 - **Tooling / Quality Gate**: ✅ Lint gate implemented (Apr 12)
 
 ## Notes
 - Keep this index aligned to the current docs and session notes.
 - Session notes are the source of truth for implementation state between major handoff document revisions.
-- All core modules are now in place; focus next work on blocker remediation and QA re-validation.
+- All core modules are now in place; focus next work on Safety reliability hardening, regression coverage, and final QA closure.

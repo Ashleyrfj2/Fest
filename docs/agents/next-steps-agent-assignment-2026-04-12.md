@@ -1,6 +1,6 @@
-# Next Steps Agent Assignment (April 12, 2026)
+# Next Steps Agent Assignment (Updated after April 22, 2026 re-validation)
 
-This file maps each active next step to the best available agent and provides a ready-to-run delegation prompt.
+This file maps the current implementation checklist to the best-fit agent or agent pair and provides ready-to-run delegation prompts.
 
 ## Dispatch Progress
 
@@ -60,10 +60,92 @@ This file maps each active next step to the best available agent and provides a 
   - Keep config pragmatic for Expo + React Native + TypeScript.
   - Report file-level changes and run validation commands.
 
-## Next Dispatch Order (Implementation)
-1. Safety emergency PIN local/remote fallback hardening (set/disable + unlock freshness)
-  - Suggested agent: Privacy and security-minded mobile engineer
-2. Safety + Camp Grid targeted QA re-validation pass after Safety fallback hardening
-  - Suggested agent: Senior QA Engineer
-3. Camp Grid reliability follow-up polish (guard telemetry and UX refinement)
-  - Suggested agent: Full stack mobile engineer with maps and collaboration
+## Current Implementation Checklist
+
+### Item 1: Safety PIN local-to-remote rehydrate fallback
+- Priority: P1
+- Best Agent: Privacy and security-minded mobile engineer
+- Support Agent: Senior QA Engineer
+- Goal:
+  - Allow `setEmergencyAccessPin` and `clearEmergencyAccessPin` to recover from a missing local encrypted row by rehydrating from the remote encrypted profile when available.
+- Evidence / Context:
+  - `docs/reports/safety-camp-grid-revalidation-report-2026-04-22.md`
+  - `docs/test-notes.md`
+- Delegation Prompt:
+  - Implement the April 22 Safety re-validation follow-up for local-to-remote PIN mutation recovery.
+  - In `lib/hooks/useSafetyProfile.ts`, add a helper that resolves the encrypted owner profile from local storage first, then remote fallback.
+  - If a remote encrypted profile exists, persist it locally, mark it synced, and continue the PIN update/clear flow.
+  - Preserve fail-closed behavior when neither local nor remote encrypted data is available.
+  - Update docs/test-notes.md with implementation notes and validation outcomes.
+
+### Item 2: Safety stale-cache unlock mitigation
+- Priority: P1
+- Best Agent: Privacy and security-minded mobile engineer
+- Support Agent: Senior QA Engineer
+- Goal:
+  - Prevent valid emergency PIN unlock failures when another device has rotated the PIN and local cache is stale.
+- Evidence / Context:
+  - `docs/reports/safety-camp-grid-revalidation-report-2026-04-22.md`
+  - `docs/test-notes.md`
+- Delegation Prompt:
+  - Implement the April 22 Safety re-validation follow-up for stale-cache emergency unlock.
+  - In `lib/hooks/useSafetyProfile.ts`, add a remote refresh or refresh-on-hash-mismatch path for `unlockEmergencyProfile`.
+  - Prefer newer remote encrypted data when online, but preserve offline unlock behavior by falling back to local verification when refresh is unavailable.
+  - Keep the error surface safe and do not expose emergency payload details on failure.
+  - Update docs/test-notes.md with implementation notes and validation outcomes.
+
+### Item 3: Focused regression coverage for Safety and Camp Grid
+- Priority: P2
+- Best Agent: Full stack mobile engineer with testing focus
+- Support Agents:
+  - Privacy and security-minded mobile engineer
+  - Senior QA Engineer
+- Goal:
+  - Add repeatable regression coverage around the remaining Safety and recently-fixed Camp Grid reliability paths.
+- Evidence / Context:
+  - `docs/reports/safety-camp-grid-revalidation-report-2026-04-22.md`
+  - `docs/test-notes.md`
+- Delegation Prompt:
+  - Add focused automated or harness-based regression coverage for:
+    - Safety PIN preservation on normal save
+    - Safety PIN set/update/disable when local encrypted row is missing
+    - Safety emergency unlock after PIN rotation on another device
+    - Camp Grid destructive-save guard after remote-load failure
+  - Choose the lightest-weight test shape that fits the current project setup.
+  - Document any remaining gaps if full automation is not practical yet.
+  - Update docs/test-notes.md with what is now covered and what still requires manual replay.
+
+### Item 4: Targeted Safety + Camp Grid QA closeout
+- Priority: P2
+- Best Agent: Senior QA Engineer
+- Support Agent: Privacy and security-minded mobile engineer
+- Goal:
+  - Re-run the Safety + Camp Grid scope after the Safety fixes land and determine if the full scope can flip from FAIL to PASS.
+- Evidence / Context:
+  - `docs/handoffs/safety-camp-grid-validation-handoff.md`
+  - `docs/reports/safety-camp-grid-revalidation-report-2026-04-22.md`
+- Delegation Prompt:
+  - Re-run the Safety and Camp Grid validation scope after the PIN fallback and stale-cache mitigations are implemented.
+  - Validate the prior April 22 failures, confirm no regression in Camp Grid guardrails, and report exact release readiness.
+  - Return a severity-ranked report with repro steps for any remaining issues.
+
+### Item 5: Camp Grid polish and observability follow-up
+- Priority: P3
+- Best Agent: Full stack mobile engineer with maps and collaboration
+- Support Agent: Senior QA Engineer
+- Goal:
+  - Improve Camp Grid UX around blocked sync states and capture any remaining polish after the data-loss guard fix.
+- Evidence / Context:
+  - `docs/reports/safety-camp-grid-revalidation-report-2026-04-22.md`
+  - `docs/product/feature-completion.md`
+- Delegation Prompt:
+  - Review the Camp Grid retry/blocked-sync experience after the April 22 guard fix.
+  - Tighten copy, retry affordances, and any lightweight telemetry or logging hooks that would help diagnose future sync failures.
+  - Keep the destructive-save protection behavior intact.
+  - Document recommendations separately if the work should remain outside the current release scope.
+
+## Recommended Dispatch Order
+1. Item 1 and Item 2 in sequence with the same primary engineer, keeping Senior QA Engineer involved for acceptance criteria review.
+2. Item 3 after the Safety fixes land so regression coverage matches final behavior.
+3. Item 4 as the release gate.
+4. Item 5 only after release-blocking Safety work is closed or intentionally deferred.

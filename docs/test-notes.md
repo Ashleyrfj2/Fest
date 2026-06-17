@@ -4,6 +4,11 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ## Outstanding Issues
 
+### Session Update (June 16, 2026 - Safety PIN Remote Rehydrate Fallback, Implemented)
+- Implemented: `setEmergencyAccessPin` and `clearEmergencyAccessPin` now rehydrate the owner's encrypted safety profile from Supabase when the local SQLite row is missing.
+- Implemented: remote rehydration is cached back into local safety storage before continuing the PIN mutation flow.
+- Note: stale-cache emergency unlock after PIN rotation is still open and requires a separate freshness fix.
+
 ### Session Update (April 12, 2026 - Food Planner Dietary Icon Fix, Verified)
 - Implemented: replaced emoji-based dietary flag rendering with deterministic Lucide icon rendering in Food Planner meal cards and meal editor modal.
 - Verified: dietary icons now render correctly (no question-mark glyphs) in the dietary selector and saved meal badges while keeping existing dietary flag values unchanged.
@@ -57,7 +62,7 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 - [x] Travel: viewer role write actions are now blocked for non-editor roles (verified fixed April 20, 2026)
 - [x] Travel: meetup pin is now subscribed to trip-level realtime updates (verified fixed April 20, 2026)
 - [x] Safety/Crypto TypeScript errors in `app/trips/[id]/safety-emergency.tsx` and `lib/crypto/safetyEncryption.ts` are fixed (verified April 20, 2026)
-- [ ] Safety Profile: emergency PIN set/update/disable needs remote fallback when local encrypted row is missing
+- [x] Safety Profile: emergency PIN set/update/disable needs remote fallback when local encrypted row is missing (implemented June 16, 2026)
 - [ ] Safety Profile: emergency unlock needs stale-cache mitigation after PIN rotation on another device
 
 References:

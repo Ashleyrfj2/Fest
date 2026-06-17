@@ -252,6 +252,32 @@ export function useSafetyProfile(tripId: string) {
     };
   }
 
+  async function resolveOwnerEncryptedProfileForPinMutation(): Promise<EncryptedSafetyProfile> {
+    if (!userProfile?.id) {
+      throw new Error('User not authenticated');
+    }
+
+    const localProfile = (await getSafetyProfileLocal(
+      tripId,
+      userProfile.id
+    )) as EncryptedSafetyProfile | null;
+
+    if (localProfile) {
+      return localProfile;
+    }
+
+    const remoteProfile = await getEncryptedProfileFromSupabase(userProfile.id);
+    if (!remoteProfile) {
+      throw new Error(
+        'Unable to find a saved safety profile to update. Refresh and try again.'
+      );
+    }
+
+    await saveSafetyProfileLocal(remoteProfile as any);
+    await markSafetyProfileSynced(remoteProfile.id);
+    return remoteProfile;
+  }
+
   /**
    * Load all safety profiles for the trip (for group view)
    * Only the current user's profile will be decrypted
@@ -516,10 +542,7 @@ export function useSafetyProfile(tripId: string) {
       throw new Error('Create and save your safety profile before setting a PIN');
     }
 
-    const encryptedLocalProfile = await getSafetyProfileLocal(tripId, userProfile.id);
-    if (!encryptedLocalProfile) {
-      throw new Error('Unable to find local safety profile to update');
-    }
+    const encryptedLocalProfile = await resolveOwnerEncryptedProfileForPinMutation();
 
     const emergencyPayload = {
       full_name: myProfile.full_name,
@@ -563,10 +586,7 @@ export function useSafetyProfile(tripId: string) {
       throw new Error('User not authenticated');
     }
 
-    const encryptedLocalProfile = await getSafetyProfileLocal(tripId, userProfile.id);
-    if (!encryptedLocalProfile) {
-      throw new Error('Unable to find local safety profile to update');
-    }
+    const encryptedLocalProfile = await resolveOwnerEncryptedProfileForPinMutation();
 
     const updatedEncryptedProfile: EncryptedSafetyProfile = {
       ...encryptedLocalProfile,
