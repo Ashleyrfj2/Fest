@@ -278,6 +278,67 @@ export function useSafetyProfile(tripId: string) {
     return remoteProfile;
   }
 
+  function isRemoteProfileNewer(
+    localProfile: EncryptedSafetyProfile | null,
+    remoteProfile: EncryptedSafetyProfile
+  ): boolean {
+    if (!localProfile) {
+      return true;
+    }
+
+    return getNewerProfile(localProfile, remoteProfile) === remoteProfile;
+  }
+
+  async function verifyEmergencyPinAgainstProfile(
+    encryptedProfile: EncryptedSafetyProfile,
+    pin: string
+  ): Promise<{
+    blob: string;
+    pinMatches: boolean;
+    salt: string;
+  }> {
+    const salt = encryptedProfile.emergency_access_pin_salt;
+    const storedHash = encryptedProfile.emergency_access_pin_hash;
+    const blob = encryptedProfile.emergency_access_blob;
+
+    if (!salt || !storedHash || !blob) {
+      throw new Error('This member has not enabled emergency PIN access');
+    }
+
+    const enteredHash = await hashEmergencyPin(pin, salt);
+    return {
+      blob,
+      pinMatches: enteredHash === storedHash,
+      salt,
+    };
+  }
+
+  function buildUnlockedSafetyProfile(
+    encryptedProfile: EncryptedSafetyProfile,
+    parsedPayload: Record<string, any>
+  ): SafetyProfile {
+    return {
+      id: encryptedProfile.id,
+      trip_id: encryptedProfile.trip_id,
+      user_id: encryptedProfile.user_id,
+      has_emergency_access_pin: true,
+      full_name: parsedPayload.full_name ?? null,
+      phone: parsedPayload.phone ?? null,
+      hometown: parsedPayload.hometown ?? null,
+      emergency_contact_name: parsedPayload.emergency_contact_name ?? null,
+      emergency_contact_relationship: parsedPayload.emergency_contact_relationship ?? null,
+      emergency_contact_phone: parsedPayload.emergency_contact_phone ?? null,
+      allergies_food: parsedPayload.allergies_food ?? null,
+      allergies_environmental: parsedPayload.allergies_environmental ?? null,
+      allergies_medication: parsedPayload.allergies_medication ?? null,
+      current_medications: parsedPayload.current_medications ?? null,
+      blood_type: parsedPayload.blood_type ?? null,
+      notes: parsedPayload.notes ?? null,
+      created_at: encryptedProfile.created_at,
+      updated_at: encryptedProfile.updated_at,
+    };
+  }
+
   /**
    * Load all safety profiles for the trip (for group view)
    * Only the current user's profile will be decrypted
@@ -607,64 +668,50 @@ export function useSafetyProfile(tripId: string) {
       throw new Error('PIN must be 4-8 digits');
     }
 
-    let encryptedProfile = await getSafetyProfileLocal(tripId, targetUserId);
+    let encryptedProfile = (await getSafetyProfileLocal(
+      tripId,
+      targetUserId
+    )) as EncryptedSafetyProfile | null;
 
     if (!encryptedProfile) {
-      const { data, error: fetchError } = await supabase
-        .from('safety_profiles')
-        .select('*')
-        .eq('trip_id', tripId)
-        .eq('user_id', targetUserId)
-        .single();
-
-      if (fetchError || !data) {
+      const remoteProfile = await getEncryptedProfileFromSupabase(targetUserId);
+      if (!remoteProfile) {
         throw new Error('No safety profile found for this member');
       }
 
-      encryptedProfile = data;
-      await saveSafetyProfileLocal(data as any);
-      await markSafetyProfileSynced(data.id);
+      encryptedProfile = remoteProfile;
+      await saveSafetyProfileLocal(remoteProfile as any);
+      await markSafetyProfileSynced(remoteProfile.id);
     }
 
-    const salt = encryptedProfile.emergency_access_pin_salt;
-    const storedHash = encryptedProfile.emergency_access_pin_hash;
-    const blob = encryptedProfile.emergency_access_blob;
+    let verification = await verifyEmergencyPinAgainstProfile(encryptedProfile, pin);
 
-    if (!salt || !storedHash || !blob) {
-      throw new Error('This member has not enabled emergency PIN access');
+    if (!verification.pinMatches) {
+      const remoteProfile = await getEncryptedProfileFromSupabase(targetUserId);
+
+      if (remoteProfile && isRemoteProfileNewer(encryptedProfile, remoteProfile)) {
+        await saveSafetyProfileLocal(remoteProfile as any);
+        await markSafetyProfileSynced(remoteProfile.id);
+        encryptedProfile = remoteProfile;
+        verification = await verifyEmergencyPinAgainstProfile(encryptedProfile, pin);
+      }
+
+      if (!verification.pinMatches) {
+        throw new Error('Incorrect emergency PIN');
+      }
     }
 
-    const enteredHash = await hashEmergencyPin(pin, salt);
-    if (enteredHash !== storedHash) {
-      throw new Error('Incorrect emergency PIN');
-    }
-
-    const decryptedPayload = await decryptEmergencyAccessPayload(blob, pin, salt);
+    const decryptedPayload = await decryptEmergencyAccessPayload(
+      verification.blob,
+      pin,
+      verification.salt
+    );
     if (!decryptedPayload) {
       throw new Error('Unable to decrypt emergency data');
     }
 
     const parsed = JSON.parse(decryptedPayload);
-    return {
-      id: encryptedProfile.id,
-      trip_id: encryptedProfile.trip_id,
-      user_id: encryptedProfile.user_id,
-      has_emergency_access_pin: true,
-      full_name: parsed.full_name ?? null,
-      phone: parsed.phone ?? null,
-      hometown: parsed.hometown ?? null,
-      emergency_contact_name: parsed.emergency_contact_name ?? null,
-      emergency_contact_relationship: parsed.emergency_contact_relationship ?? null,
-      emergency_contact_phone: parsed.emergency_contact_phone ?? null,
-      allergies_food: parsed.allergies_food ?? null,
-      allergies_environmental: parsed.allergies_environmental ?? null,
-      allergies_medication: parsed.allergies_medication ?? null,
-      current_medications: parsed.current_medications ?? null,
-      blood_type: parsed.blood_type ?? null,
-      notes: parsed.notes ?? null,
-      created_at: encryptedProfile.created_at,
-      updated_at: encryptedProfile.updated_at,
-    };
+    return buildUnlockedSafetyProfile(encryptedProfile, parsed);
   }
 
   return {

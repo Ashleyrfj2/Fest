@@ -7,7 +7,11 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 ### Session Update (June 16, 2026 - Safety PIN Remote Rehydrate Fallback, Implemented)
 - Implemented: `setEmergencyAccessPin` and `clearEmergencyAccessPin` now rehydrate the owner's encrypted safety profile from Supabase when the local SQLite row is missing.
 - Implemented: remote rehydration is cached back into local safety storage before continuing the PIN mutation flow.
-- Note: stale-cache emergency unlock after PIN rotation is still open and requires a separate freshness fix.
+
+### Session Update (June 17, 2026 - Safety Emergency Unlock Freshness Mitigation, Implemented)
+- Implemented: `unlockEmergencyProfile` now retries against a newer remote encrypted profile when the locally cached PIN hash does not match.
+- Implemented: refreshed remote encrypted profiles are cached back into local safety storage before retrying unlock verification.
+- Preserved: offline behavior still falls back to the locally cached encrypted profile when remote refresh is unavailable.
 
 ### Session Update (April 12, 2026 - Food Planner Dietary Icon Fix, Verified)
 - Implemented: replaced emoji-based dietary flag rendering with deterministic Lucide icon rendering in Food Planner meal cards and meal editor modal.
@@ -63,7 +67,7 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 - [x] Travel: meetup pin is now subscribed to trip-level realtime updates (verified fixed April 20, 2026)
 - [x] Safety/Crypto TypeScript errors in `app/trips/[id]/safety-emergency.tsx` and `lib/crypto/safetyEncryption.ts` are fixed (verified April 20, 2026)
 - [x] Safety Profile: emergency PIN set/update/disable needs remote fallback when local encrypted row is missing (implemented June 16, 2026)
-- [ ] Safety Profile: emergency unlock needs stale-cache mitigation after PIN rotation on another device
+- [x] Safety Profile: emergency unlock needs stale-cache mitigation after PIN rotation on another device (implemented June 17, 2026)
 
 References:
 - `docs/reports/travel-qa-audit-2026-04-12.md`
