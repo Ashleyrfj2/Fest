@@ -9,6 +9,7 @@ import {
   PackingItemWithState,
   mapSupplyCategoryToPackingCategory,
 } from '@/lib/packingTypes';
+import { selectClaimedSupplyItemsForPacking } from '@/lib/packingSync';
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -250,6 +251,8 @@ export async function addPackingItem(
 
 export async function updatePackingItem(
   itemId: string,
+  tripId: string,
+  userId: string,
   updates: Partial<PackingItem>
 ): Promise<void> {
   const db = await getPackingDb();
@@ -274,12 +277,18 @@ export async function updatePackingItem(
 
   if (!columns.length) return;
 
-  await db.runAsync(`UPDATE packing_items SET ${columns.join(', ')} WHERE id = ?`, [...values, itemId]);
+  await db.runAsync(
+    `UPDATE packing_items SET ${columns.join(', ')} WHERE id = ? AND trip_id = ? AND user_id = ?`,
+    [...values, itemId, tripId, userId]
+  );
 }
 
-export async function deletePackingItem(itemId: string): Promise<void> {
+export async function deletePackingItem(itemId: string, tripId: string, userId: string): Promise<void> {
   const db = await getPackingDb();
-  await db.runAsync('DELETE FROM packing_items WHERE id = ?', [itemId]);
+  await db.runAsync(
+    'DELETE FROM packing_items WHERE id = ? AND trip_id = ? AND user_id = ?',
+    [itemId, tripId, userId]
+  );
 }
 
 export async function getPackingItemById(itemId: string): Promise<LocalPackingRow | null> {
@@ -320,7 +329,7 @@ export async function syncPackingItemsFromSupplyItems(
 ): Promise<void> {
   const db = await getPackingDb();
   const now = new Date().toISOString();
-  const mirroredItems = supplyItems.filter((item) => item.claimed_by === userId);
+  const mirroredItems = selectClaimedSupplyItemsForPacking(supplyItems, tripId, userId);
 
   const existingMirrored = (await db.getAllAsync(
     `SELECT source_supply_item_id FROM packing_items

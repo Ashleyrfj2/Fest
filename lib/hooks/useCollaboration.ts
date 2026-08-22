@@ -204,38 +204,23 @@ export function useCollaboration(tripId: string) {
         return { error: 'Select a different member to transfer leadership' };
       }
 
-      const currentLeader = members.find((member) => member.user_id === userProfile.id);
       const newLeader = members.find((member) => member.user_id === userId);
 
+      if (!newLeader) {
+        return { error: 'That member is not part of this trip' };
+      }
+
       try {
-        const { error: demoteError } = await supabase
-          .from('group_members')
-          .update({ role: 'editor' })
-          .eq('trip_id', tripId)
-          .eq('user_id', userProfile.id);
+        const { error: transferError } = await supabase.rpc('transfer_trip_leadership', {
+          p_trip_id: tripId,
+          p_new_leader_id: userId,
+        });
 
-        if (demoteError) throw demoteError;
+        if (transferError) throw transferError;
 
-        const { error: promoteError } = await supabase
-          .from('group_members')
-          .update({ role: 'leader' })
-          .eq('trip_id', tripId)
-          .eq('user_id', userId);
-
-        if (promoteError) throw promoteError;
-
-        const { error: tripUpdateError } = await supabase
-          .from('trips')
-          .update({ leader_id: userId })
-          .eq('id', tripId);
-
-        if (tripUpdateError) throw tripUpdateError;
-
-        await logActivity(
-          'leadership_transferred',
-          `Transferred leadership from ${currentLeader?.user?.display_name ?? 'current leader'} to ${newLeader?.user?.display_name ?? 'new leader'}`,
-          userId
-        );
+        // The RPC is authoritative. Refresh the membership projection after
+        // commit so the caller no longer relies on the pre-transfer role list.
+        await fetchMembers();
 
         return { error: null };
       } catch (err) {
@@ -243,7 +228,7 @@ export function useCollaboration(tripId: string) {
         return { error: err instanceof Error ? err.message : 'Failed to transfer leadership' };
       }
     },
-    [isLeader, logActivity, members, tripId, userProfile?.id]
+    [fetchMembers, isLeader, members, tripId, userProfile?.id]
   );
 
   const setModuleLead = useCallback(

@@ -199,7 +199,14 @@ export function useTravel(tripId: string, currentRole?: string | null) {
           setTripMeetupPin(normalizeMeetupPin(nextTripRow.meetup_pin));
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        // Supabase sends SUBSCRIBED after initial connection and after a
+        // reconnect. Hydrate again so events missed while offline are not
+        // treated as a complete local snapshot.
+        if (status === 'SUBSCRIBED') {
+          void fetchData();
+        }
+      });
 
     return () => {
       supabase.removeChannel(travelChannel);

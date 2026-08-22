@@ -34,3 +34,10 @@ test('invite entry points use the server-side join RPC', () => {
     assert.doesNotMatch(source, /from\(['"]group_members['"]\)\.insert/);
   }
 });
+
+test('join activity logging uses the authoritative RPC trip ID', () => {
+  const source = fs.readFileSync(path.join(repoRoot, 'app/join/[code].tsx'), 'utf8');
+  assert.match(source, /if \(!joinedTripId\)/);
+  assert.match(source, /trip_id: joinedTripId/);
+  assert.doesNotMatch(source, /trip_id: trip\.id/);
+});

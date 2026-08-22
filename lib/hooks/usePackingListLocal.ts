@@ -159,7 +159,7 @@ export function usePackingList(tripId: string, assignees: PackingAssignee[] = EM
   const deleteItem = useCallback(
     async (itemId: string) => {
       try {
-        await deletePackingItem(itemId);
+        await deletePackingItem(itemId, tripId, userProfile?.id ?? '');
         await loadLocalItems();
         return { error: null };
       } catch (err) {
@@ -180,7 +180,7 @@ export function usePackingList(tripId: string, assignees: PackingAssignee[] = EM
       }
 
       try {
-        await updatePackingItem(itemId, { packed: !item.packed });
+        await updatePackingItem(itemId, tripId, userProfile?.id ?? '', { packed: !item.packed });
         await loadLocalItems();
         return { error: null };
       } catch (err) {
@@ -201,7 +201,7 @@ export function usePackingList(tripId: string, assignees: PackingAssignee[] = EM
       }
 
       try {
-        await updatePackingItem(itemId, { assigned_to: userId });
+        await updatePackingItem(itemId, tripId, userProfile?.id ?? '', { assigned_to: userId });
         await loadLocalItems();
         return { error: null };
       } catch (err) {

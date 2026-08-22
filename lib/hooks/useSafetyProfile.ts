@@ -41,6 +41,11 @@ import {
   markSafetyProfileSynced,
   getUnsyncedSafetyProfiles,
 } from '@/lib/sqlite/safetyDb';
+import {
+  chooseNewerSafetyProfile,
+  isSafetyProfileInScope,
+  shouldUseRemoteSafetyProfile,
+} from '@/lib/safetySync';
 
 export function useSafetyProfile(tripId: string) {
   const { userProfile } = useAuth();
@@ -97,18 +102,6 @@ export function useSafetyProfile(tripId: string) {
       emergency_access_pin_salt: profile.emergency_access_pin_salt ?? null,
       emergency_access_pin_hash: profile.emergency_access_pin_hash ?? null,
     };
-  }
-
-  function getNewerProfile(
-    a: Partial<EncryptedSafetyProfile>,
-    b: Partial<EncryptedSafetyProfile>
-  ): Partial<EncryptedSafetyProfile> {
-    const aTime = Date.parse(a.updated_at || '');
-    const bTime = Date.parse(b.updated_at || '');
-
-    if (Number.isNaN(aTime)) return b;
-    if (Number.isNaN(bTime)) return a;
-    return bTime > aTime ? b : a;
   }
 
   // Initialize DB on mount
@@ -181,13 +174,42 @@ export function useSafetyProfile(tripId: string) {
         throw fetchError;
       }
 
+      if (data && !isSafetyProfileInScope(data, tripId, userProfile.id)) {
+        return;
+      }
+
       if (data) {
-        // Save encrypted data to local DB
-        await saveSafetyProfileLocal(data as any);
-        await markSafetyProfileSynced(data.id);
-        
-        // Decrypt and set state
-        const decrypted = await decryptProfile(data as any, userProfile.id);
+        const localProfile = (await getSafetyProfileLocal(
+          tripId,
+          userProfile.id
+        )) as EncryptedSafetyProfile | null;
+        const useRemote = shouldUseRemoteSafetyProfile(
+          localProfile?.updated_at,
+          data.updated_at
+        );
+        if (!localProfile && !useRemote) {
+          return;
+        }
+        const selectedProfile = useRemote
+          ? (data as EncryptedSafetyProfile)
+          : localProfile;
+        if (!selectedProfile) {
+          return;
+        }
+
+        // A stale or malformed remote snapshot must not overwrite an offline
+        // write. A local unsynced copy is retried after reconnect instead.
+        if (useRemote) {
+          await saveSafetyProfileLocal(selectedProfile as any);
+          await markSafetyProfileSynced(selectedProfile.id);
+        } else if (
+          localProfile &&
+          (localProfile as EncryptedSafetyProfile & { needs_sync?: number }).needs_sync
+        ) {
+          await syncToSupabase(localProfile, { includeEmergencyAccessFields: true });
+        }
+
+        const decrypted = await decryptProfile(selectedProfile as any, userProfile.id);
         setMyProfile(decrypted);
       }
     } catch (err) {
@@ -266,7 +288,7 @@ export function useSafetyProfile(tripId: string) {
     }
 
     if (localHasComplete && remoteHasComplete) {
-      const newer = getNewerProfile(localProfile!, remoteProfile!);
+      const newer = chooseNewerSafetyProfile(localProfile!, remoteProfile!);
       return toEmergencyAccessFields(newer);
     }
 

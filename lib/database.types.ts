@@ -1124,6 +1124,10 @@ export type Database = {
         }
         Returns: string
       }
+      transfer_trip_leadership: {
+        Args: { p_new_leader_id: string; p_trip_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

@@ -6,13 +6,13 @@ export function shouldUseRemoteCampGridSnapshot(
   localUpdatedAt: string | null | undefined,
   remoteUpdatedAt: string | null | undefined
 ): boolean {
-  if (!localUpdatedAt) return true;
   if (!remoteUpdatedAt) return false;
 
   const remoteTime = Date.parse(remoteUpdatedAt);
-  const localTime = Date.parse(localUpdatedAt);
-
   if (Number.isNaN(remoteTime)) return false;
+  if (!localUpdatedAt) return true;
+
+  const localTime = Date.parse(localUpdatedAt);
   if (Number.isNaN(localTime)) return true;
   return remoteTime >= localTime;
 }

@@ -1,4 +1,4 @@
-name: Lint
+name: Quality Gate
 
 on:
   pull_request:
@@ -6,8 +6,11 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
-  lint:
+  quality:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,3 +28,36 @@ jobs:
 
       - name: Run lint
         run: npm run lint
+
+      - name: Run app typecheck
+        run: npx tsc --noEmit
+
+      - name: Run deterministic tests
+        run: npm test
+
+      - name: Check patch whitespace
+        run: git diff --check
+
+      - name: Export web bundle
+        env:
+          # Static rendering initializes the Supabase client. These are
+          # deliberately non-production values; this job does not contact a
+          # database or exercise authorization behavior.
+          EXPO_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-static-export-placeholder
+        run: |
+          export_dir="$RUNNER_TEMP/festnest-web-export"
+          npx expo export --platform web --output-dir "$export_dir"
+          echo "Web export size: $(du -sh "$export_dir" | cut -f1)"
+          echo "Web export files: $(find "$export_dir" -type f | wc -l | tr -d ' ')"
+
+      - name: Publish coverage boundaries
+        if: always()
+        run: |
+          {
+            echo "## QA coverage boundaries"
+            echo "- **Static/unit:** lint, app typecheck, deterministic tests, patch whitespace, and web export run in this job."
+            echo "- **Database integration:** not run; requires an isolated Supabase target and secret-backed configuration."
+            echo "- **Browser E2E:** not run; Playwright is not wired to a browser suite or this workflow yet."
+            echo "- **Native/manual:** not run; iOS/Android map and device behavior require simulator or device replay."
+          } >> "$GITHUB_STEP_SUMMARY"
