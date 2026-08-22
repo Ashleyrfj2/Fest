@@ -25,9 +25,11 @@ const ACTIONS = new Map([
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
 const cursorPath = path.join(repoRoot, 'demo/.generated/activity-adapter-cursor.json');
+const manifestPath = path.join(repoRoot, 'demo/.generated/manifest.json');
 const supabaseURL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const qaAPIBaseURL = process.env.QA_API_BASE_URL || 'http://127.0.0.1:8080';
+const qaAPITokens = JSON.parse(process.env.QA_API_TOKENS_JSON || '{}');
 
 function requireLocalURL(label, rawURL, allowedPorts) {
   if (!rawURL) throw new Error(`${label} is required`);
@@ -41,9 +43,13 @@ function requireLocalURL(label, rawURL, allowedPorts) {
 requireLocalURL('EXPO_PUBLIC_SUPABASE_URL', supabaseURL, ['54321', '54331']);
 requireLocalURL('QA_API_BASE_URL', qaAPIBaseURL, ['8080']);
 if (!serviceRoleKey) throw new Error('SUPABASE_SERVICE_ROLE_KEY is required');
+if (Object.keys(qaAPITokens).length === 0) throw new Error('QA_API_TOKENS_JSON is required');
 
 const supabase = createClient(supabaseURL, serviceRoleKey, { auth: { persistSession: false } });
 const cursor = existsSync(cursorPath) ? JSON.parse(readFileSync(cursorPath, 'utf8')) : { key: '', stepIndex: 0 };
+if (!existsSync(manifestPath)) throw new Error('Run the deterministic demo seed before the activity adapter');
+const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+const stableActors = new Map(Object.entries(manifest.users || {}).map(([actorId, user]) => [user.id, actorId]));
 
 function deterministicUUID(value) {
   const bytes = Buffer.from(createHash('sha256').update(value).digest().subarray(0, 16));
@@ -54,9 +60,11 @@ function deterministicUUID(value) {
 }
 
 async function postEvent(event) {
+  const token = qaAPITokens[`automation:${event.actor_id}`] || qaAPITokens[event.actor_id];
+  if (!token) throw new Error(`QA_API_TOKENS_JSON has no adapter token for ${event.actor_id}`);
   const response = await fetch(new URL('/api/v1/events', qaAPIBaseURL), {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
     body: JSON.stringify(event),
   });
   if (response.status !== 202 && response.status !== 200) {
@@ -88,12 +96,14 @@ async function pollOnce() {
     const mapping = ACTIONS.get(log.action_type);
     cursor.stepIndex += 1;
     const role = roles.get(log.user_id) || 'unknown';
+    const actorId = stableActors.get(log.user_id);
+    if (!actorId) throw new Error(`No stable actor mapping exists for activity user ${log.user_id}`);
     const connectivity = log.action_type === 'supply_item_packed' ? 'stale' : 'online';
     const event = {
       event_id: deterministicUUID(`festival-activity:${log.id}`),
       tenant_id: TENANT_ID,
       session_id: `festival-activity-${BUILD_ID}`,
-      actor_id: log.user_id,
+      actor_id: actorId,
       source_type: 'automation',
       source_adapter: 'festival-activity-log-v1',
       build_id: BUILD_ID,

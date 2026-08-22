@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
 const QA_API_URL = process.env.QA_API_BASE_URL || 'http://127.0.0.1:8080';
+const QA_AGENT_API_TOKEN = process.env.QA_AGENT_API_TOKEN;
 const ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 const PASSWORD = process.env.FESTNEST_DEMO_PASSWORD || 'FestNestLocalOnly!2026';
 const TRIP_ID = '10000000-0000-4000-8000-000000000001';
@@ -50,6 +51,7 @@ async function logActivity(accessToken: string, userId: string, actionType: stri
 }
 
 test('equipment handoff preserves shared state and viewer RLS denial', async () => {
+	if (!QA_AGENT_API_TOKEN) throw new Error('QA_AGENT_API_TOKEN is required');
   requireLoopback(SUPABASE_URL);
   requireLoopback(QA_API_URL);
   const editor = await signIn('editor-a@example.test');
@@ -117,13 +119,13 @@ test('equipment handoff preserves shared state and viewer RLS denial', async () 
     action_type: 'supply_item_reconciled',
     outcome: 'pass',
     verifier_result: 'persisted_status_is_packed',
-    occurred_at: new Date().toISOString(),
+    occurred_at: process.env.FESTNEST_AGENT_EVENT_TIME || '2026-08-22T15:03:00.000Z',
     step_index: 1,
     privacy: { masked: true },
   };
   const ingest = await fetch(`${QA_API_URL}/api/v1/events`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { authorization: `Bearer ${QA_AGENT_API_TOKEN}`, 'content-type': 'application/json' },
     body: JSON.stringify(agentEvent),
   });
   expect([200, 202]).toContain(ingest.status);

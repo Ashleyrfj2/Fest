@@ -4,6 +4,17 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ## Outstanding Issues
 
+### Session Update (August 22, 2026 - Evidence Integrity Milestones 1–3)
+- Closed and verified `BUG-20260822-001`: Demo raw ingest and derived projections now roll back or commit together; injected failure leaves no partial rows and retry succeeds.
+- Closed and verified `BUG-20260822-002`: corrections reject self/cross-scope misuse, persist an append-only scoped audit, survive restart, and govern later evidence identity.
+- Added authenticated source identity and `409` payload-conflict behavior; stable Festival actors now cross the adapter boundary instead of generated user UUIDs.
+- Added PostgreSQL failure/restart/concurrency/correction-chain tests plus JSON Schema/OpenAPI/Go/TypeScript/fixture conformance CI.
+- Verified: Demo PostgreSQL suite twice, frontend/extension builds, live `200/401/200` health/auth behavior, Festival lint/typecheck/41 tests, authenticated equipment-handoff Playwright test, and final canonical seed fingerprint.
+- Verified the Festival activity adapter posted four authenticated stable-actor events after the handoff; the final Festival reset restored the canonical seed.
+- Remaining: explicit build-recency semantics, authoritative permission-denial provenance, metrics freeze, actor-scoped stale proxy, extension reliability, and Supply List authorization hardening.
+- Containment limit: Demo ports are loopback-only. Festival Supabase remains all-interface on this Docker Desktop runtime; use a trusted/offline network for this private recording.
+- Canonical statuses: sibling Demo `docs/agent-logs/CURRENT.md`; detailed Festival handoff: `docs/sessions/session-notes-2026-08-22.md`.
+
 ### Session Update (August 22, 2026 - Thesis Demo Expert Audit, Findings Open)
 - Four read-only expert audits reviewed security/privacy, engineering correctness, stale code, and documentation truth across Festival and Demo.
 - Verified narrow receipts remain: deterministic reset, direct viewer DELETE denial, separate two-browser state convergence, strict bounded event decoding, and ignored generated artifacts.

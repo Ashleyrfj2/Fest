@@ -106,3 +106,32 @@ Demo:
 - Strict unused-code checking reported 58 Festival diagnostics; this is a cleanup finding, not a failure of the prior normal TypeScript gate.
 - Documentation synchronization passed `git diff --check` in both repositories.
 - No implementation code, service/database state, credential, remote resource, commit, push, PR, or deployment was changed by the audit/log synchronization.
+
+## 18:02 CDT — Evidence-integrity milestones 1–3 implementation
+
+### Cross-repository changes
+
+- Demo work was preserved on local branch `remediation/evidence-integrity`. Festival remained on `Seed,-Weights`; neither repository was committed or pushed.
+- Demo now authenticates evidence sources, derives tenant/stable actor/role/source identity from local bearer credentials, rejects identity forgery, and returns `409` for conflicting reuse of an event ID.
+- Demo event and derived projection persistence is atomic. Corrections are scope-safe, append-only, restart-durable, and retained for future event identity.
+- Isolated PostgreSQL failure/retry/concurrency/restart/correction-chain tests and JSON Schema/OpenAPI/Go/TypeScript/fixture conformance gates were added to CI.
+- Festival's activity adapter maps generated Supabase user UUIDs to stable scenario actor IDs and uses actor-specific automation credentials. The Playwright source uses its own agent credential.
+
+### Verification
+
+- Demo Go/PostgreSQL suite passed twice; contract conformance, frontend build, and extension build passed.
+- Live Demo API returned health `200`, unauthenticated evidence `401`, and authenticated evidence `200`; Demo ports `8080` and `54332` are loopback-only.
+- Festival lint, TypeScript, and 41 deterministic tests passed.
+- The authenticated cross-repository equipment-handoff Playwright test passed.
+- The authenticated Festival activity adapter then posted four stable-actor events to Demo; actor identity remained source-independent while each immutable event retained its human/agent/automation provenance.
+- Festival was reset after the test; verification restored fingerprint `7d1385137cf6f12fa326000ead9e86fbe71f9907959a62aba62b3501e4bdc06a`.
+- The two normative runbooks remain byte-identical and both worktrees pass `git diff --check`.
+
+### Status and remaining limits
+
+- `BUG-20260822-001` and `BUG-20260822-002` are **Closed — verified** in canonical Demo `CURRENT.md`.
+- `BUG-20260822-003` is **In progress**: run-scope and replay freshness defects are repaired, but explicit build-recency semantics remain open.
+- `BUG-20260822-005` is **In progress**: stable authenticated actors are repaired, but permission-denial evidence is not yet database-authoritative.
+- `ISSUE-20260822-006` is **In progress**: Demo is loopback/authenticated, while Festival Supabase remains all-interface on this Docker Desktop runtime. Supabase's documented loopback network did not change the bindings and broke reset-time DNS, so the default network was restored. Use a trusted/offline network for this private recording.
+- The user confirmed the project is private and screen-recording-only. No public-release or Git-history rewrite work was performed; `BLOCK-20260822-002` remains relevant only to any future public onboarding/release.
+- Human experiments, extension rehearsal, metrics claims, and full composed-V1 readiness remain blocked by the other open audit items.

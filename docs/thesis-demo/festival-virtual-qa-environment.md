@@ -92,6 +92,7 @@ The existing Festival Playwright fixture is useful smoke infrastructure but is p
 - Node.js 20+, npm, Docker, Chrome/Chromium, Supabase CLI through `npx`, and Playwright Chromium.
 - Go 1.23+ is optional when Docker is used for the backend.
 - Work only against local Supabase or an explicitly approved disposable demo project.
+- On Docker Desktop, verify published port bindings before recording. If Festival Supabase remains on all interfaces, use only a trusted or offline network; do not expose the private demo stack to an untrusted network.
 - Reset and seed scripts must refuse non-loopback Supabase URLs unless `ALLOW_REMOTE_DEMO_RESET=true` is deliberately supplied.
 - Never commit passwords, tokens, service-role keys, generated user IDs, or the manifest.
 - Never place a service-role key in an `EXPO_PUBLIC_` variable, browser bundle, extension, log, screenshot, or agent response.
@@ -176,7 +177,7 @@ Festival owns host DB port `54322`; map thesis PostgreSQL as `54332:5432`. The t
 
 Migrations must create immutable `validation_events`, `candidate_states`, `state_corrections`, `evidence_records`, `verification_requests`, `recommendation_events`, `recommendation_responses`, `experiment_runs`, and versioned `experiment_metrics`. Index tenant/build/environment; actor/session/run; route/state fingerprint; source type; outcome; and occurrence time.
 
-`POST /api/v1/events` must enforce the normalized contract and allowed values, reject oversized/malformed input, preserve immutable raw evidence, enforce `event_id` idempotency, trigger recomputation, return `202` for new input, and return a stable duplicate response without duplicating evidence.
+`POST /api/v1/events` must require a registered local bearer credential, derive tenant/actor/role/source identity from that credential, enforce the normalized contract and allowed values, reject oversized/malformed input, preserve immutable raw evidence, enforce `event_id` idempotency, trigger recomputation, return `202` for new input, return a stable duplicate response for an exact retry, and return `409` when the same ID carries a different payload.
 
 Required reads/actions:
 
@@ -274,6 +275,7 @@ node scripts/export-browser-app.mjs
 
 # Thesis API/database
 cd "$THESIS_REPO_ROOT"
+node scripts/demo/create-local-auth.mjs
 docker compose up --build
 
 # Activity adapter
@@ -281,6 +283,7 @@ cd "$FESTIVAL_REPO_ROOT"
 EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 \
 SUPABASE_SERVICE_ROLE_KEY='<local-service-role-key>' \
 QA_API_BASE_URL=http://127.0.0.1:8080 \
+QA_API_TOKENS_JSON='<tokens from the ignored Demo source-tokens manifest>' \
 node scripts/demo/activity-log-adapter.mjs
 
 # UI when not containerized
