@@ -63,8 +63,8 @@ export default function SafetyProfileScreen() {
   };
 
   const handleSavePin = async () => {
-    if (!/^\d{4,8}$/.test(newPin)) {
-      Alert.alert('Invalid PIN', 'PIN must be 4 to 8 digits.');
+    if (!/^\d{8,12}$/.test(newPin)) {
+      Alert.alert('Invalid PIN', 'PIN must be 8 to 12 digits.');
       return;
     }
 
@@ -138,8 +138,8 @@ export default function SafetyProfileScreen() {
               onChangeText={setNewPin}
               keyboardType="number-pad"
               secureTextEntry
-              maxLength={8}
-              placeholder="New 4-8 digit PIN"
+              maxLength={12}
+              placeholder="New 8-12 digit PIN"
               placeholderTextColor={colors.text.dim}
             />
             <TextInput
@@ -148,7 +148,7 @@ export default function SafetyProfileScreen() {
               onChangeText={setConfirmPin}
               keyboardType="number-pad"
               secureTextEntry
-              maxLength={8}
+              maxLength={12}
               placeholder="Confirm PIN"
               placeholderTextColor={colors.text.dim}
             />

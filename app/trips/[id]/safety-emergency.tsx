@@ -88,8 +88,8 @@ export default function SafetyEmergencyScreen() {
       return;
     }
 
-    if (!/^\d{4,8}$/.test(pin)) {
-      Alert.alert('Invalid PIN', 'Enter a 4 to 8 digit emergency PIN.');
+    if (!/^\d{8,12}$/.test(pin)) {
+      Alert.alert('Invalid PIN', 'Enter an 8 to 12 digit emergency PIN.');
       return;
     }
 
@@ -164,11 +164,11 @@ export default function SafetyEmergencyScreen() {
           value={pin}
           onChangeText={setPin}
           style={styles.pinInput}
-          placeholder="4-8 digit PIN"
+          placeholder="8-12 digit PIN"
           placeholderTextColor={colors.text.dim}
           keyboardType="number-pad"
           secureTextEntry
-          maxLength={8}
+          maxLength={12}
         />
 
         <TouchableOpacity style={styles.unlockButton} onPress={handleUnlock} disabled={unlocking}>

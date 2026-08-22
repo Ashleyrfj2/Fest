@@ -12,7 +12,7 @@ All secrets have been properly secured. The `.env` file and other sensitive conf
 ### 🔴 CRITICAL (Fixed)
 **Issue:** `.claude/settings.local.json` was NOT in `.gitignore`
 - **Location:** `.claude/settings.local.json`
-- **Secret:** Supabase access token (`sbp_55835b0361d05c9edd3f2716acd1d9e6599e3fa8`)
+- **Secret:** Supabase access token (`sbp_[REDACTED]`)
 - **Status:** ✅ FIXED — Added to `.gitignore`
 
 ### ✅ Safe — Public Configuration
