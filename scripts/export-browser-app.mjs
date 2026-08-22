@@ -37,9 +37,15 @@ function run(command, args, options = {}) {
 const exportEnvironment = {
   ...process.env,
   EXPO_NO_DOTENV: 'true',
-  EXPO_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
-  EXPO_PUBLIC_SUPABASE_ANON_KEY: 'festnest-browser-fixture-anon-key',
+  EXPO_PUBLIC_SUPABASE_URL:
+    process.env.EXPO_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321',
+  EXPO_PUBLIC_SUPABASE_ANON_KEY:
+    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'festnest-browser-fixture-anon-key',
 };
+
+if ('SUPABASE_SERVICE_ROLE_KEY' in exportEnvironment) {
+  delete exportEnvironment.SUPABASE_SERVICE_ROLE_KEY;
+}
 
 try {
   await run(

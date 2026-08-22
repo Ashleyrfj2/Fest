@@ -4,6 +4,43 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ## Outstanding Issues
 
+### Session Update (August 22, 2026 - Demo PR Merged, Festival Revalidated)
+- Demo PR #2 passed its post-rebase CI runs and was squash-merged to Demo `main` as `af9ac0b`.
+- Fresh Festival validation passed: ESLint, TypeScript `--noEmit`, and all 41 deterministic tests.
+- Fresh cross-repository validation passed: Demo contract conformance and byte-identical normative runbooks.
+- The authenticated Playwright/activity-adapter runtime was not rerun during publication; preserve its earlier receipt without relabeling it as post-merge validation.
+- Festival PR #4 remains limited by the documented open audit items and the trusted/offline-network requirement.
+
+### Session Update (August 22, 2026 - Evidence Integrity Milestones 1–3)
+- Closed and verified `BUG-20260822-001`: Demo raw ingest and derived projections now roll back or commit together; injected failure leaves no partial rows and retry succeeds.
+- Closed and verified `BUG-20260822-002`: corrections reject self/cross-scope misuse, persist an append-only scoped audit, survive restart, and govern later evidence identity.
+- Added authenticated source identity and `409` payload-conflict behavior; stable Festival actors now cross the adapter boundary instead of generated user UUIDs.
+- Added PostgreSQL failure/restart/concurrency/correction-chain tests plus JSON Schema/OpenAPI/Go/TypeScript/fixture conformance CI.
+- Verified: Demo PostgreSQL suite twice, frontend/extension builds, live `200/401/200` health/auth behavior, Festival lint/typecheck/41 tests, authenticated equipment-handoff Playwright test, and final canonical seed fingerprint.
+- Verified the Festival activity adapter posted four authenticated stable-actor events after the handoff; the final Festival reset restored the canonical seed.
+- Remaining: explicit build-recency semantics, authoritative permission-denial provenance, metrics freeze, actor-scoped stale proxy, extension reliability, and Supply List authorization hardening.
+- Containment limit: Demo ports are loopback-only. Festival Supabase remains all-interface on this Docker Desktop runtime; use a trusted/offline network for this private recording.
+- Canonical statuses: sibling Demo `docs/agent-logs/CURRENT.md`; detailed Festival handoff: `docs/sessions/session-notes-2026-08-22.md`.
+
+### Session Update (August 22, 2026 - Thesis Demo Expert Audit, Findings Open)
+- Four read-only expert audits reviewed security/privacy, engineering correctness, stale code, and documentation truth across Festival and Demo.
+- Verified narrow receipts remain: deterministic reset, direct viewer DELETE denial, separate two-browser state convergence, strict bounded event decoding, and ignored generated artifacts.
+- Correction: the stale proxy passed only an isolated one-client mock test; it is globally scoped and was not composed with the live two-browser workflow.
+- Correction: Demo persistence/corrections/metrics and cross-source provenance have open correctness defects, so synthetic V1 is not experiment-ready and human runs are blocked.
+- Security findings include all-interface local service bindings, unauthenticated/client-asserted evidence, client-writable activity logs promoted to automation, broad viewer supply UPDATE, and documented credential-shaped material in Git history.
+- Stale-code findings include unsafe legacy remote setup guidance, 12 tracked unrelated personal cleanup scripts, contract drift, obsolete product/setup status, and 58 strict unused-code diagnostics.
+- Report: `docs/reports/thesis-demo-expert-audit-2026-08-22.md`
+- Cross-repository operational handoff: `docs/sessions/session-notes-2026-08-22.md`
+
+### Session Update (August 22, 2026 - Thesis Demo Local V1, Verified)
+- Status correction: “Verified” below applies only to the named narrow receipts. The later expert-audit entry above supersedes any interpretation that the composed V1 or experiment metrics are ready.
+- Implemented deterministic local-only seed/reset/verification for the synthetic canopy handoff.
+- Verified two signed-in browser sessions converge on shared claim/packed state and viewer deletion remains denied by RLS.
+- Historical receipt: isolated stale-proxy, adapter, Playwright event, and sibling Demo smoke checks passed; the later audit found provenance and composed-workflow gaps that remain open.
+- Restored the canonical four-item seed fingerprint after testing.
+- Remaining: manual unpacked-extension exercise and real timeboxed human baseline/guided runs; synthetic metrics are not empirical thesis results.
+- Report: `docs/reports/thesis-demo-implementation-report-2026-08-22.md`
+
 ### Session Update (June 16, 2026 - Safety PIN Remote Rehydrate Fallback, Implemented)
 - Implemented: `setEmergencyAccessPin` and `clearEmergencyAccessPin` now rehydrate the owner's encrypted safety profile from Supabase when the local SQLite row is missing.
 - Implemented: remote rehydration is cached back into local safety storage before continuing the PIN mutation flow.
