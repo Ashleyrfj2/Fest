@@ -31,11 +31,13 @@ import {
   AddArtistModal,
 } from '@/components/Lineup';
 import { Database } from '@/lib/database.types';
+import { parseTripIdParam } from '@/lib/routing/routeParams';
 
 type User = Database['public']['Tables']['users']['Row'];
 
 export default function LineupSchedulerScreen() {
-  const { id: tripId } = useLocalSearchParams<{ id: string }>();
+  const { id: rawTripId } = useLocalSearchParams<{ id: string | string[] }>();
+  const tripId = parseTripIdParam(rawTripId);
   const { userProfile } = useAuth();
   const [currentRole, setCurrentRole] = useState<string | null>(null);
   const [addModalVisible, setAddModalVisible] = useState(false);

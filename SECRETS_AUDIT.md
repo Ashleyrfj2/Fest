@@ -1,73 +1,48 @@
 # FestNest Secrets Audit Report
 
-**Date:** March 19, 2026
-**Status:** ✅ SECURE (with one fix applied)
+**Audit date:** August 21, 2026
+**Status:** ⚠️ **NOT CLEARED — reachable Git history still contains credential-shaped material**
 
-## Summary
+## Scope
 
-All secrets have been properly secured. The `.env` file and other sensitive configuration is protected.
+This report covers the current checkout and reachable Git history. It does not rewrite history, revoke credentials, force-push, or change application/security code.
 
-## Findings
+## Current-tree result
 
-### 🔴 CRITICAL (Fixed)
-**Issue:** `.claude/settings.local.json` was NOT in `.gitignore`
-- **Location:** `.claude/settings.local.json`
-- **Secret:** Supabase access token (`sbp_[REDACTED]`)
-- **Status:** ✅ FIXED — Added to `.gitignore`
+- No `sbp_*` access-token pattern is present in the current tree.
+- No tracked private-key marker was found.
+- The actual Supabase anon JWT was removed from `docs/sessions/session-notes-2026-03-19.md`.
+- Anon keys are client-public configuration, but they are not preserved in audit or session notes.
+- Generic JWT-shaped matches are not treated as secrets without confirmation; setup examples and package-integrity strings can match that broad pattern.
 
-### ✅ Safe — Public Configuration
-**Location:** `.env`
-- Contains: `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`
-- Status: Already in `.gitignore` ✓
-- These are intentionally public (anon keys are meant for client-side use)
+The current tree is therefore cleaner, but it must not be described as fully secure while the reachable-history finding remains unresolved.
 
-### ✅ Safe — Documentation
-**Locations:** 
-- `docs/setup/supabase-setup.md`
-- `docs/setup/notion-mcp-setup.md`
-- Status: Contains placeholder examples like `ntn_YOUR_TOKEN_HERE` (safe)
+## Reachable-history result
 
-## .gitignore Verification
+The scan covered **42 reachable commits** across the repository's local refs:
 
-Current entries protecting secrets:
+- `sbp_*` credential-shaped material appears in **40 reachable commits**.
+- JWT-shaped material appears in **42 reachable commits**. This broader result includes public anon-key material and other non-credential strings, so it is not by itself proof of a secret.
 
-```
-# Environment
-.env
-.env.local
+The reachable `sbp_*` finding must be treated as an exposed Supabase access token until the token is revoked and the history is purged. The token is intentionally not reproduced here.
 
-# Claude Code local settings (may contain API tokens)
-.claude/settings.json
-.claude/settings.local.json  ← ADDED
-```
+## Required remediation
 
-## Secrets Audit Checklist
+1. Revoke the exposed Supabase access token in the Supabase account/dashboard.
+2. Issue a replacement token only after confirming the old token is no longer valid, and update any authorized local or CI tooling that used it.
+3. Purge the token from every affected Git commit and ref using an approved history-rewrite procedure such as `git filter-repo` or BFG.
+4. Coordinate the required force-push and update or invalidate affected clones, caches, mirrors, and pull-request artifacts.
+5. Re-run the current-tree and reachable-history scans after the purge. A release clearance requires no remaining real credential match.
 
-| Secret Type | Location | Status | Notes |
-|---|---|---|---|
-| Supabase Access Token | `.claude/settings.local.json` | ✅ Protected | Now in `.gitignore` |
-| Supabase Anon Key | `.env` | ✅ Protected | Public key, already in `.gitignore` |
-| Supabase URL | `.env` | ✅ Public | URL is not secret |
-| Notion Token | None in repo | ✅ Safe | Only in docs as examples |
-| Database passwords | None in repo | ✅ Safe | Handled by Supabase |
+These actions are intentionally documented but were **not** performed by this audit.
 
-## Recommendations
+## Documentation hygiene
 
-1. **Never commit tokens to `.env`** — always use `.env` (which is gitignored)
-2. **Add `SUPABASE_SERVICE_ROLE_KEY` only to `.env.local`** — never in `.env` or docs
-3. **Use environment variables for CI/CD** — set secrets in your CI platform, not in files
-4. **Rotate your Supabase access token** periodically for security best practices
+- `SECRETS_AUDIT.md` contains no credential value.
+- `docs/sessions/session-notes-2026-03-19.md` records that the local anon-key configuration was updated, but does not record the key value.
+- Public anon configuration may remain in setup examples when clearly labeled as a placeholder; real values do not belong in audit or session notes.
 
-## Files Checked
+## Final disposition
 
-✅ `.env` — Protected by `.gitignore`
-✅ `.env.example` — Safe (example values only)
-✅ `.env.local` — Not present (would be protected if created)
-✅ `.claude/settings.json` — Protected by `.gitignore`
-✅ `.claude/settings.local.json` — Protected by `.gitignore` (NEWLY ADDED)
-✅ Source code files — No exposed secrets
-✅ Documentation files — No real secrets (examples only)
-
----
-
-**All secrets are now properly secured. You're good to commit!**
+**Current-tree documentation hygiene: PASS.**
+**Repository secret hygiene: BLOCKED** until the exposed `sbp_*` token is revoked/rotated and reachable Git history is purged and rescanned.

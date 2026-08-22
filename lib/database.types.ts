@@ -1084,6 +1084,19 @@ export type Database = {
         Args: { module_name: string; trip_uuid: string; user_uuid: string }
         Returns: boolean
       }
+      get_trip_invite_preview: {
+        Args: { p_invite_code: string }
+        Returns: {
+          already_member: boolean
+          end_date: string
+          festival_name: string
+          id: string
+          invite_expires_at: string | null
+          member_count: number
+          name: string
+          start_date: string
+        }[]
+      }
       can_edit_trip: {
         Args: { trip_uuid: string; user_uuid: string }
         Returns: boolean
@@ -1095,6 +1108,10 @@ export type Database = {
       is_trip_member: {
         Args: { trip_uuid: string; user_uuid: string }
         Returns: boolean
+      }
+      join_trip_with_invite: {
+        Args: { p_invite_code: string }
+        Returns: string
       }
       log_activity: {
         Args: {

@@ -17,6 +17,7 @@ import { useSafetyProfile } from '@/lib/hooks/useSafetyProfile';
 import { SafetyProfileViewCard } from '@/components/SafetyProfile/SafetyProfileViewCard';
 import { SafetyProfile } from '@/lib/safetyTypes';
 import { colors, typography, spacing, borderRadius } from '@/lib/tokens';
+import { parseTripIdParam } from '@/lib/routing/routeParams';
 
 type Member = {
   user_id: string;
@@ -31,7 +32,8 @@ type GroupMemberRow = {
 };
 
 export default function SafetyEmergencyScreen() {
-  const { tripId } = useLocalSearchParams<{ tripId: string }>();
+  const { id: rawTripId } = useLocalSearchParams<{ id?: string | string[] }>();
+  const tripId = parseTripIdParam(rawTripId);
   const { userProfile } = useAuth();
   const { unlockEmergencyProfile } = useSafetyProfile(tripId || '');
 
@@ -88,8 +90,8 @@ export default function SafetyEmergencyScreen() {
       return;
     }
 
-    if (!/^\d{8,12}$/.test(pin)) {
-      Alert.alert('Invalid PIN', 'Enter an 8 to 12 digit emergency PIN.');
+    if (!/^\d{4,12}$/.test(pin)) {
+      Alert.alert('Invalid PIN', 'Enter a 4 to 12 digit emergency PIN.');
       return;
     }
 
@@ -128,7 +130,7 @@ export default function SafetyEmergencyScreen() {
         <View style={styles.noticeCard}>
           <Text style={styles.noticeTitle}>PIN Required</Text>
           <Text style={styles.noticeText}>
-            You can only unlock another member&apos;s safety card if they shared their emergency PIN with you.
+            You can only unlock another member&apos;s safety card if they shared their emergency PIN with you. Existing cards may still use a legacy 4-7 digit PIN; new PINs require 8-12 digits.
           </Text>
         </View>
 
@@ -164,7 +166,7 @@ export default function SafetyEmergencyScreen() {
           value={pin}
           onChangeText={setPin}
           style={styles.pinInput}
-          placeholder="8-12 digit PIN"
+          placeholder="4-12 digit PIN"
           placeholderTextColor={colors.text.dim}
           keyboardType="number-pad"
           secureTextEntry

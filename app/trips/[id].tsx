@@ -40,6 +40,7 @@ import { MODULES } from '@/components/trips/dashboard/modules';
 import { SafetyPromptBanner } from '@/components/SafetyProfile/SafetyPromptBanner';
 import { useModuleProgress } from '@/lib/hooks/useModuleProgress';
 import { GuestAccessModal } from '@/components/auth/GuestAccessModal';
+import { parseTripIdParam } from '@/lib/routing/routeParams';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
 type GroupMember = Database['public']['Tables']['group_members']['Row'] & {
@@ -53,7 +54,8 @@ const visitedModuleIdsByTrip = new Map<string, Set<string>>();
 const dismissedSafetyPromptByTrip = new Set<string>();
 
 export default function TripDashboardScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id: rawTripId } = useLocalSearchParams<{ id: string | string[] }>();
+  const id = parseTripIdParam(rawTripId) ?? '';
   const { userProfile, isGhostAccount } = useAuth();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [members, setMembers] = useState<GroupMember[]>([]);
@@ -80,6 +82,11 @@ export default function TripDashboardScreen() {
   }, [id]);
 
   async function loadTripData() {
+    if (!id) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       // Load trip
       const { data: tripData, error: tripError } = await supabase
@@ -94,7 +101,7 @@ export default function TripDashboardScreen() {
       // Load members
       const { data: membersData, error: membersError } = await supabase
         .from('group_members')
-        .select('*, user:users(*)')
+        .select('*, user:users(id, display_name, avatar_color)')
         .eq('trip_id', id);
 
       if (membersError) throw membersError;
@@ -103,7 +110,7 @@ export default function TripDashboardScreen() {
       // Load recent activity
       const { data: activityData, error: activityError } = await supabase
         .from('activity_logs')
-        .select('*, user:users(*)')
+        .select('*, user:users(id, display_name, avatar_color)')
         .eq('trip_id', id)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -162,7 +169,7 @@ export default function TripDashboardScreen() {
     }
 
     if (moduleId === 'safety') {
-      router.push(`/trips/${id}/safety-profile?tripId=${id}`);
+      router.push(`/trips/${id}/safety-profile`);
       return;
     }
 
@@ -187,7 +194,7 @@ export default function TripDashboardScreen() {
     }
 
     if (moduleId === 'budget') {
-      router.push(`/trips/${id}/budget?tripId=${id}`);
+      router.push(`/trips/${id}/budget`);
       return;
     }
 
@@ -329,7 +336,7 @@ export default function TripDashboardScreen() {
                   dismissedSafetyPromptByTrip.add(id);
                   setIsSafetyPromptDismissed(true);
                 }
-                router.push(`/trips/${id}/safety-profile?tripId=${id}`);
+                router.push(`/trips/${id}/safety-profile`);
               }}
               onDismiss={() => {
                 if (id) {

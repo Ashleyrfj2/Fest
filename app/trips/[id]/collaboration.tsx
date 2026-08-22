@@ -18,6 +18,7 @@ import { supabase } from '@/lib/supabase';
 import { generateInviteUrl } from '@/lib/invites/invite-utils';
 import { borderRadius, colors, spacing, typography } from '@/lib/tokens';
 import { Database } from '@/lib/database.types';
+import { parseTripIdParam } from '@/lib/routing/routeParams';
 
 type Role = Database['public']['Tables']['group_members']['Row']['role'];
 
@@ -36,7 +37,8 @@ const LEAD_MODULES = [
 const ROLE_OPTIONS: Role[] = ['leader', 'editor', 'viewer'];
 
 export default function CollaborationScreen() {
-  const { id: tripId } = useLocalSearchParams<{ id: string }>();
+  const { id: rawTripId } = useLocalSearchParams<{ id: string | string[] }>();
+  const tripId = parseTripIdParam(rawTripId) ?? '';
   const { userProfile } = useAuth();
   const {
     members,

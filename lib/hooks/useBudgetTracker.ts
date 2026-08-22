@@ -17,11 +17,13 @@ import { supabase } from '@/lib/supabase';
 import { Database } from '@/lib/database.types';
 import {
   BudgetEntry,
-  ExpenseSplit,
-  MemberBalance,
-  Settlement,
   BudgetSummary,
 } from '@/lib/budgetTypes';
+import {
+  calculateExpenseSplits,
+  calculateSettleUp,
+  validateExpenseInput,
+} from '@/lib/budgetSettlements';
 
 type GroupMember = Database['public']['Tables']['group_members']['Row'];
 
@@ -95,19 +97,19 @@ export function useBudgetTracker(tripId: string, currentUserId: string | null) {
       receiptUrl?: string | null
     ) => {
       if (!currentUserId) throw new Error('User not authenticated');
-      if (amountCents <= 0) throw new Error('Amount must be greater than zero');
       if (!splitWith.includes(currentUserId)) {
         splitWith = [currentUserId, ...splitWith];
       }
 
-      // Validate custom splits if provided
-      if (splitType === 'custom' && customSplits) {
-        const totalCents = Object.values(customSplits).reduce((sum, amt) => sum + amt, 0);
-        if (totalCents !== amountCents) {
-          throw new Error(
-            `Custom split total (${totalCents}¢) does not match expense amount (${amountCents}¢)`
-          );
-        }
+      const validationError = validateExpenseInput({
+        amountCents,
+        splitWith,
+        splitType,
+        customSplits,
+        currentUserId,
+      });
+      if (validationError) {
+        throw new Error(validationError);
       }
 
       try {
@@ -181,120 +183,12 @@ export function useBudgetTracker(tripId: string, currentUserId: string | null) {
   );
 
   /**
-   * Calculate splits for a single expense
-   * Handles both equal and custom split types
-   */
-  function calculateExpenseSplits(entry: BudgetEntry): ExpenseSplit[] {
-    const participants = entry.split_with || [];
-
-    if (entry.split_type === 'custom' && entry.custom_splits) {
-      return Object.entries(entry.custom_splits).map(([userId, amountCents]) => ({
-        user_id: userId,
-        amount_cents: Number(amountCents),
-        percentage: (Number(amountCents) / entry.amount_cents) * 100,
-      }));
-    }
-
-    // Equal split
-    if (participants.length === 0) return [];
-
-    const perPersonCents = Math.floor(entry.amount_cents / participants.length);
-    const remainderCents =
-      entry.amount_cents - perPersonCents * participants.length;
-
-    return participants.map((userId, idx) => ({
-      user_id: userId,
-      amount_cents: perPersonCents + (idx === 0 ? remainderCents : 0), // Give remainder to first person
-      percentage: (entry.amount_cents / participants.length / entry.amount_cents) * 100,
-    }));
-  }
-
-  /**
-   * Calculate settle-up balances from all expenses
-   * Returns who owes whom and by how much
-   */
-  function calculateSettleUp(
-    memberIds: string[]
-  ): { balances: Map<string, MemberBalance>; settlements: Settlement[] } {
-    const balances = new Map<string, MemberBalance>();
-
-    // Initialize balances for all members
-    memberIds.forEach((id) => {
-      balances.set(id, {
-        user_id: id,
-        total_paid_cents: 0,
-        total_owed_cents: 0,
-        net_balance_cents: 0,
-      });
-    });
-
-    // Apply each expense
-    entries.forEach((entry) => {
-      const payerBalance = balances.get(entry.paid_by);
-      if (payerBalance) {
-        payerBalance.total_paid_cents += entry.amount_cents;
-      }
-
-      const splits = calculateExpenseSplits(entry);
-      splits.forEach((split) => {
-        const balance = balances.get(split.user_id);
-        if (balance) {
-          balance.total_owed_cents += split.amount_cents;
-        }
-      });
-    });
-
-    // Calculate net balance
-    balances.forEach((balance) => {
-      balance.net_balance_cents = balance.total_paid_cents - balance.total_owed_cents;
-    });
-
-    // Derive settlements (who owes whom)
-    const settlements: Settlement[] = [];
-    const settled = new Set<string>();
-
-    const sortedBalances = Array.from(balances.values()).sort(
-      (a, b) => b.net_balance_cents - a.net_balance_cents
-    );
-
-    for (let i = 0; i < sortedBalances.length; i++) {
-      const creditor = sortedBalances[i];
-      if (creditor.net_balance_cents <= 0) break; // No more creditors
-
-      for (let j = sortedBalances.length - 1; j > i; j--) {
-        const debtor = sortedBalances[j];
-        if (debtor.net_balance_cents >= 0) break; // No more debtors
-
-        const settlementKey = `${debtor.user_id}-${creditor.user_id}`;
-        if (settled.has(settlementKey)) continue;
-
-        const amount = Math.min(creditor.net_balance_cents, Math.abs(debtor.net_balance_cents));
-
-        settlements.push({
-          from_user_id: debtor.user_id,
-          to_user_id: creditor.user_id,
-          amount_cents: amount,
-        });
-
-        creditor.net_balance_cents -= amount;
-        debtor.net_balance_cents += amount;
-
-        settled.add(settlementKey);
-
-        if (creditor.net_balance_cents === 0) break;
-      }
-    }
-
-    return { balances, settlements };
-  }
-
-  /**
    * Get summary for trip
    */
   const getSummary = useCallback(
     (memberIds: string[]): BudgetSummary => {
       const totalExpenses = entries.reduce((sum, e) => sum + e.amount_cents, 0);
-      const { balances, settlements } = calculateSettleUp(memberIds);
+      const { balances, settlements } = calculateSettleUp(entries, memberIds);
 
       return {
         trip_id: tripId,
@@ -313,7 +207,7 @@ export function useBudgetTracker(tripId: string, currentUserId: string | null) {
     addExpense,
     deleteExpense,
     calculateExpenseSplits,
-    calculateSettleUp,
+    calculateSettleUp: (memberIds: string[]) => calculateSettleUp(entries, memberIds),
     getSummary,
   };
 }

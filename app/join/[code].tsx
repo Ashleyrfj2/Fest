@@ -19,13 +19,21 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { isValidInviteCode, isInviteExpired } from '@/lib/invites/invite-utils';
+import { parseInviteCodeParam } from '@/lib/routing/routeParams';
 import { colors, borderRadius, spacing, typography } from '@/lib/tokens';
 import { Database } from '@/lib/database.types';
 
-type Trip = Database['public']['Tables']['trips']['Row'];
+type Trip = Pick<
+  Database['public']['Tables']['trips']['Row'],
+  'id' | 'name' | 'festival_name' | 'start_date' | 'end_date' | 'invite_expires_at'
+> & {
+  member_count: number;
+  already_member: boolean;
+};
 
 export default function JoinTripScreen() {
-  const { code } = useLocalSearchParams<{ code: string }>();
+  const { code: rawCode } = useLocalSearchParams<{ code?: string | string[] }>();
+  const code = parseInviteCodeParam(rawCode);
   const { session, userProfile } = useAuth();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [memberCount, setMemberCount] = useState(0);
@@ -41,18 +49,19 @@ export default function JoinTripScreen() {
   async function loadTripPreview() {
     try {
       // Validate code format
-      if (!isValidInviteCode(code)) {
+      if (!code || !isValidInviteCode(code)) {
         setError('Invalid invite code');
         setIsLoading(false);
         return;
       }
 
-      // Load trip by invite code
-      const { data: tripData, error: tripError } = await supabase
-        .from('trips')
-        .select('*')
-        .eq('invite_code', code)
-        .single();
+      // Preview access is intentionally granted by a narrowly scoped RPC;
+      // non-members must not query the trips table directly.
+      const { data: previewRows, error: tripError } = await supabase.rpc(
+        'get_trip_invite_preview',
+        { p_invite_code: code }
+      );
+      const tripData = previewRows?.[0];
 
       if (tripError || !tripData) {
         setError('Trip not found');
@@ -68,30 +77,8 @@ export default function JoinTripScreen() {
       }
 
       setTrip(tripData);
-
-      // Get member count
-      const { count, error: countError } = await supabase
-        .from('group_members')
-        .select('*', { count: 'exact', head: true })
-        .eq('trip_id', tripData.id);
-
-      if (!countError && count !== null) {
-        setMemberCount(count);
-      }
-
-      // Check if user is already a member
-      if (session && userProfile) {
-        const { data: memberData } = await supabase
-          .from('group_members')
-          .select('*')
-          .eq('trip_id', tripData.id)
-          .eq('user_id', userProfile.id)
-          .single();
-
-        if (memberData) {
-          setAlreadyMember(true);
-        }
-      }
+      setMemberCount(tripData.member_count);
+      setAlreadyMember(tripData.already_member);
     } catch (err: any) {
       console.error('Error loading trip preview:', err);
       setError('Failed to load trip');
@@ -120,13 +107,10 @@ export default function JoinTripScreen() {
     setError('');
 
     try {
-      // Add user to group_members
-      const { error: joinError } = await supabase.from('group_members').insert({
-        user_id: userProfile.id,
-        trip_id: trip.id,
-        role: 'viewer', // Default role for new members
-        module_permissions: null,
-      });
+      const { data: joinedTripId, error: joinError } = await supabase.rpc(
+        'join_trip_with_invite',
+        { p_invite_code: code }
+      );
 
       if (joinError) {
         // Check if already a member (conflict error)
@@ -138,9 +122,15 @@ export default function JoinTripScreen() {
         throw joinError;
       }
 
-      // Log activity
+      if (!joinedTripId) {
+        throw new Error('Failed to join trip: no trip ID returned');
+      }
+
+      // Use the trip ID returned by the server-side join operation. The
+      // preview can become stale if an invite is changed between preview and
+      // join, so it must not be the authority for the activity row.
       await supabase.from('activity_logs').insert({
-        trip_id: trip.id,
+        trip_id: joinedTripId,
         user_id: userProfile.id,
         action_type: 'member_joined',
         module: null,
@@ -149,7 +139,7 @@ export default function JoinTripScreen() {
       });
 
       // Navigate to trip dashboard
-      router.replace(`/trips/${trip.id}`);
+      router.replace(`/trips/${joinedTripId}`);
     } catch (err: any) {
       console.error('Error joining trip:', err);
       setError(err.message || 'Failed to join trip. Please try again.');

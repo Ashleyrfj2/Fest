@@ -22,6 +22,19 @@ const IV_SIZE_BYTES = 12; // 96 bits for GCM
 const PIN_SALT_SIZE_BYTES = 16;
 const EMERGENCY_PIN_KDF_ITERATIONS = 310000;
 const EMERGENCY_PIN_HASH_PREFIX = 'pbkdf2_sha256';
+const EMERGENCY_BLOB_VERSION = 'v2';
+const LEGACY_EMERGENCY_BLOB_VERSION = 'legacy';
+
+export type EmergencyPayloadFormat =
+  | 'v2-pbkdf2'
+  | 'legacy-sha256'
+  | 'unversioned';
+
+export interface DecryptedEmergencyPayload {
+  plaintext: string;
+  format: EmergencyPayloadFormat;
+  needsReEncryption: boolean;
+}
 
 /**
  * Securely generate or retrieve the user's encryption key
@@ -263,44 +276,139 @@ export async function encryptEmergencyAccessPayload(
   const combined = new Uint8Array(iv.length + ciphertext.byteLength);
   combined.set(iv, 0);
   combined.set(new Uint8Array(ciphertext), iv.length);
-  return uint8ArrayToBase64(combined);
+  // Version the new format so future key-derivation changes do not need to
+  // guess which algorithm produced an otherwise opaque base64 blob.
+  return `${EMERGENCY_BLOB_VERSION}$${uint8ArrayToBase64(combined)}`;
 }
 
 /**
  * Decrypt emergency payload with owner PIN.
+ *
+ * New payloads are explicitly marked v2 and use PBKDF2. Existing payloads
+ * predate versioning and are tried with the legacy SHA-256-derived key first,
+ * then the transitional unversioned PBKDF2 key used by the first hardening
+ * release. AES-GCM authentication determines which interpretation is valid.
  */
 export async function decryptEmergencyAccessPayload(
   blob: string,
   pin: string,
   salt: string
 ): Promise<string | null> {
-  try {
-    const key = await deriveEmergencyPinKey(pin, salt);
-    const keyBuffer = uint8ArrayToArrayBuffer(key);
-    const combined = base64ToUint8Array(blob);
-    const iv = combined.slice(0, IV_SIZE_BYTES);
-    const encryptedData = combined.slice(IV_SIZE_BYTES);
-
-    const cryptoKey = await crypto.subtle.importKey(
-      'raw',
-      keyBuffer,
-      { name: 'AES-GCM', length: 256 },
-      false,
-      ['decrypt']
-    );
-
-    const plaintextBytes = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv, tagLength: 128 },
-      cryptoKey,
-      uint8ArrayToArrayBuffer(encryptedData)
-    );
-
-    const decoder = new TextDecoder();
-    return decoder.decode(plaintextBytes);
-  } catch {
-    return null;
-  }
+  const result = await decryptEmergencyAccessPayloadDetailed(blob, pin, salt);
+  return result?.plaintext ?? null;
 }
+
+/**
+ * Decrypt an emergency payload and report whether it should be re-encrypted.
+ * Re-encryption is intentionally explicit: callers must have the appropriate
+ * owner write permission before replacing a legacy blob and verifier.
+ */
+export async function decryptEmergencyAccessPayloadDetailed(
+  blob: string,
+  pin: string,
+  salt: string
+): Promise<DecryptedEmergencyPayload | null> {
+  const parsed = parseEmergencyBlob(blob);
+  const candidateFormats: Array<'v2-pbkdf2' | 'legacy-sha256'> =
+    parsed.format === 'v2-pbkdf2'
+      ? ['v2-pbkdf2']
+      : parsed.format === 'legacy-sha256'
+        ? ['legacy-sha256']
+        : ['legacy-sha256', 'v2-pbkdf2'];
+
+  for (const format of candidateFormats) {
+    try {
+      const key =
+        format === 'legacy-sha256'
+          ? await deriveLegacyEmergencyPinKey(pin, salt)
+          : await deriveEmergencyPinKey(pin, salt);
+      const plaintext = await decryptEmergencyBlobBytes(parsed.encodedBlob, key);
+
+      return {
+        plaintext,
+        format: parsed.format === 'unversioned' ? 'unversioned' : format,
+        needsReEncryption: parsed.format !== 'v2-pbkdf2' || format !== 'v2-pbkdf2',
+      };
+    } catch {
+      // An authentication failure means this candidate format was not the
+      // format used to create the blob. Continue only for unversioned data.
+    }
+  }
+
+  return null;
+}
+
+function parseEmergencyBlob(blob: string): {
+  encodedBlob: string;
+  format: EmergencyPayloadFormat;
+} {
+  if (blob.startsWith(`${EMERGENCY_BLOB_VERSION}$`)) {
+    return {
+      encodedBlob: blob.slice(`${EMERGENCY_BLOB_VERSION}$`.length),
+      format: 'v2-pbkdf2',
+    };
+  }
+
+  // This prefix is supported for fixtures and future exports. Existing
+  // production legacy rows are unversioned raw base64 and are handled below.
+  if (blob.startsWith(`${LEGACY_EMERGENCY_BLOB_VERSION}$`)) {
+    return {
+      encodedBlob: blob.slice(`${LEGACY_EMERGENCY_BLOB_VERSION}$`.length),
+      format: 'legacy-sha256',
+    };
+  }
+
+  return { encodedBlob: blob, format: 'unversioned' };
+}
+
+async function decryptEmergencyBlobBytes(
+  encodedBlob: string,
+  key: Uint8Array
+): Promise<string> {
+  const combined = base64ToUint8Array(encodedBlob);
+  if (combined.length <= IV_SIZE_BYTES) {
+    throw new Error('Invalid emergency payload');
+  }
+
+  const iv = combined.slice(0, IV_SIZE_BYTES);
+  const encryptedData = combined.slice(IV_SIZE_BYTES);
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    uint8ArrayToArrayBuffer(key),
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['decrypt']
+  );
+
+  const plaintextBytes = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv, tagLength: 128 },
+    cryptoKey,
+    uint8ArrayToArrayBuffer(encryptedData)
+  );
+
+  return new TextDecoder().decode(plaintextBytes);
+}
+
+async function deriveLegacyEmergencyPinKey(pin: string, salt: string): Promise<Uint8Array> {
+  const digestHex = await Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    `${salt}:${pin}`
+  );
+  return hexToUint8Array(digestHex);
+}
+
+function hexToUint8Array(hex: string): Uint8Array {
+  if (!/^[0-9a-f]{64}$/i.test(hex)) {
+    throw new Error('Invalid SHA-256 digest');
+  }
+
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  }
+  return bytes;
+}
+
 function uint8ArrayToBase64(bytes: Uint8Array): string {
   // Convert to binary string
   let binary = '';

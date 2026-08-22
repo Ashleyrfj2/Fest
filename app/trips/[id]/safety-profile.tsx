@@ -23,9 +23,11 @@ import { SafetyProfileEditForm } from '@/components/SafetyProfile/SafetyProfileE
 import { SafetyProfileViewCard } from '@/components/SafetyProfile/SafetyProfileViewCard';
 import { SafetyProfileFormData } from '@/lib/safetyTypes';
 import { colors, typography, spacing, borderRadius } from '@/lib/tokens';
+import { parseTripIdParam } from '@/lib/routing/routeParams';
 
 export default function SafetyProfileScreen() {
-  const { tripId } = useLocalSearchParams<{ tripId: string }>();
+  const { id: rawTripId } = useLocalSearchParams<{ id?: string | string[] }>();
+  const tripId = parseTripIdParam(rawTripId);
   const [isEditing, setIsEditing] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [newPin, setNewPin] = useState('');
@@ -41,7 +43,7 @@ export default function SafetyProfileScreen() {
     setEmergencyAccessPin,
     clearEmergencyAccessPin,
     refreshProfile,
-  } = useSafetyProfile(tripId!);
+  } = useSafetyProfile(tripId || '');
 
   const handleSave = async (formData: SafetyProfileFormData) => {
     try {
@@ -130,7 +132,7 @@ export default function SafetyProfileScreen() {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Set Emergency Access PIN</Text>
             <Text style={styles.modalDescription}>
-              Crew members must enter this PIN to unlock your emergency card.
+              New PINs must be 8 to 12 digits. Crew members will enter it to unlock your emergency card.
             </Text>
             <TextInput
               style={styles.modalInput}
@@ -139,7 +141,7 @@ export default function SafetyProfileScreen() {
               keyboardType="number-pad"
               secureTextEntry
               maxLength={12}
-              placeholder="New 8-12 digit PIN"
+              placeholder="New 8-12 digit PIN (required)"
               placeholderTextColor={colors.text.dim}
             />
             <TextInput
@@ -183,7 +185,7 @@ export default function SafetyProfileScreen() {
         <View style={styles.headerActions}>
           {!isEditing && (
             <TouchableOpacity
-              onPress={() => router.push(`/trips/${tripId}/safety-emergency?tripId=${tripId}`)}
+              onPress={() => router.push(`/trips/${tripId}/safety-emergency`)}
               style={styles.secondaryHeaderButton}
             >
               <Text style={styles.secondaryHeaderButtonText}>Emergency</Text>

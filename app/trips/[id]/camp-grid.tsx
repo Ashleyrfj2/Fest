@@ -14,9 +14,11 @@ import { CampItemTemplate, clamp, snapFeetToCell } from '@/lib/campGridTypes';
 import { useCampGridDB } from '@/lib/sqlite/useCampGridDB';
 import { supabase } from '@/lib/supabase';
 import { borderRadius, colors, spacing, typography } from '@/lib/tokens';
+import { parseTripIdParam } from '@/lib/routing/routeParams';
 
 export default function CampGridScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id: rawTripId } = useLocalSearchParams<{ id: string | string[] }>();
+  const id = parseTripIdParam(rawTripId) ?? '';
   const { width: viewportWidth } = useWindowDimensions();
   const [festivalName, setFestivalName] = useState('');
   const [orientationReady, setOrientationReady] = useState(false);

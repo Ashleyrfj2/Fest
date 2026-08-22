@@ -10,12 +10,20 @@ import {
   ApprovalQueueState,
   ProposalPayload,
 } from '@/lib/approvalQueueTypes';
+import {
+  canProposeForModule,
+  validateProposalTripScope,
+} from '@/lib/approvalQueueValidation';
 
 /**
  * Hook for managing collaboration approval queue
  * Handles proposal CRUD and real-time subscriptions
  */
-export function useApprovalQueue(tripId: string) {
+export function useApprovalQueue(
+  tripId: string,
+  currentUserRole?: string | null,
+  currentUserModulePermissions?: readonly string[] | null
+) {
   const { userProfile } = useAuth();
   const [proposals, setProposals] = useState<ChangeProposalWithProposer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -93,6 +101,11 @@ export function useApprovalQueue(tripId: string) {
     async (input: CreateProposalInput) => {
       if (!userProfile?.id) {
         return { error: 'You must be signed in to propose changes' };
+      }
+
+      const scopeError = validateProposalTripScope(input.trip_id, tripId);
+      if (scopeError) {
+        return { error: scopeError };
       }
 
       try {
@@ -243,11 +256,16 @@ export function useApprovalQueue(tripId: string) {
   // Check if user can propose (editor or leader)
   const canUserPropose = useCallback(
     (moduleName: string) => {
-      // Would need to check their role and module permissions
-      // This is typically done in the component that calls this
-      return !!userProfile?.id;
+      return Boolean(
+        userProfile?.id
+          && canProposeForModule(
+            currentUserRole,
+            currentUserModulePermissions,
+            moduleName
+          )
+      );
     },
-    [userProfile?.id]
+    [currentUserModulePermissions, currentUserRole, userProfile?.id]
   );
 
   return {

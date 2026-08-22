@@ -25,12 +25,14 @@ import { Meal, MEAL_SLOTS, getMealSlotMetadata } from '@/lib/foodPlannerTypes';
 import { Database } from '@/lib/database.types';
 import { MealCard } from '@/components/FoodPlanner/MealCard';
 import { MealEditorModal } from '@/components/FoodPlanner/MealEditorModal';
+import { parseTripIdParam } from '@/lib/routing/routeParams';
 
 type User = Database['public']['Tables']['users']['Row'];
 type GroupMember = Database['public']['Tables']['group_members']['Row'];
 
 export default function FoodPlannerScreen() {
-  const { id: tripId } = useLocalSearchParams<{ id: string }>();
+  const { id: rawTripId } = useLocalSearchParams<{ id: string | string[] }>();
+  const tripId = parseTripIdParam(rawTripId) ?? '';
   const { userProfile } = useAuth();
   const [currentRole, setCurrentRole] = useState<string | null>(null);
   const [groupMembers, setGroupMembers] = useState<User[]>([]);

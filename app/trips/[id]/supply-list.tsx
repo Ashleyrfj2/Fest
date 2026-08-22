@@ -25,9 +25,11 @@ import {
   AddEditSupplyModal,
 } from '@/components/SupplyList';
 import { SupplyItem, SupplyCategory } from '@/lib/supplyTypes';
+import { parseTripIdParam } from '@/lib/routing/routeParams';
 
 export default function SupplyListScreen() {
-  const { id: tripId } = useLocalSearchParams<{ id: string }>();
+  const { id: rawTripId } = useLocalSearchParams<{ id: string | string[] }>();
+  const tripId = parseTripIdParam(rawTripId) ?? '';
   const { userProfile } = useAuth();
   const [currentRole, setCurrentRole] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<SupplyItem | null>(null);

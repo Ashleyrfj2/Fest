@@ -24,9 +24,11 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { colors, borderRadius, spacing, typography } from '@/lib/tokens';
 import { AVATAR_COLORS } from '@/lib/constants/avatarColors';
+import { parseInviteCodeParam } from '@/lib/routing/routeParams';
 
 export default function SetProfileScreen() {
-  const { tripCode } = useLocalSearchParams<{ tripCode?: string }>();
+  const { tripCode: rawTripCode } = useLocalSearchParams<{ tripCode?: string | string[] }>();
+  const tripCode = parseInviteCodeParam(rawTripCode);
   const { updateProfile, userProfile } = useAuth();
   const [displayName, setDisplayName] = useState('');
   const [selectedColor, setSelectedColor] = useState<string>(AVATAR_COLORS[0].hex);
@@ -70,30 +72,12 @@ export default function SetProfileScreen() {
 
       // If joining from an invite link, auto-join the trip
       if (tripCode && userProfile) {
-        // Load trip by invite code
-        const { data: tripData, error: tripError } = await supabase
-          .from('trips')
-          .select('id')
-          .eq('invite_code', tripCode)
-          .single();
+        const { data: tripId, error: joinError } = await supabase.rpc(
+          'join_trip_with_invite',
+          { p_invite_code: tripCode }
+        );
 
-        if (tripError || !tripData) {
-          console.error('Failed to load trip:', tripError);
-          setError('Failed to join trip. Please try again.');
-          setIsLoading(false);
-          return;
-        }
-
-        // Add user to group_members
-        const { error: joinError } = await supabase.from('group_members').insert({
-          user_id: userProfile.id,
-          trip_id: tripData.id,
-          role: 'viewer',
-          module_permissions: null,
-        });
-
-        if (joinError && joinError.code !== '23505') {
-          // Ignore duplicate key errors (already a member)
+        if (joinError || !tripId) {
           console.error('Failed to join trip:', joinError);
           setError('Failed to join trip. Please try again.');
           setIsLoading(false);
@@ -102,7 +86,7 @@ export default function SetProfileScreen() {
 
         // Log activity
         await supabase.from('activity_logs').insert({
-          trip_id: tripData.id,
+          trip_id: tripId,
           user_id: userProfile.id,
           action_type: 'member_joined',
           module: null,
@@ -111,7 +95,7 @@ export default function SetProfileScreen() {
         });
 
         // Trigger navigation via useEffect
-        setNavigationTarget(`/trips/${tripData.id}`);
+        setNavigationTarget(`/trips/${tripId}`);
         setShouldNavigate(true);
       } else {
         // Trigger navigation via useEffect (only navigate after profile confirmed updated)

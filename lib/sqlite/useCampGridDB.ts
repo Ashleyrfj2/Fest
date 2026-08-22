@@ -12,6 +12,10 @@ import {
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getCampGridDb, initCampGridDb } from '@/lib/sqlite/db';
 import { supabase } from '@/lib/supabase';
+import {
+  getCampGridSaveBlockReason,
+  shouldUseRemoteCampGridSnapshot,
+} from '@/lib/campGridSync';
 
 const DEFAULT_GRID: Omit<CampGridConfig, 'tripId'> = {
   widthFt: 20,
@@ -332,9 +336,10 @@ export function useCampGridDB(tripId: string | undefined) {
       }
 
       if (remoteSnapshot?.grid) {
-        const shouldUseRemote =
-          !localSnapshot.updatedAt ||
-          new Date(remoteSnapshot.updatedAt ?? 0).getTime() >= new Date(localSnapshot.updatedAt).getTime();
+        const shouldUseRemote = shouldUseRemoteCampGridSnapshot(
+          localSnapshot.updatedAt,
+          remoteSnapshot.updatedAt
+        );
 
         if (shouldUseRemote) {
           await writeLocalSnapshot(remoteSnapshot.grid, remoteSnapshot.items, remoteSnapshot.updatedAt ?? new Date().toISOString());
@@ -561,16 +566,17 @@ export function useCampGridDB(tripId: string | undefined) {
 
       setPendingDestructiveDeleteCount(idsToDelete.length);
 
-      const remoteTrustEstablished = remoteLoadStatus === 'success';
-      const requiresOverwriteConfirmation =
-        idsToDelete.length > 0 &&
-        (!remoteTrustEstablished || localDataOrigin === 'default-created') &&
-        !allowDestructiveOverwrite;
+      const saveBlockReason = getCampGridSaveBlockReason({
+        deleteCount: idsToDelete.length,
+        remoteLoadStatus,
+        localDataOrigin,
+        allowDestructiveOverwrite,
+      });
 
-      if (requiresOverwriteConfirmation) {
+      if (saveBlockReason !== 'none') {
         return {
           ok: false,
-          blockedReason: 'destructive-overwrite-risk',
+          blockedReason: saveBlockReason,
           deleteCount: idsToDelete.length,
         };
       }

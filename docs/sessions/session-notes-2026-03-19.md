@@ -102,7 +102,7 @@ const customStorageAdapter = {
 
 **Solution**:
 1. Retrieved correct anon public key from Supabase dashboard (Settings → API)
-2. Updated `.env` with new key: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1bXR1aHpyZ2N6aGtpaXJkcHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4OTExMDksImV4cCI6MjA4OTQ2NzEwOX0.KQAsojvwdFlCvwatJu10wgMJHtZG7n4hmKtiVXwQ9KM`
+2. Updated `.env` with the replacement anon key; the key value is intentionally omitted from these notes.
 3. Restarted Expo server
 
 ### Issue 4: RLS Policies Blocking Anonymous Inserts

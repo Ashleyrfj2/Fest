@@ -25,6 +25,7 @@ import { supabase } from '@/lib/supabase';
 import { colors, borderRadius, spacing, typography } from '@/lib/tokens';
 import { Database } from '@/lib/database.types';
 import { useBudgetTracker } from '@/lib/hooks/useBudgetTracker';
+import { parseTripIdParam } from '@/lib/routing/routeParams';
 import {
   BudgetEntryList,
   AddExpenseModal,
@@ -38,7 +39,8 @@ type Trip = Database['public']['Tables']['trips']['Row'];
 type BudgetEntry = Database['public']['Tables']['budget_entries']['Row'];
 
 export default function BudgetTrackerScreen() {
-  const { tripId } = useLocalSearchParams<{ tripId: string }>();
+  const { id: rawTripId } = useLocalSearchParams<{ id?: string | string[] }>();
+  const tripId = parseTripIdParam(rawTripId);
   const { userProfile } = useAuth();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [members, setMembers] = useState<GroupMember[]>([]);

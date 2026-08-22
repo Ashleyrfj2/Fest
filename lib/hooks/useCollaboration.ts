@@ -19,13 +19,23 @@ export function useCollaboration(tripId: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Wire in the approval queue
-  const approvalQueue = useApprovalQueue(tripId);
-
   const currentUserRole = useMemo<Role | null>(() => {
     if (!userProfile?.id) return null;
     return members.find((member) => member.user_id === userProfile.id)?.role ?? null;
   }, [members, userProfile?.id]);
+
+  const currentUserModulePermissions = useMemo(
+    () => members.find((member) => member.user_id === userProfile?.id)?.module_permissions ?? null,
+    [members, userProfile?.id]
+  );
+
+  // Wire in the approval queue with the same role/permission context used by
+  // the collaboration UI. Database RLS remains the final authorization gate.
+  const approvalQueue = useApprovalQueue(
+    tripId,
+    currentUserRole,
+    currentUserModulePermissions
+  );
 
   const isLeader = currentUserRole === 'leader';
 

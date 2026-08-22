@@ -39,6 +39,7 @@ import {
   PackingItemWithState,
 } from '@/lib/packingTypes';
 import { usePackingList } from '@/lib/hooks/usePackingList';
+import { parseTripIdParam } from '@/lib/routing/routeParams';
 
 type MemberOption = {
   user_id: string;
@@ -77,7 +78,8 @@ const CATEGORY_ICONS: Record<PackingCategory, React.ComponentType<{ size?: numbe
 };
 
 export default function PackingChecklistScreen() {
-  const { id: tripId } = useLocalSearchParams<{ id: string }>();
+  const { id: rawTripId } = useLocalSearchParams<{ id: string | string[] }>();
+  const tripId = parseTripIdParam(rawTripId) ?? '';
   const { userProfile } = useAuth();
   const [currentRole, setCurrentRole] = useState<'leader' | 'editor' | 'viewer' | null>(null);
   const [members, setMembers] = useState<MemberOption[]>([]);

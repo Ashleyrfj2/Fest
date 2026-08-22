@@ -23,6 +23,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { colors, borderRadius, spacing, typography } from '@/lib/tokens';
+import { parseInviteCodeParam } from '@/lib/routing/routeParams';
 
 // Avatar color presets
 const AVATAR_COLORS = [
@@ -37,7 +38,8 @@ const AVATAR_COLORS = [
 ];
 
 export default function GuestSetupScreen() {
-  const { tripCode } = useLocalSearchParams<{ tripCode?: string }>();
+  const { tripCode: rawTripCode } = useLocalSearchParams<{ tripCode?: string | string[] }>();
+  const tripCode = parseInviteCodeParam(rawTripCode);
   const { createGhostAccount, updateProfile, authUser, userProfile } = useAuth();
   const [displayName, setDisplayName] = useState('');
   const [selectedColor, setSelectedColor] = useState(AVATAR_COLORS[3]); // Default gold
@@ -79,30 +81,12 @@ export default function GuestSetupScreen() {
 
       // If joining from an invite link, auto-join the trip
       if (tripCode && userProfile) {
-        // Load trip by invite code
-        const { data: tripData, error: tripError } = await supabase
-          .from('trips')
-          .select('id')
-          .eq('invite_code', tripCode)
-          .single();
+        const { data: tripId, error: joinError } = await supabase.rpc(
+          'join_trip_with_invite',
+          { p_invite_code: tripCode }
+        );
 
-        if (tripError || !tripData) {
-          console.error('Failed to load trip:', tripError);
-          setError('Failed to join trip. Please try again.');
-          setIsSubmitting(false);
-          return;
-        }
-
-        // Add user to group_members
-        const { error: joinError } = await supabase.from('group_members').insert({
-          user_id: userProfile.id,
-          trip_id: tripData.id,
-          role: 'viewer',
-          module_permissions: null,
-        });
-
-        if (joinError && joinError.code !== '23505') {
-          // Ignore duplicate key errors (already a member)
+        if (joinError || !tripId) {
           console.error('Failed to join trip:', joinError);
           setError('Failed to join trip. Please try again.');
           setIsSubmitting(false);
@@ -111,7 +95,7 @@ export default function GuestSetupScreen() {
 
         // Log activity
         await supabase.from('activity_logs').insert({
-          trip_id: tripData.id,
+          trip_id: tripId,
           user_id: userProfile.id,
           action_type: 'member_joined',
           module: null,
@@ -120,7 +104,7 @@ export default function GuestSetupScreen() {
         });
 
         // Navigate to trip dashboard
-        router.replace(`/trips/${tripData.id}`);
+        router.replace(`/trips/${tripId}`);
       } else {
         // Navigate to home screen
         router.replace('/(tabs)');

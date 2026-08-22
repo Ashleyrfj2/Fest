@@ -7,7 +7,7 @@
  * - All sensitive fields encrypted before storage
  * - Encryption keys stored in device secure storage
  * - Only profile owner can decrypt their own data
- * - Other trip members see encrypted data (read-only access)
+ * - Emergency access uses a narrowly scoped RPC for PIN-gated ciphertext
  * 
  * Sync strategy:
  * - Writes go to local SQLite immediately (offline-first)
@@ -30,7 +30,6 @@ import {
   decryptStringArray,
   generateEmergencyPinSalt,
   hashEmergencyPin,
-  verifyEmergencyPinHash,
   encryptEmergencyAccessPayload,
   decryptEmergencyAccessPayload,
 } from '@/lib/crypto/safetyEncryption';
@@ -57,6 +56,14 @@ export function useSafetyProfile(tripId: string) {
     EncryptedSafetyProfile,
     'emergency_access_blob' | 'emergency_access_pin_salt' | 'emergency_access_pin_hash'
   >;
+
+  type EmergencyAccessEnvelope = Pick<
+    EncryptedSafetyProfile,
+    'id' | 'trip_id' | 'user_id' | 'created_at' | 'updated_at'
+  > & {
+    emergency_access_blob: string;
+    emergency_access_pin_salt: string;
+  };
 
   function hasCompleteEmergencyAccessFields(
     profile: Partial<EncryptedSafetyProfile> | null | undefined
@@ -162,7 +169,9 @@ export function useSafetyProfile(tripId: string) {
     try {
       const { data, error: fetchError } = await supabase
         .from('safety_profiles')
-        .select('*')
+        .select(
+          'id, trip_id, user_id, full_name, phone, hometown, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone, allergies_food, allergies_environmental, allergies_medication, current_medications, blood_type, notes, emergency_access_blob, emergency_access_pin_salt, emergency_access_pin_hash, created_at, updated_at'
+        )
         .eq('trip_id', tripId)
         .eq('user_id', userProfile.id)
         .single();
@@ -193,7 +202,9 @@ export function useSafetyProfile(tripId: string) {
     try {
       const { data, error: fetchError } = await supabase
         .from('safety_profiles')
-        .select('*')
+        .select(
+          'id, trip_id, user_id, full_name, phone, hometown, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone, allergies_food, allergies_environmental, allergies_medication, current_medications, blood_type, notes, emergency_access_blob, emergency_access_pin_salt, emergency_access_pin_hash, created_at, updated_at'
+        )
         .eq('trip_id', tripId)
         .eq('user_id', userId)
         .single();
@@ -208,6 +219,33 @@ export function useSafetyProfile(tripId: string) {
       return (data as EncryptedSafetyProfile) || null;
     } catch (err) {
       console.error('[SafetyProfile] Remote encrypted profile fetch failed:', err);
+      return null;
+    }
+  }
+
+  async function getEmergencyAccessProfileFromSupabase(
+    userId: string,
+    pin: string
+  ): Promise<EmergencyAccessEnvelope | null> {
+    try {
+      const { data, error: fetchError } = await supabase.rpc(
+        'get_emergency_access_profile',
+        {
+          p_trip_id: tripId,
+          p_target_user_id: userId,
+          p_pin: pin,
+        }
+      );
+
+      if (fetchError) throw fetchError;
+
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row?.emergency_access_blob || !row?.emergency_access_pin_salt) {
+        return null;
+      }
+      return row as EmergencyAccessEnvelope;
+    } catch (err) {
+      console.error('[SafetyProfile] Remote emergency access fetch failed:', err);
       return null;
     }
   }
@@ -277,40 +315,6 @@ export function useSafetyProfile(tripId: string) {
     await saveSafetyProfileLocal(remoteProfile as any);
     await markSafetyProfileSynced(remoteProfile.id);
     return remoteProfile;
-  }
-
-  function isRemoteProfileNewer(
-    localProfile: EncryptedSafetyProfile | null,
-    remoteProfile: EncryptedSafetyProfile
-  ): boolean {
-    if (!localProfile) {
-      return true;
-    }
-
-    return getNewerProfile(localProfile, remoteProfile) === remoteProfile;
-  }
-
-  async function verifyEmergencyPinAgainstProfile(
-    encryptedProfile: EncryptedSafetyProfile,
-    pin: string
-  ): Promise<{
-    blob: string;
-    pinMatches: boolean;
-    salt: string;
-  }> {
-    const salt = encryptedProfile.emergency_access_pin_salt;
-    const storedHash = encryptedProfile.emergency_access_pin_hash;
-    const blob = encryptedProfile.emergency_access_blob;
-
-    if (!salt || !storedHash || !blob) {
-      throw new Error('This member has not enabled emergency PIN access');
-    }
-
-    return {
-      blob,
-      pinMatches: await verifyEmergencyPinHash(pin, salt, storedHash),
-      salt,
-    };
   }
 
   function buildUnlockedSafetyProfile(
@@ -392,7 +396,9 @@ export function useSafetyProfile(tripId: string) {
     try {
       const { data, error: fetchError } = await supabase
         .from('safety_profiles')
-        .select('*')
+        .select(
+          'id, trip_id, user_id, full_name, phone, hometown, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone, allergies_food, allergies_environmental, allergies_medication, current_medications, blood_type, notes, emergency_access_blob, emergency_access_pin_salt, emergency_access_pin_hash, created_at, updated_at'
+        )
         .eq('trip_id', tripId);
 
       if (fetchError) throw fetchError;
@@ -664,47 +670,32 @@ export function useSafetyProfile(tripId: string) {
   }
 
   async function unlockEmergencyProfile(targetUserId: string, pin: string): Promise<SafetyProfile> {
-    if (!/^\d{8,12}$/.test(pin)) {
-      throw new Error('PIN must be 8-12 digits');
+    if (!/^\d{4,12}$/.test(pin)) {
+      throw new Error('PIN must be 4-12 digits');
     }
 
-    let encryptedProfile = (await getSafetyProfileLocal(
+    const localProfile = (await getSafetyProfileLocal(
       tripId,
       targetUserId
     )) as EncryptedSafetyProfile | null;
 
-    if (!encryptedProfile) {
-      const remoteProfile = await getEncryptedProfileFromSupabase(targetUserId);
-      if (!remoteProfile) {
-        throw new Error('No safety profile found for this member');
-      }
-
-      encryptedProfile = remoteProfile;
-      await saveSafetyProfileLocal(remoteProfile as any);
-      await markSafetyProfileSynced(remoteProfile.id);
+    // Always authorize and verify against the current server-side PIN before
+    // decrypting. The RPC never returns the stored verifier to the client.
+    const remoteProfile = await getEmergencyAccessProfileFromSupabase(targetUserId, pin);
+    if (!remoteProfile) {
+      throw new Error('Incorrect emergency PIN or unavailable emergency access');
     }
 
-    let verification = await verifyEmergencyPinAgainstProfile(encryptedProfile, pin);
-
-    if (!verification.pinMatches) {
-      const remoteProfile = await getEncryptedProfileFromSupabase(targetUserId);
-
-      if (remoteProfile && isRemoteProfileNewer(encryptedProfile, remoteProfile)) {
-        await saveSafetyProfileLocal(remoteProfile as any);
-        await markSafetyProfileSynced(remoteProfile.id);
-        encryptedProfile = remoteProfile;
-        verification = await verifyEmergencyPinAgainstProfile(encryptedProfile, pin);
-      }
-
-      if (!verification.pinMatches) {
-        throw new Error('Incorrect emergency PIN');
-      }
-    }
+    const encryptedProfile = {
+      ...localProfile,
+      ...remoteProfile,
+      emergency_access_pin_hash: null,
+    } as EncryptedSafetyProfile;
 
     const decryptedPayload = await decryptEmergencyAccessPayload(
-      verification.blob,
+      remoteProfile.emergency_access_blob,
       pin,
-      verification.salt
+      remoteProfile.emergency_access_pin_salt
     );
     if (!decryptedPayload) {
       throw new Error('Unable to decrypt emergency data');

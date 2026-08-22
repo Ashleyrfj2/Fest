@@ -122,16 +122,6 @@ export default function CreateTripScreen() {
       if (tripError) throw tripError;
       if (!trip) throw new Error('Failed to create trip: no data returned from database');
 
-      // Add creator as leader in group_members
-      const { error: memberError } = await supabase.from('group_members').insert({
-        user_id: userProfile.id,
-        trip_id: trip.id,
-        role: 'leader',
-        module_permissions: null, // Leader has full access
-      });
-
-      if (memberError) throw memberError;
-
       // Log activity
       await supabase.from('activity_logs').insert({
         trip_id: trip.id,

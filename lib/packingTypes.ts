@@ -103,7 +103,8 @@ export function groupByCategory(
   }, {} as Record<PackingCategory, PackingItemWithState[]>);
 
   items.forEach((item) => {
-    grouped[item.category as PackingCategory].push(item);
+    const category = item.category as PackingCategory;
+    (grouped[category] ?? grouped.festival_gear).push(item);
   });
 
   return grouped;

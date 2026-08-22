@@ -35,9 +35,11 @@ import {
 } from '@/lib/travelTypes';
 import { VehicleFormData } from '@/components/Travel/VehicleFormModal';
 import { FlightFormData } from '@/components/Travel/FlightFormModal';
+import { parseTripIdParam } from '@/lib/routing/routeParams';
 
 export default function TravelScreen() {
-  const { id: tripId } = useLocalSearchParams<{ id: string }>();
+  const { id: rawTripId } = useLocalSearchParams<{ id: string | string[] }>();
+  const tripId = parseTripIdParam(rawTripId) ?? '';
   const { userProfile } = useAuth();
   const [currentRole, setCurrentRole] = useState<string | null>(null);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
