@@ -4,6 +4,11 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ## Outstanding Issues
 
+### Session Update (August 22, 2026 - Festival PR Merged)
+- Festival PR #4 passed its complete GitHub workflow and was squash-merged to Festival `main` as `4479bde`.
+- Demo PR #2 remains merged to Demo `main` as `af9ac0b`; both implementation feature branches were deleted remotely.
+- The merge publishes the verified integrity milestones but does not close the remaining audit items or authorize the empirical study.
+
 ### Session Update (August 22, 2026 - Demo PR Merged, Festival Revalidated)
 - Demo PR #2 passed its post-rebase CI runs and was squash-merged to Demo `main` as `af9ac0b`.
 - Fresh Festival validation passed: ESLint, TypeScript `--noEmit`, and all 41 deterministic tests.

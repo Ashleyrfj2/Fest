@@ -158,3 +158,11 @@ Demo:
 
 - The Demo merge closes only the verified atomic-ingestion and correction milestones. It does not close explicit build recency, authoritative permission-denial provenance, metrics/freezing, actor-scoped stale behavior, extension reliability, Festival Supply List authorization hardening, or the empirical-study blocker.
 - Festival Supabase remains broadly published by this Docker Desktop runtime. Use a trusted or offline network for the private screen recording.
+
+## 18:33 CDT — Festival PR merge completion
+
+- [Festival PR #4](https://github.com/Ashleyrfj2/Fest/pull/4) passed the final GitHub workflow, including lint, typecheck, deterministic tests, whitespace, and web export.
+- PR #4 was squash-merged into Festival `main` as `4479bde` with title `feat: add controlled Festival thesis-demo environment`; the remote feature branch was deleted.
+- The dependent Demo integrity work remains merged at `af9ac0b`. Both local `main` branches were fast-forwarded to the merge commits before this final documentation synchronization.
+- The owner/admin bypass was used only for the required approving review because the owner is the sole collaborator. Repository rulesets, visibility, and collaborator settings were not changed.
+- All open limitations in the 18:27 entry remain open. This merge is not a composed-V1, extension, metric, empirical-study, public-release, or broad-network readiness claim.
