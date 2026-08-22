@@ -189,6 +189,7 @@ export default function BudgetTrackerScreen() {
         {canEdit && (
           <TouchableOpacity
             style={styles.addButton}
+            accessibilityLabel="Add expense"
             onPress={() => setShowAddModal(true)}
           >
             <Plus size={20} color={colors.background.primary} />

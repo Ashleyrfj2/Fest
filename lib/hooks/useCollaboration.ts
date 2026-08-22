@@ -16,6 +16,7 @@ type JoinedMember = GroupMemberRow & {
 export function useCollaboration(tripId: string) {
   const { userProfile } = useAuth();
   const [members, setMembers] = useState<JoinedMember[]>([]);
+  const [tripLeaderId, setTripLeaderId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,13 +43,25 @@ export function useCollaboration(tripId: string) {
   const fetchMembers = useCallback(async () => {
     try {
       setError(null);
-      const { data, error: fetchError } = await supabase
-        .from('group_members')
-        .select('user_id, trip_id, role, module_permissions, joined_at, user:users(id, display_name, avatar_color)')
-        .eq('trip_id', tripId)
-        .order('joined_at', { ascending: true });
+      const [membersResult, tripResult] = await Promise.all([
+        supabase
+          .from('group_members')
+          .select('user_id, trip_id, role, module_permissions, joined_at, user:users(id, display_name, avatar_color)')
+          .eq('trip_id', tripId)
+          .order('joined_at', { ascending: true }),
+        supabase
+          .from('trips')
+          .select('leader_id')
+          .eq('id', tripId)
+          .maybeSingle(),
+      ]);
+
+      const { data, error: fetchError } = membersResult;
 
       if (fetchError) throw fetchError;
+      if (tripResult.error) throw tripResult.error;
+
+      setTripLeaderId(tripResult.data?.leader_id ?? null);
 
       const normalized = ((data ?? []) as Array<JoinedMember & {
         user?: JoinedMember['user'][] | JoinedMember['user'];
@@ -294,6 +307,7 @@ export function useCollaboration(tripId: string) {
   return {
     // Members
     members,
+    tripLeaderId,
     currentUserRole,
     isLeader,
 

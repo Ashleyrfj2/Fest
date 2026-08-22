@@ -19,7 +19,6 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
   ScrollView,
   Switch,
 } from 'react-native';
@@ -77,6 +76,7 @@ export function AddExpenseModal({
   );
   const [customSplits, setCustomSplits] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (editingEntry) {
@@ -105,6 +105,7 @@ export function AddExpenseModal({
     setIsCustomSplit(false);
     setSelectedMembers(new Set(members.map((m) => m.user_id)));
     setCustomSplits({});
+    setValidationError(null);
   }
 
   function toggleMemberSelection(userId: string) {
@@ -128,20 +129,22 @@ export function AddExpenseModal({
   }
 
   async function handleSave() {
+    setValidationError(null);
+
     // Validate inputs
     if (!description.trim()) {
-      Alert.alert('Error', 'Description is required');
+      setValidationError('Description is required');
       return;
     }
 
     const amountCents = Math.round(parseFloat(amountStr) * 100);
     if (isNaN(amountCents) || amountCents <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount');
+      setValidationError('Please enter a valid amount');
       return;
     }
 
     if (selectedMembers.size === 0) {
-      Alert.alert('Error', 'Select at least one participant');
+      setValidationError('Select at least one participant');
       return;
     }
 
@@ -152,7 +155,7 @@ export function AddExpenseModal({
       for (const [userId, amountStr] of Object.entries(customSplits)) {
         const cents = Math.round(parseFloat(amountStr) * 100);
         if (isNaN(cents) || cents < 0) {
-          Alert.alert('Error', `Invalid amount for ${members.find((m) => m.user_id === userId)?.user.display_name}`);
+          setValidationError(`Invalid amount for ${members.find((m) => m.user_id === userId)?.user.display_name}`);
           return;
         }
         customSplitsCents[userId] = cents;
@@ -160,8 +163,7 @@ export function AddExpenseModal({
       }
 
       if (totalCents !== amountCents) {
-        Alert.alert(
-          'Error',
+        setValidationError(
           `Custom split total ($${(totalCents / 100).toFixed(2)}) does not match expense amount ($${(amountCents / 100).toFixed(2)})`
         );
         return;
@@ -191,7 +193,7 @@ export function AddExpenseModal({
       resetForm();
       onClose();
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to save expense');
+      setValidationError(err instanceof Error ? err.message : 'Failed to save expense');
     } finally {
       setIsLoading(false);
     }
@@ -218,6 +220,12 @@ export function AddExpenseModal({
             <X size={24} color={colors.text.primary} />
           </TouchableOpacity>
         </View>
+
+        {validationError && (
+          <Text accessibilityRole="alert" style={styles.errorText}>
+            {validationError}
+          </Text>
+        )}
 
         <ScrollView
           style={styles.content}
@@ -414,6 +422,13 @@ const styles = StyleSheet.create({
   title: {
     ...typography.heading2,
     color: colors.text.primary,
+  },
+  errorText: {
+    ...typography.caption,
+    color: colors.danger,
+    backgroundColor: colors.danger + '20',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   content: {
     flex: 1,

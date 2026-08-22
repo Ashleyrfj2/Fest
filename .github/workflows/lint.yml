@@ -1,4 +1,4 @@
-name: Quality Gate
+name: Lint
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  quality:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -58,6 +58,6 @@ jobs:
             echo "## QA coverage boundaries"
             echo "- **Static/unit:** lint, app typecheck, deterministic tests, patch whitespace, and web export run in this job."
             echo "- **Database integration:** not run; requires an isolated Supabase target and secret-backed configuration."
-            echo "- **Browser E2E:** not run; Playwright is not wired to a browser suite or this workflow yet."
+            echo "- **Browser E2E:** not run in this static gate; run the separate Playwright suite with npm run test:browser."
             echo "- **Native/manual:** not run; iOS/Android map and device behavior require simulator or device replay."
           } >> "$GITHUB_STEP_SUMMARY"

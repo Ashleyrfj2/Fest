@@ -76,9 +76,23 @@ test('the client delegates mutation and does not retain the old three-write sequ
   assert.match(hook, /supabase\.rpc\(['"]transfer_trip_leadership['"]/);
   assert.match(hook, /p_trip_id: tripId/);
   assert.match(hook, /p_new_leader_id: userId/);
+  assert.match(hook, /const \[tripLeaderId, setTripLeaderId\]/);
+  assert.match(hook, /setTripLeaderId\(tripResult\.data\?\.leader_id \?\? null\)/);
+  assert.match(hook, /tripLeaderId,/);
   assert.doesNotMatch(
     hook,
     /from\(['"]group_members['"]\)[\s\S]*\.update\(\{ role: 'editor' \}/
   );
   assert.doesNotMatch(hook, /\.update\(\{ leader_id: userId \}/);
+});
+
+test('RPC exposure is limited to authenticated callers', () => {
+  assert.match(
+    migration,
+    /REVOKE ALL ON FUNCTION public\.transfer_trip_leadership\(UUID, UUID\) FROM PUBLIC;/
+  );
+  assert.match(
+    migration,
+    /GRANT EXECUTE ON FUNCTION public\.transfer_trip_leadership\(UUID, UUID\) TO authenticated;/
+  );
 });

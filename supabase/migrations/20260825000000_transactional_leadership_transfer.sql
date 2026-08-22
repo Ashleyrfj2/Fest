@@ -18,9 +18,17 @@ DECLARE
   v_leader_count INTEGER;
 BEGIN
   IF TG_TABLE_NAME = 'trips' THEN
-    v_trip_id := COALESCE(NEW.id, OLD.id);
+    IF TG_OP = 'DELETE' THEN
+      v_trip_id := OLD.id;
+    ELSE
+      v_trip_id := NEW.id;
+    END IF;
   ELSE
-    v_trip_id := COALESCE(NEW.trip_id, OLD.trip_id);
+    IF TG_OP = 'DELETE' THEN
+      v_trip_id := OLD.trip_id;
+    ELSE
+      v_trip_id := NEW.trip_id;
+    END IF;
   END IF;
 
   SELECT t.leader_id
