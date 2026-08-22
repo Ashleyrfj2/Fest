@@ -1,5 +1,7 @@
 # Thesis Demo Local V1 Implementation Report — 2026-08-22
 
+> **Expert-audit correction, 17:20 CDT:** This report records narrow implementation and smoke-test receipts, not experiment readiness. A subsequent four-specialist audit found open atomic-persistence, correction, metric, provenance, stale-proxy, extension-queue, service-exposure, and documentation defects. See `thesis-demo-expert-audit-2026-08-22.md`. The isolated proxy test did not prove an actor-scoped stale condition composed with the live two-browser workflow.
+
 ## Outcome
 
 The bounded synthetic canopy handoff is implemented across Festival and the sibling Demo repository. Festival owns the controlled application state and source evidence. Demo owns normalized evidence, reconciliation, routing, UI, corrections, and metrics.

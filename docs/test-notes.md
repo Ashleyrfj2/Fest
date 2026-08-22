@@ -4,10 +4,21 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ## Outstanding Issues
 
+### Session Update (August 22, 2026 - Thesis Demo Expert Audit, Findings Open)
+- Four read-only expert audits reviewed security/privacy, engineering correctness, stale code, and documentation truth across Festival and Demo.
+- Verified narrow receipts remain: deterministic reset, direct viewer DELETE denial, separate two-browser state convergence, strict bounded event decoding, and ignored generated artifacts.
+- Correction: the stale proxy passed only an isolated one-client mock test; it is globally scoped and was not composed with the live two-browser workflow.
+- Correction: Demo persistence/corrections/metrics and cross-source provenance have open correctness defects, so synthetic V1 is not experiment-ready and human runs are blocked.
+- Security findings include all-interface local service bindings, unauthenticated/client-asserted evidence, client-writable activity logs promoted to automation, broad viewer supply UPDATE, and documented credential-shaped material in Git history.
+- Stale-code findings include unsafe legacy remote setup guidance, 12 tracked unrelated personal cleanup scripts, contract drift, obsolete product/setup status, and 58 strict unused-code diagnostics.
+- Report: `docs/reports/thesis-demo-expert-audit-2026-08-22.md`
+- Cross-repository operational handoff: `docs/sessions/session-notes-2026-08-22.md`
+
 ### Session Update (August 22, 2026 - Thesis Demo Local V1, Verified)
+- Status correction: “Verified” below applies only to the named narrow receipts. The later expert-audit entry above supersedes any interpretation that the composed V1 or experiment metrics are ready.
 - Implemented deterministic local-only seed/reset/verification for the synthetic canopy handoff.
 - Verified two signed-in browser sessions converge on shared claim/packed state and viewer deletion remains denied by RLS.
-- Verified the controlled stale proxy, activity adapter, Playwright agent provenance, and sibling Demo evidence/API pipeline.
+- Historical receipt: isolated stale-proxy, adapter, Playwright event, and sibling Demo smoke checks passed; the later audit found provenance and composed-workflow gaps that remain open.
 - Restored the canonical four-item seed fingerprint after testing.
 - Remaining: manual unpacked-extension exercise and real timeboxed human baseline/guided runs; synthetic metrics are not empirical thesis results.
 - Report: `docs/reports/thesis-demo-implementation-report-2026-08-22.md`
