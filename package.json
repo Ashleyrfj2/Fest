@@ -9,6 +9,7 @@
     "web": "expo start --web",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --cache",
     "test:browser": "playwright test",
+    "test:live": "node scripts/live-authorization-matrix.mjs",
     "test": "tsc -p tsconfig.qa-tests.json && node --test /tmp/festnest-qa-tests/tests/*.test.js",
     "lint:fix": "npm run lint -- --fix"
   },
