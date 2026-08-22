@@ -564,6 +564,8 @@ async function cleanup() {
   for (const userId of userIds) {
     const { error } = await admin.auth.admin.deleteUser(userId);
     if (error) console.warn(`Fixture auth cleanup failed: ${error.message}`);
+    const { error: profileError } = await admin.from('users').delete().eq('id', userId);
+    if (profileError) console.warn(`Fixture profile cleanup failed: ${profileError.message}`);
   }
 }
 

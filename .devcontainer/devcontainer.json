@@ -1,0 +1,52 @@
+{
+  "name": "Festival and QA Thesis Demo",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+  "forwardPorts": [4173, 5173, 8080, 54323, 54324],
+  "portsAttributes": {
+    "4173": {
+      "label": "Festival browser environment",
+      "onAutoForward": "notify"
+    },
+    "5173": {
+      "label": "Thesis evidence UI",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "Thesis API",
+      "onAutoForward": "notify"
+    },
+    "54323": {
+      "label": "Local Supabase Studio",
+      "onAutoForward": "silent"
+    },
+    "54324": {
+      "label": "Local Supabase email inbox",
+      "onAutoForward": "silent"
+    }
+  },
+  "customizations": {
+    "codespaces": {
+      "repositories": {
+        "Ashleyrfj2/Demo": {
+          "permissions": {
+            "contents": "write"
+          }
+        }
+      }
+    },
+    "vscode": {
+      "settings": {
+        "files.eol": "\n"
+      },
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  }
+}

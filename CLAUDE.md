@@ -1,4 +1,6 @@
-CompleteCom# FestNest — Project Context
+# FestNest — Project Context
+
+> **Required first step:** Read `AGENTS.md` completely before planning, editing, running commands, or reporting status. `AGENTS.md` contains the current Riley handoff, thesis-demo boundaries, Supabase workflow, secret-sharing rules, validation gates, and cross-repository port/configuration requirements. When the older status snapshot below conflicts with current code, migrations, tests, handoffs, or `AGENTS.md`, use the verified current sources.
 
 ## What This Is
 
