@@ -14,7 +14,8 @@ set -a
 set +a
 
 export EXPO_PUBLIC_SUPABASE_URL="${API_URL:-http://127.0.0.1:54321}"
-export SUPABASE_SERVICE_ROLE_KEY="${SECRET_KEY:-${SERVICE_ROLE_KEY:?Supabase status did not provide a local admin key}}"
+export EXPO_PUBLIC_SUPABASE_ANON_KEY="${ANON_KEY:?Supabase status did not provide ANON_KEY}"
+export SUPABASE_SERVICE_ROLE_KEY="${SERVICE_ROLE_KEY:?Supabase status did not provide SERVICE_ROLE_KEY}"
 
 node scripts/demo/seed-demo.mjs
 node scripts/demo/verify-seed.mjs

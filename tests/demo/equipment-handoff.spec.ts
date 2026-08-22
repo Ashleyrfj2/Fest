@@ -33,6 +33,22 @@ function eventID(seed: string) {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-5${hex.slice(13, 16)}-8${hex.slice(17, 20)}-${hex.slice(20)}`;
 }
 
+async function logActivity(accessToken: string, userId: string, actionType: string) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/activity_logs`, {
+    method: 'POST',
+    headers: headers(accessToken),
+    body: JSON.stringify({
+      trip_id: TRIP_ID,
+      user_id: userId,
+      action_type: actionType,
+      module: 'supply_list',
+      target_id: CANOPY_ID,
+      description: `Synthetic ${actionType}`,
+    }),
+  });
+  expect(response.ok).toBeTruthy();
+}
+
 test('equipment handoff preserves shared state and viewer RLS denial', async () => {
   requireLoopback(SUPABASE_URL);
   requireLoopback(QA_API_URL);
@@ -45,6 +61,7 @@ test('equipment handoff preserves shared state and viewer RLS denial', async () 
     body: JSON.stringify({ claimed_by: editor.user.id, status: 'claimed' }),
   });
   expect(claimResponse.ok).toBeTruthy();
+  await logActivity(editor.access_token, editor.user.id, 'supply_item_claimed');
 
   const observedClaim = await fetch(`${SUPABASE_URL}/rest/v1/supply_items?id=eq.${CANOPY_ID}&select=id,status,claimed_by`, {
     headers: headers(viewer.access_token),
@@ -57,6 +74,7 @@ test('equipment handoff preserves shared state and viewer RLS denial', async () 
     body: JSON.stringify({ status: 'packed' }),
   });
   expect(packedResponse.ok).toBeTruthy();
+  await logActivity(editor.access_token, editor.user.id, 'supply_item_packed');
 
   const deniedDelete = await fetch(`${SUPABASE_URL}/rest/v1/supply_items?id=eq.${CANOPY_ID}`, {
     method: 'DELETE',

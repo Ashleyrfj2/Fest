@@ -26,6 +26,7 @@ const repoRoot = path.resolve(scriptDir, '../..');
 const manifestPath = path.join(repoRoot, 'demo/.generated/manifest.json');
 const supabaseURL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 const localPassword = process.env.FESTNEST_DEMO_PASSWORD || 'FestNestLocalOnly!2026';
 
 function requireLoopback(rawURL) {
@@ -38,11 +39,12 @@ function requireLoopback(rawURL) {
 }
 
 requireLoopback(supabaseURL);
-if (!serviceRoleKey) throw new Error('SUPABASE_SERVICE_ROLE_KEY is required');
+if (!serviceRoleKey || !anonKey) throw new Error('Local anon and service-role keys are required');
 
 const supabase = createClient(supabaseURL, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
+const signupClient = createClient(supabaseURL, anonKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
 async function unwrap(label, promise) {
   const result = await promise;
@@ -50,29 +52,39 @@ async function unwrap(label, promise) {
   return result.data;
 }
 
-async function removeExistingSyntheticUsers() {
-  const data = await unwrap('list synthetic users', supabase.auth.admin.listUsers({ page: 1, perPage: 1000 }));
-  const emails = new Set(USERS.map((user) => user.email));
-  for (const user of data.users.filter((candidate) => candidate.email && emails.has(candidate.email))) {
-    await unwrap(`remove ${user.email}`, supabase.auth.admin.deleteUser(user.id));
-  }
-}
-
 await unwrap('remove prior trip', supabase.from('trips').delete().eq('id', TRIP_ID));
-await removeExistingSyntheticUsers();
 
 const createdUsers = [];
+let adminCreateSupported = true;
 for (const user of USERS) {
-  const created = await unwrap(
-    `create ${user.email}`,
-    supabase.auth.admin.createUser({
+  let createdUser;
+  if (adminCreateSupported) {
+    const adminResult = await supabase.auth.admin.createUser({
       email: user.email,
       password: localPassword,
       email_confirm: true,
       user_metadata: { display_name: user.displayName, demo_build_id: BUILD_ID },
-    })
-  );
-  createdUsers.push({ ...user, id: created.user.id });
+    });
+    if (!adminResult.error) {
+      createdUser = adminResult.data.user;
+    } else if (/signing method HS256 is invalid|invalid JWT/i.test(adminResult.error.message)) {
+      adminCreateSupported = false;
+    } else {
+      throw new Error(`create ${user.email}: ${adminResult.error.message}`);
+    }
+  }
+  if (!createdUser) {
+    const signupResult = await signupClient.auth.signUp({
+      email: user.email,
+      password: localPassword,
+      options: { data: { display_name: user.displayName, demo_build_id: BUILD_ID } },
+    });
+    if (signupResult.error || !signupResult.data.user) {
+      throw new Error(`local signup ${user.email}: ${signupResult.error?.message || 'user was not returned'}`);
+    }
+    createdUser = signupResult.data.user;
+  }
+  createdUsers.push({ ...user, id: createdUser.id });
 }
 
 const leader = createdUsers[0];
@@ -92,13 +104,14 @@ await unwrap(
 
 await unwrap(
   'assign demo roles',
-  supabase.from('group_members').insert(
+  supabase.from('group_members').upsert(
     createdUsers.map((user) => ({
       user_id: user.id,
       trip_id: TRIP_ID,
       role: user.role,
       module_permissions: user.role === 'viewer' ? null : ['supply_list'],
-    }))
+    })),
+    { onConflict: 'user_id,trip_id' }
   )
 );
 

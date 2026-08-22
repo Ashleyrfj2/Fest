@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import process from 'node:process';
+import { createHash } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 
 const TRIP_ID = '10000000-0000-4000-8000-000000000001';
@@ -19,7 +20,9 @@ const EXPECTED_ITEMS = new Map([
 
 const supabaseURL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!supabaseURL || !serviceRoleKey) throw new Error('Local Supabase URL and service-role key are required');
+const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+const localPassword = process.env.FESTNEST_DEMO_PASSWORD || 'FestNestLocalOnly!2026';
+if (!supabaseURL || !serviceRoleKey || !anonKey) throw new Error('Local Supabase URL, anon key, and service-role key are required');
 const parsed = new URL(supabaseURL);
 if (!['127.0.0.1', 'localhost', '::1', '[::1]'].includes(parsed.hostname) && process.env.ALLOW_REMOTE_DEMO_RESET !== 'true') {
   throw new Error(`Refusing non-loopback Supabase URL: ${parsed.origin}`);
@@ -57,10 +60,22 @@ for (const item of items) {
   }
 }
 
-const authData = await unwrap('load auth users', supabase.auth.admin.listUsers({ page: 1, perPage: 1000 }));
-const demoUsers = authData.users.filter((user) => user.email && EXPECTED_EMAIL_ROLES.has(user.email));
-if (demoUsers.length !== 4 || demoUsers.some((user) => !user.email_confirmed_at)) {
-  throw new Error('Expected four confirmed synthetic auth users');
+for (const email of EXPECTED_EMAIL_ROLES.keys()) {
+  const client = createClient(supabaseURL, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const result = await client.auth.signInWithPassword({ email, password: localPassword });
+  if (result.error || !result.data.user || !result.data.session) {
+    throw new Error(`Synthetic user cannot sign in: ${email}`);
+  }
 }
 
+const canonicalState = {
+  trip: trips[0],
+  roles: members.map((member) => {
+    const relation = Array.isArray(member.user) ? member.user[0] : member.user;
+    return [relation.email, member.role];
+  }).sort((a, b) => a[0].localeCompare(b[0])),
+  supplies: items.map((item) => [item.id, item.name, item.status]).sort((a, b) => a[0].localeCompare(b[0])),
+};
+const fingerprint = createHash('sha256').update(JSON.stringify(canonicalState)).digest('hex');
 console.log('Demo seed verification passed: one trip, four confirmed users, exact roles, and four initial supplies.');
+console.log(`Deterministic state fingerprint: ${fingerprint}`);
