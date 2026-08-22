@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "tenant_id": "festival-thesis-demo",
+  "build_id": "festnest-demo-001",
+  "environment_id": "festnest-local-browser",
+  "scenario_id": "equipment-handoff-v1",
+  "scope": {
+    "module": "supply-list",
+    "target": "shared-canopy",
+    "excluded_modules": ["safety", "emergency"]
+  },
+  "actors": [
+    { "actor_id": "leader", "email": "leader@example.test", "role": "leader", "source_type": "human" },
+    { "actor_id": "editor-a", "email": "editor-a@example.test", "role": "editor", "source_type": "human" },
+    { "actor_id": "viewer-b", "email": "viewer-b@example.test", "role": "viewer", "source_type": "human" },
+    { "actor_id": "late-tester-d", "email": "late-d@example.test", "role": "editor", "source_type": "human" },
+    { "actor_id": "playwright-agent-c", "role": "editor", "source_type": "agent" }
+  ],
+  "expected_transitions": [
+    { "sequence": 1, "actor_id": "leader", "state": "unassigned", "action_type": "supply_item_added" },
+    { "sequence": 2, "actor_id": "editor-a", "from": "unassigned", "to": "claimed", "action_type": "supply_item_claimed" },
+    { "sequence": 3, "actor_id": "viewer-b", "state": "claimed", "action_type": "supply_item_observed" },
+    { "sequence": 4, "actor_id": "editor-a", "from": "claimed", "to": "packed", "action_type": "supply_item_packed", "condition": "stale-first-refresh" },
+    { "sequence": 5, "actor_id": "viewer-b", "state": "packed", "action_type": "supply_item_delete_denied", "expected_outcome": "blocked" },
+    { "sequence": 6, "actor_id": "late-tester-d", "state": "packed", "action_type": "supply_item_reconciled" }
+  ],
+  "risk_weights": {
+    "viewer-write-boundary": 1.0,
+    "offline-realtime-reconciliation": 1.0,
+    "claim-state": 0.55,
+    "same-context-repeat": 0.1
+  },
+  "independent_verification": {
+    "preserve_first_distinct_actor_confirmation": true,
+    "distinct_context_keys": ["role", "browser", "connectivity"],
+    "target_fingerprint": "supply-list:item:10000000-0000-4000-8000-000000000101:status:packed"
+  },
+  "low_information_repeat": {
+    "same_build": true,
+    "same_role": true,
+    "same_context": true,
+    "deprioritize_after_distinct_actor_count": 2
+  },
+  "controlled_condition": {
+    "id": "stale-first-refresh",
+    "kind": "local-proxy-response-suppression",
+    "activation_trigger": "first packed update for the canopy",
+    "effect": "return the immediately preceding supply-list response once",
+    "hidden_until_debrief": true
+  },
+  "known_failure_ids": ["SEEDED-STALE-REFRESH-001"],
+  "success_conditions": [
+    "viewer delete leaves canopy intact",
+    "first post-pack refresh is stale",
+    "subsequent refresh reconciles to packed",
+    "late tester receives an area recommendation with rationale"
+  ],
+  "stop_conditions": [
+    "viewer delete removes canopy",
+    "any request targets non-loopback Supabase",
+    "sensitive or non-synthetic data is captured"
+  ]
+}
