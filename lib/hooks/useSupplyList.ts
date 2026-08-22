@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { Platform } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import {
   SupplyItem,
@@ -68,9 +69,24 @@ export function useSupplyList(tripId: string) {
           fetchItems();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        // A change can land while the local Realtime tenant is still starting.
+        // Refetch once the channel is live so a late subscription cannot leave
+        // this session displaying the pre-subscription snapshot.
+        if (status === 'SUBSCRIBED') {
+          fetchItems();
+        }
+      });
+
+    // Local Realtime can cold-start after the page is already interactive.
+    // Browser mode keeps a bounded refetch fallback so shared state and the
+    // controlled stale-response experiment still converge deterministically.
+    const browserRefetch = Platform.OS === 'web'
+      ? setInterval(fetchItems, 4_000)
+      : null;
 
     return () => {
+      if (browserRefetch) clearInterval(browserRefetch);
       supabase.removeChannel(channel);
     };
   }, [tripId, fetchItems]);

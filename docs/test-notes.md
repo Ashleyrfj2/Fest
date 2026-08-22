@@ -4,6 +4,14 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ## Outstanding Issues
 
+### Session Update (August 22, 2026 - Thesis Demo Local V1, Verified)
+- Implemented deterministic local-only seed/reset/verification for the synthetic canopy handoff.
+- Verified two signed-in browser sessions converge on shared claim/packed state and viewer deletion remains denied by RLS.
+- Verified the controlled stale proxy, activity adapter, Playwright agent provenance, and sibling Demo evidence/API pipeline.
+- Restored the canonical four-item seed fingerprint after testing.
+- Remaining: manual unpacked-extension exercise and real timeboxed human baseline/guided runs; synthetic metrics are not empirical thesis results.
+- Report: `docs/reports/thesis-demo-implementation-report-2026-08-22.md`
+
 ### Session Update (June 16, 2026 - Safety PIN Remote Rehydrate Fallback, Implemented)
 - Implemented: `setEmergencyAccessPin` and `clearEmergencyAccessPin` now rehydrate the owner's encrypted safety profile from Supabase when the local SQLite row is missing.
 - Implemented: remote rehydration is cached back into local safety storage before continuing the PIN mutation flow.

@@ -94,10 +94,15 @@ export function SupplyItemCard({
   }
 
   return (
-    <View style={[styles.card, isPacked && styles.cardPacked]}>
+    <View
+      testID={`supply-item-${item.id}`}
+      style={[styles.card, isPacked && styles.cardPacked]}
+    >
       {/* Left: Pack Status Toggle */}
       {canTogglePacked && (
         <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={isPacked ? `Mark ${item.name} unpacked` : `Mark ${item.name} packed`}
           style={styles.packToggle}
           onPress={handleTogglePacked}
           disabled={isActionLoading}
@@ -185,6 +190,8 @@ export function SupplyItemCard({
         {/* Menu Button (Edit/Delete) */}
         {isEditor && (
           <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={`Open actions for ${item.name}`}
             style={styles.menuButton}
             onPress={() => setShowMenu(!showMenu)}
             activeOpacity={0.7}
