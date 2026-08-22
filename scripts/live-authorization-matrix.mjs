@@ -8,7 +8,7 @@ const keepFixtures = process.env.FESTNEST_KEEP_FIXTURES === '1';
 
 if (!anonKey || !serviceRoleKey) {
   console.error(
-    'Set FESTNEST_LOCAL_ANON_KEY and FESTNEST_LOCAL_SERVICE_ROLE_KEY from `supabase status`.'
+    'Set FESTNEST_LOCAL_ANON_KEY and FESTNEST_LOCAL_SERVICE_ROLE_KEY to compatible local bearer JWTs.'
   );
   process.exitCode = 2;
   process.exit();
@@ -22,16 +22,28 @@ const runId = `${Date.now().toString(36)}${crypto.randomBytes(3).toString('hex')
 const password = `Local-QA-${crypto.randomBytes(8).toString('hex')}!`;
 const userIds = [];
 const tripIds = [];
+const budgetFixtures = [];
 const results = [];
 const warnings = [];
 
 const users = {};
 const clients = {};
 
-function makeClient() {
-  return createClient(url, anonKey, {
+function makeClient(accessToken) {
+  const options = {
     auth: { autoRefreshToken: false, persistSession: false },
-  });
+  };
+  if (accessToken) options.accessToken = async () => accessToken;
+  return createClient(url, anonKey, options);
+}
+
+function readJwtClaims(token) {
+  try {
+    const [, payload] = token.split('.');
+    return JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+  } catch {
+    return {};
+  }
 }
 
 function makeInvite(prefix) {
@@ -66,7 +78,12 @@ async function check(name, operation) {
 }
 
 async function expectError(operation, message) {
-  const result = await operation();
+  let result;
+  try {
+    result = await operation();
+  } catch {
+    return;
+  }
   if (!result?.error) {
     throw new Error(message);
   }
@@ -105,10 +122,46 @@ async function createUser(role) {
   users[role] = data.user;
   userIds.push(data.user.id);
 
-  const client = makeClient();
-  const signIn = await client.auth.signInWithPassword({ email, password });
+  const authClient = makeClient();
+  const signIn = await authClient.auth.signInWithPassword({ email, password });
   if (signIn.error) throw signIn.error;
-  clients[role] = client;
+  const accessToken = signIn.data.session?.access_token;
+  if (!accessToken) {
+    throw new Error(`No authenticated session was returned for ${role}`);
+  }
+  if (signIn.data.user?.id !== data.user.id) {
+    throw new Error(`Authenticated user mismatch for ${role}`);
+  }
+
+  const verified = await authClient.auth.getUser(accessToken);
+  if (verified.error) throw verified.error;
+  if (verified.data.user?.id !== data.user.id) {
+    throw new Error(`Access token resolved to the wrong user for ${role}`);
+  }
+
+  const claims = readJwtClaims(accessToken);
+  if (claims.sub !== data.user.id || claims.role !== 'authenticated') {
+    throw new Error(
+      `Unexpected access-token claims for ${role}: sub=${claims.sub ?? 'missing'}, role=${claims.role ?? 'missing'}`
+    );
+  }
+
+  const authenticatedClient = makeClient(accessToken);
+  const profile = await authenticatedClient
+    .from('users')
+    .select('id')
+    .eq('id', data.user.id)
+    .maybeSingle();
+  if (profile.error) {
+    throw new Error(
+      `Authenticated RLS preflight failed for ${role} (sub=${claims.sub}, role=${claims.role}): ${profile.error.message}`
+    );
+  }
+  if (profile.data?.id !== data.user.id) {
+    throw new Error(`Authenticated client could not read its own profile for ${role}`);
+  }
+
+  clients[role] = authenticatedClient;
 }
 
 async function createTrip(client, leaderId, inviteCode, expiresAt, name) {
@@ -406,6 +459,7 @@ async function run() {
       split_type: 'equal',
     }).select('id').single();
     if (inserted.error) throw inserted.error;
+    budgetFixtures.push({ id: inserted.data.id, client: clients.editor });
 
     await expectNoRowsOrDenied(
       () => clients.outsider.from('budget_entries').select('id').eq('id', inserted.data.id),
@@ -499,6 +553,10 @@ async function cleanup() {
     return;
   }
 
+  for (const fixture of budgetFixtures) {
+    const { error } = await fixture.client.from('budget_entries').delete().eq('id', fixture.id);
+    if (error) console.warn(`Fixture budget cleanup failed: ${error.message}`);
+  }
   if (tripIds.length) {
     const { error } = await admin.from('trips').delete().in('id', tripIds);
     if (error) console.warn(`Fixture trip cleanup failed: ${error.message}`);
