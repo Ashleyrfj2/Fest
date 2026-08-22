@@ -135,3 +135,26 @@ Demo:
 - `ISSUE-20260822-006` is **In progress**: Demo is loopback/authenticated, while Festival Supabase remains all-interface on this Docker Desktop runtime. Supabase's documented loopback network did not change the bindings and broke reset-time DNS, so the default network was restored. Use a trusted/offline network for this private recording.
 - The user confirmed the project is private and screen-recording-only. No public-release or Git-history rewrite work was performed; `BLOCK-20260822-002` remains relevant only to any future public onboarding/release.
 - Human experiments, extension rehearsal, metrics claims, and full composed-V1 readiness remain blocked by the other open audit items.
+
+## 18:27 CDT — Cross-repository PR publication and Demo merge
+
+### Publication receipt
+
+- Demo remediation was rebased onto the latest upstream `main`, preserving the newly committed full tutorial and logging-policy changes.
+- [Demo PR #2](https://github.com/Ashleyrfj2/Demo/pull/2) passed both post-rebase CI runs and was squash-merged into `main` as `af9ac0b` (`fix: harden evidence ingestion integrity`).
+- Both repositories are private and retain active `Protect main` rulesets. The configured owner bypass was used only because the owner is the sole collaborator and therefore cannot obtain a separate approving review; no ruleset or collaborator setting was changed.
+- [Festival PR #4](https://github.com/Ashleyrfj2/Fest/pull/4) remains the dependent PR and must retain the open limitations below.
+
+### Fresh post-merge validation
+
+- Demo `main` contract conformance: PASS.
+- Festival ESLint with `--no-cache`: PASS.
+- Festival TypeScript `--noEmit`: PASS.
+- Festival deterministic test suite: PASS, 41 of 41 tests.
+- Demo and Festival normative runbooks: byte-identical SHA-256 `76adf0eacdd4de3595472011308e64bf521c0200960918223e9ddb8ba59d55a4`.
+- This publication step did not rerun the authenticated Playwright/activity-adapter runtime; its earlier verified receipt remains historical evidence, not a new post-merge runtime claim.
+
+### Remaining limits
+
+- The Demo merge closes only the verified atomic-ingestion and correction milestones. It does not close explicit build recency, authoritative permission-denial provenance, metrics/freezing, actor-scoped stale behavior, extension reliability, Festival Supply List authorization hardening, or the empirical-study blocker.
+- Festival Supabase remains broadly published by this Docker Desktop runtime. Use a trusted or offline network for the private screen recording.

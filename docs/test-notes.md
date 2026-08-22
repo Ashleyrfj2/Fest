@@ -4,6 +4,13 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ## Outstanding Issues
 
+### Session Update (August 22, 2026 - Demo PR Merged, Festival Revalidated)
+- Demo PR #2 passed its post-rebase CI runs and was squash-merged to Demo `main` as `af9ac0b`.
+- Fresh Festival validation passed: ESLint, TypeScript `--noEmit`, and all 41 deterministic tests.
+- Fresh cross-repository validation passed: Demo contract conformance and byte-identical normative runbooks.
+- The authenticated Playwright/activity-adapter runtime was not rerun during publication; preserve its earlier receipt without relabeling it as post-merge validation.
+- Festival PR #4 remains limited by the documented open audit items and the trusted/offline-network requirement.
+
 ### Session Update (August 22, 2026 - Evidence Integrity Milestones 1–3)
 - Closed and verified `BUG-20260822-001`: Demo raw ingest and derived projections now roll back or commit together; injected failure leaves no partial rows and retry succeeds.
 - Closed and verified `BUG-20260822-002`: corrections reject self/cross-scope misuse, persist an append-only scoped audit, survive restart, and govern later evidence identity.
