@@ -30,6 +30,7 @@ import {
   decryptStringArray,
   generateEmergencyPinSalt,
   hashEmergencyPin,
+  verifyEmergencyPinHash,
   encryptEmergencyAccessPayload,
   decryptEmergencyAccessPayload,
 } from '@/lib/crypto/safetyEncryption';
@@ -305,10 +306,9 @@ export function useSafetyProfile(tripId: string) {
       throw new Error('This member has not enabled emergency PIN access');
     }
 
-    const enteredHash = await hashEmergencyPin(pin, salt);
     return {
       blob,
-      pinMatches: enteredHash === storedHash,
+      pinMatches: await verifyEmergencyPinHash(pin, salt, storedHash),
       salt,
     };
   }
@@ -595,8 +595,8 @@ export function useSafetyProfile(tripId: string) {
       throw new Error('User not authenticated');
     }
 
-    if (!/^\d{4,8}$/.test(pin)) {
-      throw new Error('PIN must be 4-8 digits');
+    if (!/^\d{8,12}$/.test(pin)) {
+      throw new Error('PIN must be 8-12 digits');
     }
 
     if (!myProfile) {
@@ -664,8 +664,8 @@ export function useSafetyProfile(tripId: string) {
   }
 
   async function unlockEmergencyProfile(targetUserId: string, pin: string): Promise<SafetyProfile> {
-    if (!/^\d{4,8}$/.test(pin)) {
-      throw new Error('PIN must be 4-8 digits');
+    if (!/^\d{8,12}$/.test(pin)) {
+      throw new Error('PIN must be 8-12 digits');
     }
 
     let encryptedProfile = (await getSafetyProfileLocal(

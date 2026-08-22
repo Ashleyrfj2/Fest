@@ -20,6 +20,8 @@ const ENCRYPTION_KEY_PREFIX = 'safety_profile_key_';
 const KEY_SIZE_BYTES = 32; // 256 bits for AES-256
 const IV_SIZE_BYTES = 12; // 96 bits for GCM
 const PIN_SALT_SIZE_BYTES = 16;
+const EMERGENCY_PIN_KDF_ITERATIONS = 310000;
+const EMERGENCY_PIN_HASH_PREFIX = 'pbkdf2_sha256';
 
 /**
  * Securely generate or retrieve the user's encryption key
@@ -202,15 +204,32 @@ export async function generateEmergencyPinSalt(): Promise<string> {
  * Hash a PIN with salt for verification (stored server-side).
  */
 export async function hashEmergencyPin(pin: string, salt: string): Promise<string> {
-  return Crypto.digestStringAsync(
-    Crypto.CryptoDigestAlgorithm.SHA256,
-    `${salt}:${pin}`
-  );
+  const verifierBytes = await deriveEmergencyMaterial(pin, salt, 'verify');
+  return `${EMERGENCY_PIN_HASH_PREFIX}$${EMERGENCY_PIN_KDF_ITERATIONS}$${uint8ArrayToBase64(
+    verifierBytes
+  )}`;
 }
 
 async function deriveEmergencyPinKey(pin: string, salt: string): Promise<Uint8Array> {
-  const digestHex = await hashEmergencyPin(pin, salt);
-  return hexToUint8Array(digestHex);
+  return deriveEmergencyMaterial(pin, salt, 'encrypt');
+}
+
+export async function verifyEmergencyPinHash(
+  pin: string,
+  salt: string,
+  storedHash: string
+): Promise<boolean> {
+  if (storedHash.startsWith(`${EMERGENCY_PIN_HASH_PREFIX}$`)) {
+    const expectedHash = await hashEmergencyPin(pin, salt);
+    return constantTimeEquals(expectedHash, storedHash);
+  }
+
+  // Backward compatibility for legacy SHA-256 hashes.
+  const legacyHash = await Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    `${salt}:${pin}`
+  );
+  return constantTimeEquals(legacyHash, storedHash);
 }
 
 /**
@@ -303,18 +322,50 @@ function base64ToUint8Array(base64: string): Uint8Array {
   return bytes;
 }
 
-function hexToUint8Array(hex: string): Uint8Array {
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < bytes.length; i++) {
-    bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
-  }
-  return bytes;
-}
-
 function uint8ArrayToArrayBuffer(bytes: Uint8Array): ArrayBuffer {
   const buffer = new ArrayBuffer(bytes.length);
   new Uint8Array(buffer).set(bytes);
   return buffer;
+}
+
+async function deriveEmergencyMaterial(
+  pin: string,
+  salt: string,
+  context: 'encrypt' | 'verify'
+): Promise<Uint8Array> {
+  const encoder = new TextEncoder();
+  const passwordKey = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(`${pin}:${context}`),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits']
+  );
+
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: uint8ArrayToArrayBuffer(base64ToUint8Array(salt)),
+      iterations: EMERGENCY_PIN_KDF_ITERATIONS,
+      hash: 'SHA-256',
+    },
+    passwordKey,
+    KEY_SIZE_BYTES * 8
+  );
+
+  return new Uint8Array(derivedBits);
+}
+
+function constantTimeEquals(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i++) {
+    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return mismatch === 0;
 }
 /**
  * Test encryption/decryption flow
