@@ -20,3 +20,5 @@ CLAUDE.local.md
 
 # Supabase local CLI temp artifacts
 supabase/.temp/
+
+demo/.generated/
