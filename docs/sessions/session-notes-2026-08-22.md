@@ -326,3 +326,43 @@ Both match the canonical value. Intermediate resets between the positive runs an
 - Festival stack held exclusively for the duration; the Demo manual extension exercise may proceed once this releases it.
 - Changed files: `scripts/demo/run-equipment-test.sh`, `tests/demo/equipment-handoff.spec.ts`, `.gitignore`, `docs/sessions/session-notes-2026-08-22.md`, `docs/test-notes.md`.
 - Committed and pushed to `gate3/stale-proxy-composition`. Not merged; no pull request opened.
+
+## 23:45 CDT — Gate audit correction, Gate 2/3 status, database incident documentation, and branch cleanup
+
+### Gate audit correction
+
+The previous audit incorrectly reported that Demo lacked PostgreSQL Gate 2 experiment lifecycle integration coverage. That finding was stale/false: Demo PR #6 (`c558767`) was merged into `main` before the audit occurred.
+
+Demo's `backend/internal/store/postgres_integration_test.go` exercises the complete PostgreSQL experiment lifecycle against isolated throwaway schemas (`qa_test_<pid>_<nanos>`):
+- Experiment creation idempotency and duplicate retry
+- Conflicting registration and unregistered build rejection
+- Run-partitioned evidence isolation across concurrent baseline and guided runs
+- Run-scope mismatch rejection
+- Metrics preview under `festival-v1.1`
+- Deterministic freeze receipt SHA-256 computation and idempotent retry
+- Database-enforced post-freeze write and state correction rejection (`ErrRunFrozen`)
+- Snapshot immutability triggers on `experiment_metrics` and lifecycle immutability triggers on `experiment_runs`
+- Store restart durability with stable receipt digests and continued post-freeze write denial
+
+Gate 2 lifecycle and database enforcement is **PASS**.
+
+### Gate 3 status and remaining verification
+
+- Festival PR #8 (`0d555e1`) merged the composed stale proxy (`scripts/demo/stale-proxy.mjs`) with the live two-session equipment test (`tests/demo/equipment-handoff.spec.ts`), verifying application-layer and proxy-layer isolation against local Supabase.
+- Gate 3 stale proxy composition is **PASS (HTTP/RPC layer)**.
+- **Outstanding verification**: Live browser + real rendered DOM + unpacked Chrome extension. Automated unit tests in Demo verify extension queue serialization and transport status classification; live browser execution remains the pending Gate 3 verification step.
+
+### Local database incident documentation
+
+During a prior agent remediation session, Festival's local Supabase PostgreSQL instance was unexpectedly reinitialized:
+- Schema and test fixtures were cleanly rebuilt using the deterministic seed tooling (`scripts/demo/reset-demo.sh`), restoring canonical seed fingerprint `7d1385137cf6f12fa326000ead9e86fbe71f9907959a62aba62b3501e4bdc06a`.
+- No critical user data was lost; the database contained synthetic test and local development state only.
+- The incident was an operational/environment scoping failure during automated execution, not evidence of defect or invalidity in the Gate code or migrations.
+- **Strict safety rule**: Persistent Demo (`demo_qa_postgres`) and Festival local Supabase databases must never be destructively manipulated, reset, or stopped without explicit verification of repository context and database target. Integration tests must exclusively use isolated ephemeral schemas.
+
+### Branch cleanup results
+
+Both repositories were inspected and stale merged branches were cleaned up conservatively:
+- Festival local branches deleted: `gate3/stale-proxy-composition` (merged in PR #8), `next3` (merged in PR #6/#7), `docs/merge-receipts-2026-08-22` (merged in PR #5).
+- Festival remote branches pruned/deleted: `gate3/stale-proxy-composition`, `docs/log-reconciliation-2026-08-22`.
+- Retained: `main` (active), worktree branches (`copilot/worktree-*`), and security audit branch (`copilot/full-security-audit`).

@@ -1,6 +1,6 @@
 # Thesis Demo Local V1 Implementation Report — 2026-08-22
 
-> **Expert-audit correction, 17:20 CDT:** This report records narrow implementation and smoke-test receipts, not experiment readiness. A subsequent four-specialist audit found open atomic-persistence, correction, metric, provenance, stale-proxy, extension-queue, service-exposure, and documentation defects. See `thesis-demo-expert-audit-2026-08-22.md`. The isolated proxy test did not prove an actor-scoped stale condition composed with the live two-browser workflow.
+> **Expert-audit correction, 17:20 CDT (Updated 23:45 CDT):** This report records historical narrow implementation and smoke-test receipts. Gate 1 evidence authority, Gate 2 PostgreSQL lifecycle/freeze enforcement (Demo PR #6), and Gate 3 stale proxy HTTP composition (Festival PR #8) have since been verified. Live browser DOM + unpacked Chrome extension exercise remains outstanding. See `thesis-demo-expert-audit-2026-08-22.md` and `docs/sessions/session-notes-2026-08-22.md`.
 
 ## Outcome
 

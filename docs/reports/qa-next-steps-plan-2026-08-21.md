@@ -1,5 +1,7 @@
 # Festival QA Follow-up Execution Plan
 
+> **Historical Status Note (2026-08-22):** This document is preserved as a historical QA follow-up plan from 2026-08-21. Current authoritative statuses, verification receipts, and active execution plans are maintained in `docs/sessions/session-notes-2026-08-22.md`, `docs/test-notes.md`, and sibling Demo `docs/agent-logs/CURRENT.md`.
+
 Date: 2026-08-21  
 Source: Senior QA pass completed in the current Festival worktree  
 Scope: Close the remaining backend, synchronization, web smoke, native, and release-gate gaps without weakening the existing security or data-integrity protections.

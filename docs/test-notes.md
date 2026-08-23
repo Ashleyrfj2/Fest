@@ -4,6 +4,11 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ## Outstanding Issues
 
+### Session Update (August 22, 2026 - Gate Audit Corrected, Gate 2 Verified, Gate 3 Composed)
+- **Gate 2 PostgreSQL lifecycle integration coverage**: PASS. Demo PR #6 merged full lifecycle coverage in `postgres_integration_test.go` against isolated throwaway databases (run creation idempotency, conflict rejection, run isolation, freeze idempotency, database-enforced post-freeze rejection on writes and corrections, snapshot immutability triggers, and store restart durability).
+- **Gate 3 proxy/composed test coverage**: PASS (HTTP/RPC layer). Festival PR #8 merged the composed stale proxy with the live two-session equipment test (`equipment-handoff.spec.ts`), verifying application-layer and proxy-layer isolation against local Supabase.
+- **Remaining verification**: Live browser DOM + real rendered UI + unpacked Chrome extension. Automated Node unit tests verify extension queue serialization and transport status classification; end-to-end browser exercise remains the pending verification step.
+
 ### Session Update (August 22, 2026 - Gate 3 Stale Proxy Composed With The Live Two-Session Test)
 - Baseline taken first on `main` at `525e121`, since no receipt covered the stale-proxy code already merged there: lint PASS, `tsc --noEmit` PASS, 43 of 43 deterministic tests PASS, 2 of 2 proxy mock tests PASS. Nothing was pre-broken.
 - Fixed the composition gap, not the proxy: `scripts/demo/run-equipment-test.sh` now launches `stale-proxy.mjs`, waits for it, and points `EXPO_PUBLIC_SUPABASE_URL` at it; `tests/demo/equipment-handoff.spec.ts` now fails closed if it is not running through the proxy, so this cannot silently regress.

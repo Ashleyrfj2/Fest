@@ -57,3 +57,16 @@ Shared durable IDs and statuses are owned by the sibling Demo repository's `docs
 ## Audit limits
 
 The expert passes were read-only. They did not attempt a mutating exploit, change service state, test remote token validity, load the extension manually, or run human subjects. Host firewall/router isolation and dependency CVEs were not assessed.
+
+---
+
+## Dated Correction Addendum — 2026-08-22 23:45 CDT
+
+### ORIGINAL AUDIT FINDING vs CORRECTED CURRENT STATE
+
+| Topic | Original Audit Finding (Historical) | Corrected Current State (Verified) |
+| --- | --- | --- |
+| **Gate 2 PostgreSQL Lifecycle Tests** | Reported as missing Go-level integration coverage for experiment lifecycle, freeze, and restart. | **Stale / Corrected**: Demo PR #6 (`c558767`) was already merged into `main` prior to the audit. `backend/internal/store/postgres_integration_test.go` provides full Go integration coverage for experiment creation idempotency, conflict rejection, run isolation, `festival-v1.1` metrics preview, deterministic freeze receipt SHA-256 computation, database-enforced post-freeze write/correction rejection, snapshot immutability triggers, and store restart durability. All tests execute against isolated ephemeral schemas. |
+| **Gate 3 Stale Proxy Composition** | Reported as an unwired global mock test that was bypassed by the live equipment test. | **Resolved**: Festival PR #8 (`0d555e1`) wired `scripts/demo/stale-proxy.mjs` (scoped by actor/session/credential/query with TTL) directly into `scripts/demo/run-equipment-test.sh` and `tests/demo/equipment-handoff.spec.ts`. Live two-session isolation was proven against local Supabase. |
+| **Gate 3 Browser Extension Interception** | Reported as untested in live browser context. | **Current Status**: Extension queue serialization and transport status classification pass automated unit tests in Node. Live browser DOM + real rendered UI + unpacked Chrome extension exercise remains the final outstanding verification step. |
+| **Metric Telemetry Inputs** | Formula implementation question. | **Documented Limitation**: 4.5 of 11 declared definitions return explicit undefined receipts because required input telemetry is not collected. This is an experimental methodology/input boundary, not a lifecycle integrity defect. |

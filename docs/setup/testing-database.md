@@ -2,6 +2,30 @@
 
 This is the current guarded database-validation path. Use synthetic data and the local Supabase stack only. Never use the shared/production Festival project for reset, seed, authorization, or thesis-demo tests.
 
+## Database Boundaries and Isolation
+
+There are three distinct database targets across the workspace:
+
+1. **Festival Local Supabase Database** (`127.0.0.1:54321` / `54322` / Studio `54323`):
+   - Contains Festival application state, auth users, Supabase storage, and realtime configuration.
+   - Initialized and seeded via `scripts/demo/reset-demo.sh`.
+   - Used for Festival application execution and composed workflow tests.
+
+2. **Demo Persistent QA Database** (`demo_qa_postgres`, `127.0.0.1:54332` / API `8080`):
+   - Contains the persistent QA platform evidence ledger, build registrations, and experiment runs.
+   - Managed via Demo's `docker compose up` stack.
+
+3. **Isolated / Throwaway PostgreSQL Integration Test Databases**:
+   - Ephemeral schemas (`qa_test_<pid>_<nanos>`) created dynamically by Go integration tests (`prepareIntegrationDatabase`).
+   - Run in complete isolation on loopback and drop their schemas automatically on test cleanup (`t.Cleanup`).
+   - **Strict invariant**: Integration tests must never silently target persistent development databases (`demo_qa_postgres` or Festival Supabase).
+
+## Safety Rules for Database Operations
+
+- **STOP AND VERIFY**: Before running any reset or migration command, verify both the current repository working directory (`pwd`) and the exact database target URL.
+- **No Destructive Operations on Persistent Databases**: Never perform broad `DELETE`, `TRUNCATE`, `DROP TABLE`, `supabase db reset`, or volume removals on persistent development databases without explicit authorization and target verification.
+- **Loopback Enforcement**: Reset scripts and tests refuse non-loopback database URLs by default.
+
 ## Start from a deterministic local state
 
 ```bash
