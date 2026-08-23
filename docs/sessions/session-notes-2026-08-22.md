@@ -166,3 +166,98 @@ Demo:
 - The dependent Demo integrity work remains merged at `af9ac0b`. Both local `main` branches were fast-forwarded to the merge commits before this final documentation synchronization.
 - The owner/admin bypass was used only for the required approving review because the owner is the sole collaborator. Repository rulesets, visibility, and collaborator settings were not changed.
 - All open limitations in the 18:27 entry remain open. This merge is not a composed-V1, extension, metric, empirical-study, public-release, or broad-network readiness claim.
+
+## 20:01 CDT — Gate 1 evidence authority accepted
+
+### Implemented and verified
+
+- Demo now requires immutable, controller-authenticated build registration with explicit sequence/predecessor ordering. Unknown builds fail closed, and delayed old-build events remain stale without affecting newer evidence.
+- Festival Supply List workflow changes now use database-owned RPCs. Any member may claim an unassigned item and may unclaim, pack, or unpack only an item they own; only leaders/editors may delete. Direct authenticated workflow-column mutation is unavailable.
+- Expected authorization denials return a non-applied result and persist one immutable private audit. Clients cannot write the reserved denial activity or read/write the private audit.
+- The adapter requires `FESTNEST_EXPERIMENT_RUN_ID` and emits deterministic authenticated blocked evidence only from database-owned audits.
+
+### Accepted receipts
+
+- Demo containerized unit suite, PostgreSQL suite, and contract conformance: PASS.
+- Festival lint, TypeScript, and deterministic tests: PASS; 43 of 43 tests.
+- Festival reset/migrate/seed and final reset: PASS with canonical fingerprint `7d1385137cf6f12fa326000ead9e86fbe71f9907959a62aba62b3501e4bdc06a`.
+- Live equipment test: PASS, 1 of 1, including transition ownership, denied deletion, reserved-log rejection, and private-audit access checks.
+- Adapter reconciliation: four private denial audits produced exactly four distinct authoritative Demo events before final reset.
+- Both repositories passed `git diff --check`.
+
+### Shared status boundary
+
+- Canonical Demo statuses now mark `BUG-20260822-003`, `BUG-20260822-005`, and `BUG-20260822-008` **Closed — verified**.
+- Gate 2 metrics/run lifecycle and Gate 3 stale-proxy/extension/composed validation remain pending. This focused receipt is not experiment readiness, a composed workflow receipt, or permission to begin human runs.
+- `BLOCK-20260822-001` remains blocked until Bugs 001–008 are closed and a fresh composed workflow gate passes. Public onboarding remains separately blocked by `BLOCK-20260822-002`.
+
+## 20:12 CDT — Gate 1 documentation truth synchronization
+
+### Current-facing documentation corrections
+
+- Replaced obsolete remote/global Supabase setup with guarded loopback local-first `npx supabase` and repository reset-wrapper guidance.
+- Updated the documentation index, feature status, Supply List handoff correction, and user audit checklist to match database-owned Supply RPCs, exact owner/state transition limits, private denial audits, and the authoritative adapter path.
+- Mirrored Demo's canonical Gate 1 status without claiming Gate 2, Gate 3, composed-workflow, experiment, public-onboarding, or human-study readiness.
+- Preserved historical session/report/handoff bodies; the completed Supply List handoff received a dated correction rather than a rewritten history.
+
+### Validation and limits
+
+- **Phase B verified:** approved documentation scans for obsolete personal paths, global Supabase installation, remote link/push/reset examples, broad destructive test cleanup, stale role wording, and outdated static/scaffold claims passed.
+- The Demo and Festival normative runbooks are byte-identical, use the guarded Festival reset wrapper, and preserve `late-tester-d` as editor and `viewer-b` as the viewer-denial actor.
+- The two runbooks are byte-identical at SHA-256 `4ae5fc379ea5cf5a89e95cb263f575863692b65dc68cb29bffb6ce289fc70ee8`; `git diff --check` passed in both repositories after the documentation edits.
+- `ISSUE-20260822-007` remains **In progress**. Closure still requires the broader current-facing scan, command/path verification, final byte-identical runbooks, and the documentation updates triggered by accepted Gate 2 and Gate 3 receipts. `ISSUE-20260822-008`, both blockers, Gate 2, and Gate 3 retain their canonical Demo statuses.
+- This documentation pass changed no code, contracts, migrations, tests, scripts, packages, credentials, generated state, services, remote resources, commits, pushes, PRs, or deployments.
+
+## 20:45 CDT — Unlogged `next3` implementation reconciliation
+
+### Ref correction
+
+- This repository is checked out on `next3` at `740dbc1` (`clean: document cleanup`), pushed to `origin/next3`, with no open pull request. `main` remains `4479bde`, so the earlier merge receipts stay accurate for `main`.
+- Despite its commit message, `740dbc1` carries implementation: the Gate 1 authoritative supply-mutation migration and adapter work already described in the 20:01 note, plus previously unlogged Gate 3 stale-proxy work.
+
+### Previously unlogged Festival change
+
+- `scripts/demo/stale-proxy.mjs` now derives an identity from the request bearer token (`sub`, `session_id`, and a digest of the opaque token), arms only for `editor-a` on one exact canonicalized `supply_items` read, keys the cached response on identity plus canonical query, and expires the armed condition on a TTL so the condition fails open.
+- `tests/demo/stale-proxy.test.mjs` covers session and query isolation and TTL expiry against a spawned mock upstream.
+
+### Gap found by reading the code
+
+- The proxy is scoped but not composed. `tests/demo/equipment-handoff.spec.ts` still targets `EXPO_PUBLIC_SUPABASE_URL` / `127.0.0.1:54321`, and `scripts/demo/run-equipment-test.sh` never launches the proxy. The documented two-session stale condition is unwired, not merely unverified. This is a static observation; nothing was executed.
+
+### Shared status boundary
+
+- Canonical Demo `docs/agent-logs/CURRENT.md` now records `BUG-20260822-006` as **In progress** rather than Open, and moves the Demo-owned `BUG-20260822-004` and `BUG-20260822-007` to **Implemented — awaiting verification**. Do not mint a separate Festival ID for the proxy defect.
+- No bug is closed. Gate 2, Gate 3, composed-workflow, experiment, public-onboarding, and human-study readiness are all unchanged, and `BLOCK-20260822-001` and `BLOCK-20260822-002` still stand.
+- Next Festival-owned task: route the live two-session equipment test through the proxy and prove per-session isolation, restoring canonical fingerprint `7d1385137cf6f12fa326000ead9e86fbe71f9907959a62aba62b3501e4bdc06a` before and after. That task holds the Festival stack exclusively; the Demo manual extension exercise must wait until it releases.
+
+### Validation
+
+- Read-only pass. Branch, ref, remote, pull-request, and commit-content inspection only. No lint, TypeScript, deterministic test, reset, seed, browser test, or service start was run, and no code, migration, script, test, credential, generated state, or remote resource was changed.
+
+## 21:15 CDT — Ref reality, restored notes, and the Demo `0005` repair
+
+This section supersedes the ref statements in the 20:45 section above, which described this repository as sitting on an unmerged `next3`.
+
+### What actually happened to the branches
+
+- Festival `next3` was merged and its remote branch deleted. Festival `main` is now `14df183` (`Next3 (#6)`) and does contain the scoped stale proxy and the Gate 1 authoritative supply-mutation migration, verified against the merged tree.
+- The merge did **not** include local commit `1f05ea8` (`docs: sesstion notes`), so the 20:01 and 20:12 session-note sections above were absent from `main`. This branch restores them; they are unchanged from the local commit and are not new claims.
+- Demo is the opposite case: its `next3` is **not** merged. Demo `main` does not yet contain the Gate 2/Gate 3 implementation, which reaches `main` only through open Demo PR #4.
+- New Festival work branches from `main`, which is ready today and independent of Demo PR #4.
+
+### Corrected shared status
+
+- The Demo-owned `BUG-20260822-004` is **Implemented — awaiting verification**. It was briefly recorded as failing because Demo's suite was red; the cause is fixed. See the Demo log for the receipt.
+- Demo's `0005_experiment_lifecycle.sql` pinned `set search_path = pg_catalog, public` on a trigger function whose body declares `experiment_runs%rowtype`, which the PL/pgSQL validator resolves at `CREATE FUNCTION` time. On a clean database the migration failed outright; on a database whose `public` schema already held the tables it applied but resolved the wrong table at runtime. The pin was removed and Demo's suite is green again. Nothing in this repository was involved.
+- `BUG-20260822-006` remains **In progress** and Festival-owned. Do not mint a separate Festival ID for it.
+- No bug is closed. Gate 2, Gate 3, composed-workflow, experiment, public-onboarding, and human-study readiness are unchanged, and both blockers stand.
+
+### Next Festival task, unchanged
+
+- Route the live two-session equipment test through the stale proxy and prove one session consumes the armed condition while a concurrent session does not, restoring canonical fingerprint `7d1385137cf6f12fa326000ead9e86fbe71f9907959a62aba62b3501e4bdc06a` before and after. That task holds the Festival stack exclusively.
+- Establish a lint, TypeScript, and deterministic-test baseline first. No current receipt covers the proxy code now on `main`; the 43-test receipt predates it.
+
+### Validation
+
+- Documentation only. Branch, ref, and merged-tree inspection in this repository; no lint, TypeScript, deterministic test, reset, seed, browser test, or service start was run here, and no Festival code, migration, script, test, credential, generated state, or remote resource was changed.
+- The Demo repair referenced above was verified in the Demo repository against a clean database: all migrations apply into an isolated schema, `go test -count=2 ./...` passes, and the contract conformance gate passes.
