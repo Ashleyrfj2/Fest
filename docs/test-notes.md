@@ -4,6 +4,16 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ## Outstanding Issues
 
+### Session Update (August 22, 2026 - Gate 3 Stale Proxy Composed With The Live Two-Session Test)
+- Baseline taken first on `main` at `525e121`, since no receipt covered the stale-proxy code already merged there: lint PASS, `tsc --noEmit` PASS, 43 of 43 deterministic tests PASS, 2 of 2 proxy mock tests PASS. Nothing was pre-broken.
+- Fixed the composition gap, not the proxy: `scripts/demo/run-equipment-test.sh` now launches `stale-proxy.mjs`, waits for it, and points `EXPO_PUBLIC_SUPABASE_URL` at it; `tests/demo/equipment-handoff.spec.ts` now fails closed if it is not running through the proxy, so this cannot silently regress.
+- Verified composed two-session isolation against live local Supabase, twice from a fresh seed: the concurrent `editor-a` session read `packed` while the arming session read `claimed` in the same concurrent pair, the arming session recovered to `packed` on its next read, and the database was never stale.
+- Proxy event log shows exactly one activation, one stale response served, and one `delivered` deactivation, all on the arming session's selector; no event carried the concurrent session's selector and no token material was logged.
+- Negative control: bypassing the proxy fails the run at the stale assertion with `packed` instead of `claimed`, so the assertion is not vacuous.
+- Reset fingerprints before and after both match canonical `7d1385137cf6f12fa326000ead9e86fbe71f9907959a62aba62b3501e4bdc06a`.
+- Not verified: browser/realtime composition (the 4173 export and `playwright.live-demo.config.ts` were not run), adapter reconciliation of stale evidence, and the Demo-side verification-request half. The running `demo-api-1` image predates the Gate 2/Gate 3 routes; only `/api/v1/events` was exercised.
+- `BUG-20260822-006` stays **In progress** and Festival-owned under canonical Demo `CURRENT.md`. This is not Gate 3 acceptance or composed-workflow readiness, and `BLOCK-20260822-001` stays blocked. Full receipt: `docs/sessions/session-notes-2026-08-22.md`.
+
 ### Session Update (August 22, 2026 - Branch Reality Corrected)
 - Supersedes the branch statement in the block below. Festival `next3` was merged and deleted; `main` is `14df183` (`Next3 (#6)`) and carries the scoped stale proxy and the Gate 1 supply-mutation migration. Branch new Festival work from `main`.
 - The merge missed local commit `1f05ea8`, so the 20:01 and 20:12 session notes were absent from `main`. This change restores them unchanged.

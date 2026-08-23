@@ -261,3 +261,68 @@ This section supersedes the ref statements in the 20:45 section above, which des
 
 - Documentation only. Branch, ref, and merged-tree inspection in this repository; no lint, TypeScript, deterministic test, reset, seed, browser test, or service start was run here, and no Festival code, migration, script, test, credential, generated state, or remote resource was changed.
 - The Demo repair referenced above was verified in the Demo repository against a clean database: all migrations apply into an isolated schema, `go test -count=2 ./...` passes, and the contract conformance gate passes.
+
+## 21:45 CDT — Gate 3 stale-proxy composition with the live two-session workflow
+
+Festival-owned work on `BUG-20260822-006`. Branch `gate3/stale-proxy-composition`, cut from `main` at `525e121`.
+
+### Baseline before any change
+
+Taken first, because no current receipt covered the stale-proxy code already on `main`; the 43-test receipt predates it.
+
+- `npm run lint -- --no-cache`: PASS, no findings.
+- `npx tsc --noEmit`: PASS, no diagnostics.
+- `npm test`: PASS, 43 of 43 deterministic tests.
+- `npm run test:demo-proxy`: PASS, 2 of 2 isolated mock-upstream tests.
+
+Nothing was already failing, so every result below is attributable to this change.
+
+### What was actually wired
+
+The defect was composition, not proxy scoping. The proxy was correct and untested against the real application; nothing routed the live workflow through it.
+
+- `scripts/demo/run-equipment-test.sh` now derives the upstream Supabase host/port from `supabase status`, refuses a non-loopback upstream, requires the generated demo manifest, launches `scripts/demo/stale-proxy.mjs`, waits for it to accept connections, and only then runs Playwright with `EXPO_PUBLIC_SUPABASE_URL` pointed at the proxy. A trap terminates the proxy on any exit path. The real upstream stays available to callers as `FESTNEST_SUPABASE_DIRECT_URL`.
+- `tests/demo/equipment-handoff.spec.ts` now fails closed when `FESTNEST_STALE_PROXY_LOG` is absent. This is deliberate: without it the spec would silently revert to a direct Supabase run and the composition could regress unnoticed, which is exactly how the original defect survived.
+- The spec's supply-list read mirrors the query `lib/hooks/useSupplyList.ts` actually issues (`select=*,claimedByUser:...`, `trip_id=eq.<trip>`, `order=created_at.asc`) rather than inventing a query shaped to satisfy the proxy.
+- Scenario step 4 is now genuinely two-session. A second independent password sign-in for `editor-a@example.test` yields the same `sub` with a different `session_id`; both were asserted. Session A primes the read, packs the canopy, and the two sessions then issue the identical query concurrently via `Promise.all`.
+- `.gitignore` now excludes `test-results/` and `playwright-report/`, which the failure-trace setting produces.
+
+### Verified — composed two-session condition passed
+
+- `npm run test:demo`: PASS, 1 of 1, run twice from a freshly reset database.
+- Application-layer isolation, live against local Supabase through the proxy: the concurrent session B read `packed` (fresh), the arming session A read `claimed` (stale) in the same concurrent pair, session A's next read returned `packed` (fails open after a single delivery), and an independent authoritative read confirmed the database itself was never stale.
+- Proxy-layer isolation, from the proxy's own event log: exactly one `stale_condition_activated`, one `stale_response_served`, and one `stale_condition_deactivated` with reason `delivered`, all carrying the arming session's selector digest. No event carried session B's selector. No access token or anon key appeared in the log.
+- **Negative control.** The same spec run with `EXPO_PUBLIC_SUPABASE_URL` pointed straight at `127.0.0.1:54321` fails at `expect(canopyStatus(armingView)).toBe('claimed')` with received `"packed"`. The stale assertion is produced by the composed proxy and is not vacuous.
+- Post-change gate re-run: lint PASS, `tsc --noEmit` PASS, 43 of 43 deterministic tests PASS, 2 of 2 proxy mock tests PASS.
+- Sibling Demo API confirmed up before it was relied on: `demo-api-1` published on `127.0.0.1:8080`, `/healthz` `200`, unauthenticated evidence POST `401`, authenticated POST distinguishable at `403` on a deliberately invalid payload. The composed run's final authenticated agent-event ingest was accepted.
+
+### Reset fingerprints
+
+`./scripts/demo/reset-demo.sh` was run before the work and again after the final run.
+
+- Starting fingerprint: `7d1385137cf6f12fa326000ead9e86fbe71f9907959a62aba62b3501e4bdc06a`
+- Final fingerprint: `7d1385137cf6f12fa326000ead9e86fbe71f9907959a62aba62b3501e4bdc06a`
+
+Both match the canonical value. Intermediate resets between the positive runs and the negative control reproduced the same fingerprint. No mismatch was observed and nothing was papered over.
+
+### Not verified by this work
+
+- **Browser composition.** `tests/demo/equipment-handoff.spec.ts` is an HTTP-level two-session test, not a two-browser-context test. The Expo browser export at `127.0.0.1:4173` was never started and `playwright.live-demo.config.ts` was not run, so the proxy has not been composed with the rendered Supply List UI or with realtime. The proxy forwards WebSocket upgrades but that path is still unexercised.
+- **Adapter reconciliation.** `scripts/demo/activity-log-adapter.mjs` was not run in this session; no claim is made about stale evidence reaching Demo verification or routing.
+- **Demo-side consumption.** Demo owns creating and closing the matching verification request without cross-state leakage. That half of the stale workstream is untouched here.
+- **Demo container currency.** `demo-api-1` answers `404` on `/api/v1/builds`, `/runs`, `/metrics`, and `/candidates`, so the running image predates the Gate 2/Gate 3 routes. Only `/api/v1/events` was exercised.
+- No metric, extension, recording, or human-run activity was performed.
+
+### Shared status boundary
+
+- `BUG-20260822-006` remains **In progress** and Festival-owned under canonical Demo `docs/agent-logs/CURRENT.md`. No Festival-specific ID was minted and Demo's log was not edited.
+- This is **not** Gate 3 acceptance and **not** a composed-workflow readiness claim. It closes the specific unwired-composition gap recorded at 20:45 and 21:15, at the HTTP layer only.
+- `BLOCK-20260822-001` stays **Blocked** regardless of this result. `BLOCK-20260822-002`, Gate 2, and the extension work are unchanged.
+- `DEC-20260822-006` de-scopes production security posture but not evidence integrity. Nothing here weakens RLS: the proxy forwards all non-armed traffic untouched, every existing authorization assertion in the spec still runs through it and still passes, and no viewer mutation succeeded.
+
+### Validation
+
+- Local and synthetic data only. Local Supabase and the loopback Demo API. No production Festival data, no remote reset or seed, no credential printed into any artifact or document.
+- Festival stack held exclusively for the duration; the Demo manual extension exercise may proceed once this releases it.
+- Changed files: `scripts/demo/run-equipment-test.sh`, `tests/demo/equipment-handoff.spec.ts`, `.gitignore`, `docs/sessions/session-notes-2026-08-22.md`, `docs/test-notes.md`.
+- Committed and pushed to `gate3/stale-proxy-composition`. Not merged; no pull request opened.

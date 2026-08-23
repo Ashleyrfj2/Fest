@@ -22,3 +22,7 @@ CLAUDE.local.md
 supabase/.temp/
 
 demo/.generated/
+
+# Playwright run artifacts (traces are retained on failure)
+test-results/
+playwright-report/
