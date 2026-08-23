@@ -71,9 +71,27 @@ Festival/
 
 Status changes frequently and is tracked in docs rather than this README snapshot:
 
+- `docs/QA_PLATFORM_INTEGRATION.md` for QA Platform integration and Gate 3 verification details
 - `docs/handoffs/feature-handoff-index.md` for current module status and next priorities
 - `docs/test-notes.md` for active QA issues and follow-up items
 - `docs/sessions/` for dated implementation history
+
+## QA Platform Integration
+
+Festival serves as the real rendered target application for the Demo QA-Platform thesis MVP.
+
+- **Browser Export Command**:
+  ```bash
+  node scripts/export-browser-app.mjs
+  ```
+- **Browser Target**: `http://127.0.0.1:4173`
+- **Controlled Integration Target Route**: `/trips/10000000-0000-4000-8000-000000000001/camp-grid` (`Start Building` button)
+- **Verified Integration Status**: **Gate 3 PASS** (Verified August 23, 2026)
+
+### Database Isolation & Trust Boundaries
+- Festival local Supabase runs on port `54321` and must remain running for the rendered application.
+- Festival does **not** own Demo telemetry persistence, candidate-state semantics, extension credentials, or the Demo database (`qa_platform` on `54332`).
+- **NEVER** copy Supabase URLs, keys, JWTs, migrations, reset commands, or database credentials between Festival and Demo.
 
 ## Tech Stack
 
