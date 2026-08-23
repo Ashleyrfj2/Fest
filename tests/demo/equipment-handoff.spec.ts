@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
@@ -6,6 +7,7 @@ const QA_API_URL = process.env.QA_API_BASE_URL || 'http://127.0.0.1:8080';
 const QA_AGENT_API_TOKEN = process.env.QA_AGENT_API_TOKEN;
 const ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 const SERVICE_ROLE_KEY = process.env.SERVICE_ROLE_KEY;
+const STALE_PROXY_LOG = process.env.FESTNEST_STALE_PROXY_LOG;
 const PASSWORD = process.env.FESTNEST_DEMO_PASSWORD || 'FestNestLocalOnly!2026';
 const TRIP_ID = '10000000-0000-4000-8000-000000000001';
 const CANOPY_ID = '10000000-0000-4000-8000-000000000101';
@@ -33,6 +35,48 @@ function headers(accessToken: string, prefer = 'return=representation') {
   return { apikey: ANON_KEY!, authorization: `Bearer ${accessToken}`, 'content-type': 'application/json', prefer };
 }
 
+// Mirrors the canonicalized read the Supply List screen issues in lib/hooks/useSupplyList.ts.
+// The stale proxy arms on exactly this shape, so the test must not invent its own query.
+const SUPPLY_LIST_SELECT = '*,claimedByUser:users!supply_items_claimed_by_fkey(id,display_name,avatar_color)';
+
+function supplyListURL() {
+  const params = new URLSearchParams({
+    select: SUPPLY_LIST_SELECT,
+    trip_id: `eq.${TRIP_ID}`,
+    order: 'created_at.asc',
+  });
+  return `${SUPABASE_URL}/rest/v1/supply_items?${params.toString()}`;
+}
+
+async function readSupplyList(accessToken: string) {
+  const response = await fetch(supplyListURL(), { headers: headers(accessToken) });
+  expect(response.ok).toBeTruthy();
+  return response.json() as Promise<Array<{ id: string; status: string; claimed_by: string | null }>>;
+}
+
+function canopyStatus(rows: Array<{ id: string; status: string }>) {
+  const canopy = rows.find((row) => row.id === CANOPY_ID);
+  expect(canopy, 'supply list response must contain the shared canopy').toBeTruthy();
+  return canopy!.status;
+}
+
+function sessionID(accessToken: string) {
+  const claims = JSON.parse(Buffer.from(accessToken.split('.')[1], 'base64url').toString('utf8'));
+  expect(typeof claims.session_id, 'Supabase access token must carry a session_id claim').toBe('string');
+  return String(claims.session_id);
+}
+
+// The proxy records only a truncated digest of a session selector, never the token.
+function sessionSelector(accessToken: string) {
+  return createHash('sha256').update(sessionID(accessToken)).digest('hex').slice(0, 16);
+}
+
+function readProxyEvents() {
+  const raw = readFileSync(STALE_PROXY_LOG!, 'utf8').trim();
+  if (!raw) return [] as Array<Record<string, unknown>>;
+  return raw.split('\n').filter(Boolean).map((line) => JSON.parse(line) as Record<string, unknown>);
+}
+
 function eventID(seed: string) {
   const hex = createHash('sha256').update(seed).digest('hex').slice(0, 32);
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-5${hex.slice(13, 16)}-8${hex.slice(17, 20)}-${hex.slice(20)}`;
@@ -51,6 +95,11 @@ async function supplyRPC(accessToken: string, functionName: 'transition_supply_i
 test('equipment handoff preserves shared state and viewer RLS denial', async () => {
   if (!QA_AGENT_API_TOKEN) throw new Error('QA_AGENT_API_TOKEN is required');
   if (!SERVICE_ROLE_KEY) throw new Error('SERVICE_ROLE_KEY is required');
+  // Fail closed rather than silently regressing to a direct Supabase run: the stale
+  // condition only exists when this live workflow is composed with the proxy.
+  if (!STALE_PROXY_LOG) {
+    throw new Error('FESTNEST_STALE_PROXY_LOG is required; run scripts/demo/run-equipment-test.sh so the live test runs through the stale proxy');
+  }
   requireLoopback(SUPABASE_URL);
   requireLoopback(QA_API_URL);
   const leader = await signIn('leader@example.test');
@@ -92,12 +141,49 @@ test('equipment handoff preserves shared state and viewer RLS denial', async () 
   }).then((response) => response.json());
   expect(observedClaim).toEqual([{ id: CANOPY_ID, status: 'claimed', claimed_by: editor.user.id }]);
 
+  // Scenario step 4, composed: editor A marks the canopy packed during a controlled
+  // stale condition while a second, concurrent editor-A session observes the same trip.
+  const editorSessionB = await signIn('editor-a@example.test');
+  expect(editorSessionB.user.id).toBe(editor.user.id);
+  expect(sessionID(editorSessionB.access_token)).not.toBe(sessionID(editor.access_token));
+
+  const primedList = await readSupplyList(editor.access_token);
+  expect(canopyStatus(primedList)).toBe('claimed');
+
   const packed = await supplyRPC(editor.access_token, 'transition_supply_item', {
     p_item_id: CANOPY_ID,
     p_transition: 'pack',
   });
   expect(packed.applied).toBeTruthy();
   expect(packed.item).toMatchObject({ status: 'packed', claimed_by: editor.user.id });
+
+  const [concurrentView, armingView] = await Promise.all([
+    readSupplyList(editorSessionB.access_token),
+    readSupplyList(editor.access_token),
+  ]);
+  // The concurrent session must never consume another session's armed condition.
+  expect(canopyStatus(concurrentView)).toBe('packed');
+  // The arming session sees exactly one stale response.
+  expect(canopyStatus(armingView)).toBe('claimed');
+  const recoveredView = await readSupplyList(editor.access_token);
+  expect(canopyStatus(recoveredView)).toBe('packed');
+  // Database state was never stale; only the arming session's response was.
+  const authoritativeCanopy = await fetch(`${SUPABASE_URL}/rest/v1/supply_items?id=eq.${CANOPY_ID}&select=id,status`, {
+    headers: headers(editorSessionB.access_token),
+  }).then((response) => response.json());
+  expect(authoritativeCanopy).toEqual([{ id: CANOPY_ID, status: 'packed' }]);
+
+  const proxyEvents = readProxyEvents();
+  const served = proxyEvents.filter((event) => event.type === 'stale_response_served');
+  expect(proxyEvents.filter((event) => event.type === 'stale_condition_activated')).toHaveLength(1);
+  expect(served).toHaveLength(1);
+  expect(proxyEvents.filter((event) => event.type === 'stale_condition_deactivated' && event.reason === 'delivered')).toHaveLength(1);
+  expect(served.map((event) => event.session_selector)).toEqual([sessionSelector(editor.access_token)]);
+  expect(proxyEvents.some((event) => event.session_selector === sessionSelector(editorSessionB.access_token))).toBeFalsy();
+  const serializedProxyEvents = JSON.stringify(proxyEvents);
+  for (const secret of [editor.access_token, editorSessionB.access_token, ANON_KEY!]) {
+    expect(serializedProxyEvents.includes(secret)).toBeFalsy();
+  }
 
   for (const transition of ['claim', 'pack', 'unpack', 'unclaim'] as const) {
     const result = await supplyRPC(viewer.access_token, 'transition_supply_item', {
