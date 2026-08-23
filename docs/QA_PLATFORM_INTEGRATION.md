@@ -21,12 +21,15 @@ A Festival route or state visit is **not automatically knowledge that a behavior
 ## 2. Local integration target
 
 - **Target Application**: Festival (React Native / Expo Web Export)
+- **Repository**: `Ashleyrfj2/Fest`
 - **Browser Build Command**:
 
 ```bash
-cd /Users/ashley/code/Festival
+cd "$FESTIVAL_REPO_ROOT"
 node scripts/export-browser-app.mjs
 ```
+
+Resolve `FESTIVAL_REPO_ROOT` from the active checkout rather than depending on a developer-specific absolute path.
 
 - **Local Application Target**: `http://127.0.0.1:4173`
 - **Controlled Integration Route**: `/trips/10000000-0000-4000-8000-000000000001/camp-grid`
@@ -101,17 +104,20 @@ Target sequence:
 
 Festival's controlled claim definitions are documented in `docs/thesis-demo/FESTIVAL_CLAIM_CATALOG.md`.
 
-## 6. Trust boundaries and database isolation
+## 6. Trust boundaries and local service ports
 
 The Festival and Demo repositories operate across strict, independent trust boundaries.
 
-### Festival application database
+### Festival local Supabase
 
-`postgres/Supabase` on `127.0.0.1:54321`:
+Festival's local Supabase stack uses distinct service ports:
 
-- stores Festival trip/application data, users, roles, equipment, invites, and application-side audit/activity data;
-- is owned by Festival;
-- must remain independent of Demo persistence and migrations.
+- **Supabase API:** `http://127.0.0.1:54321`
+- **Festival PostgreSQL:** `127.0.0.1:54322`
+- **Supabase Studio:** `http://127.0.0.1:54323`
+- **Local email inbox:** `http://127.0.0.1:54324`
+
+Festival PostgreSQL stores Festival trip/application data, users, roles, equipment, invites, and application-side audit/activity data. It is owned by Festival and must remain independent of Demo persistence and migrations.
 
 ### Demo QA database
 
@@ -134,9 +140,11 @@ The Festival and Demo repositories operate across strict, independent trust boun
 Read in this order for thesis work:
 
 1. Demo `docs/agent-logs/CURRENT.md` — current verified implementation state.
-2. Demo `docs/architecture.md` — canonical four-layer product/data architecture.
-3. Demo `docs/festival-virtual-qa-environment.md` — cross-repository execution runbook.
-4. Festival `docs/thesis-demo/FESTIVAL_CLAIM_CATALOG.md` — controlled behavioral claim vocabulary.
-5. Festival `docs/thesis-demo/festival-virtual-qa-environment.md` — Festival-side environment/runbook.
+2. Demo `docs/CANONICAL_MVP.md` — compact canonical product/MVP definition.
+3. Demo `docs/architecture.md` — canonical four-layer product/data architecture.
+4. Demo `docs/EXPERIMENT_METRICS.md` — fixed-budget experiment and metric definitions.
+5. Demo `docs/festival-virtual-qa-environment.md` — cross-repository execution runbook.
+6. Festival `docs/thesis-demo/FESTIVAL_CLAIM_CATALOG.md` — controlled behavioral claim vocabulary.
+7. Festival `docs/thesis-demo/festival-virtual-qa-environment.md` — Festival-side environment/runbook.
 
 Older dated reports remain historical verification receipts, not the current product architecture.
