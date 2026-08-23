@@ -4,8 +4,14 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ## Outstanding Issues
 
+### Session Update (August 22, 2026 - Branch Reality Corrected)
+- Supersedes the branch statement in the block below. Festival `next3` was merged and deleted; `main` is `14df183` (`Next3 (#6)`) and carries the scoped stale proxy and the Gate 1 supply-mutation migration. Branch new Festival work from `main`.
+- The merge missed local commit `1f05ea8`, so the 20:01 and 20:12 session notes were absent from `main`. This change restores them unchanged.
+- Sibling Demo is the opposite: its `next3` is **not** merged, and Demo `main` lacks the Gate 2/Gate 3 code until Demo PR #4 lands. Demo's suite was briefly red from a `search_path` pin in its `0005` migration; that is fixed and green, and `BUG-20260822-004` is **Implemented — awaiting verification**.
+- Before the proxy composition task, establish a lint/typecheck/deterministic-test baseline. No current receipt covers the proxy code now on `main`.
+
 ### Session Update (August 22, 2026 - Unlogged `next3` Implementation Reconciled)
-- This repository is on branch `next3` at `740dbc1`, not `main` (`4479bde`). Despite its documentation-only commit message, `740dbc1` also carries the Gate 1 supply-mutation work and previously unlogged Gate 3 stale-proxy scoping.
+- Branch reference below is superseded by the block above. Despite its documentation-only commit message, `740dbc1` also carries the Gate 1 supply-mutation work and previously unlogged Gate 3 stale-proxy scoping.
 - The stale proxy is now scoped to one actor, session, credential digest, and exact canonicalized query with a fail-open TTL, covered by isolated mock tests.
 - Still open: the live two-session equipment test targets Supabase directly and `run-equipment-test.sh` never launches the proxy, so the composed stale condition is unwired. `BUG-20260822-006` is **In progress** under canonical Demo `CURRENT.md`; do not mint a Festival-specific ID for it.
 - Read-only reconciliation. No lint, typecheck, test, reset, seed, or browser run was performed. See the dated session note for the full receipt.
