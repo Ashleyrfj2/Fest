@@ -39,7 +39,9 @@ The minimum depth below is the intended threshold for the **controlled demo**, s
 | `FEST-CLAIM-05` | A viewer cannot perform the controlled privileged delete mutation. | Supply List authorization | canopy exists → delete attempt denied, item remains | viewer member | `RolePermissionEnforcement` | High | 3 | database-owned denial result/audit + item still present |
 | `FEST-CLAIM-06` | A denied privileged viewer mutation produces the expected immutable authorization evidence without exposing sensitive before/after payloads. | Supply List private denial audit | denied mutation → audit evidence exists | viewer member | `AuditEventCreated` | High | 4 | private database audit path normalized through Festival adapter |
 | `FEST-CLAIM-07` | After the controlled stale/offline refresh condition ends, the client converges to the authoritative packed state. | Supply List realtime/reconciliation | stale client view → authoritative packed view | editor/late tester in controlled build | `DataPersistenceOnRefresh` | High | 3 | fresh browser requery plus authoritative persisted state |
-| `FEST-CLAIM-08` | Two independent validator modalities can observe the same controlled behavior without being counted as identical corroboration. | Demo evidence interpretation of Festival claim | same claim, distinct source provenance | human + Playwright/agent or database verifier | `IndependentVerification` | Medium | 3 | source provenance shows human vs Playwright/database-backed evidence |
+| `FEST-CLAIM-08` | A trip member who does not own a claimed canopy cannot pack it, and the authoritative item state remains unchanged after the denied attempt. | Supply List ownership authorization | claimed by another member → pack attempt denied, item remains claimed | authenticated non-owner trip member | `RolePermissionEnforcement` | High | 3 | database-owned denial audit + authoritative item requery confirms unchanged state |
+
+`FEST-CLAIM-08` is intentionally a **Festival behavior claim**. Source independence is evaluated later by Demo's evidence-reconciliation layer and is not itself a behavioral claim in this catalog.
 
 ## How the accelerator demo should use these claims
 
@@ -49,7 +51,7 @@ Recommended visible sequence:
 
 1. Start with `FEST-CLAIM-04` as **Weak** after a human performs the pack action but persistence has not been verified.
 2. Run a Playwright/backend verification. If persisted state survives refresh, move the claim toward **Solid**; if authoritative state disagrees, show **Conflicted**.
-3. Keep `FEST-CLAIM-05` or `FEST-CLAIM-07` **Untouched** or uncertain at the start.
+3. Keep `FEST-CLAIM-05`, `FEST-CLAIM-07`, or `FEST-CLAIM-08` **Untouched** or uncertain at the start.
 4. Let the information-value router recommend the higher-value remaining claim with explicit rationale.
 5. Let `late-tester-d` accept or override the recommendation and record the reason.
 6. Update the ledger and recommendation order from the resulting observation.
@@ -75,6 +77,8 @@ Do not automatically promote a claim to Solid because:
 
 ## Source-independence examples
 
+Source independence is an **evidence-reconciliation dimension**, not a claim definition.
+
 Potentially useful independent combinations:
 
 - human browser interaction + backend/Supabase assertion;
@@ -91,8 +95,8 @@ Potentially correlated observations that should not be treated as strong indepen
 
 Use explicit/manual weights for the demo. Suggested relative ordering:
 
-1. **High** — permission enforcement, persistence correctness, stale/reconciliation correctness.
-2. **Medium** — normal create/claim/pack transitions, useful independent corroboration.
+1. **High** — permission/ownership enforcement, persistence correctness, stale/reconciliation correctness.
+2. **Medium** — normal create/claim/pack transitions and useful independent corroboration.
 3. **Low** — shallow cosmetic behavior not required for the core demo.
 
 The V0 router should recommend claims/areas, not click scripts.
@@ -106,6 +110,15 @@ environment_id  festnest-local-browser
 scenario_id     equipment-handoff-v1
 human actors    leader, editor-a, viewer-b, late-tester-d
 agent actor     playwright-agent-c
+```
+
+Canonical deterministic Festival roles are:
+
+```text
+leader         leader
+editor-a       editor
+viewer-b       viewer
+late-tester-d  editor
 ```
 
 These identifiers belong to the controlled local thesis environment and do not define the long-term product schema.
