@@ -11,7 +11,7 @@
 
 ## Current Product Framing
 
-The sibling Demo platform is now framed as a **Validation-Evidence System of Record + Information-Value Router**.
+The sibling Demo platform is a **Validation-Evidence System of Record + Information-Value Router**.
 
 A state visit is not treated as knowledge. Candidate-state identity remains useful supporting infrastructure, but the primary product model is:
 
@@ -28,7 +28,7 @@ Layer 3 — Evidence Reconciliation
 Layer 4 — Information-Value Router
 ```
 
-Festival's role is to remain the real controlled source application/environment. Demo owns claim identity, evidence contexts, observation linkage, evidence reconciliation, conflict/freshness/depth semantics, recommendations, correction history, and experiment metrics.
+Festival remains the controlled source application/environment. Demo owns claim identity, evidence contexts, observation linkage, evidence reconciliation, conflict/freshness/depth/source-independence semantics, recommendations, correction history, and experiment metrics.
 
 ## Current Accelerator-Demo Direction
 
@@ -39,23 +39,33 @@ Target demo sequence:
 1. a human performs a shallow action in Festival;
 2. the relevant claim becomes **Weak**, not automatically Solid;
 3. Playwright/agent/backend verification adds deeper evidence, producing **Solid** or **Conflicted**;
-4. the router recommends a high-risk weak/untouched claim with explicit reason text;
+4. the router recommends a high-risk Weak/Untouched/Conflicted claim with explicit reason text;
 5. a late-arriving human accepts or overrides;
 6. the evidence ledger and recommendation order update.
 
-Prefer **Build Validation**, **Validation Evidence**, or **Evidence Ledger** as the primary product/UI language. State maps and heatmaps may remain supporting visualizations.
+Prefer **Build Validation**, **Validation Evidence**, or **Evidence Ledger** as primary product/UI language. State maps and heatmaps may remain supporting visualizations.
 
 ## Where to Read First
 
-For the shared thesis demo, use this order:
+For shared thesis-demo work, use this order:
 
 1. sibling Demo `docs/agent-logs/CURRENT.md` — authoritative current verification state and immediate next work;
-2. sibling Demo `docs/architecture.md` — canonical claim-ledger / reconciliation / router architecture;
-3. sibling Demo `docs/festival-virtual-qa-environment.md` — executable cross-repository demo runbook;
-4. this repo's `docs/QA_PLATFORM_INTEGRATION.md` — Festival ↔ Demo trust boundary and verified Gate 3 integration;
-5. this repo's `docs/thesis-demo/festival-virtual-qa-environment.md` — Festival-side controlled environment guidance.
+2. sibling Demo `docs/CANONICAL_MVP.md` — compact canonical product/MVP definition;
+3. sibling Demo `docs/architecture.md` — claim-ledger / reconciliation / router architecture;
+4. sibling Demo `docs/EXPERIMENT_METRICS.md` — fixed-budget experiment and metric definitions;
+5. sibling Demo `docs/festival-virtual-qa-environment.md` — executable cross-repository demo runbook;
+6. this repo's `docs/QA_PLATFORM_INTEGRATION.md` — Festival ↔ Demo trust boundary and verified Gate 3 integration;
+7. this repo's `docs/thesis-demo/FESTIVAL_CLAIM_CATALOG.md` — controlled Festival claim catalog;
+8. this repo's `docs/thesis-demo/festival-virtual-qa-environment.md` — Festival-side controlled environment guidance;
+9. this repo's `docs/thesis-demo/TEST_NOTES_ADDENDUM_2026-08-23.md` when reading older chronological thesis entries in `docs/test-notes.md`.
 
-Older reports and dated session notes remain useful historical receipts, but they are not the current product architecture or gate-status authority.
+Older reports, test-note blocks, agent dispatch documents, and dated session notes remain useful historical receipts. Do not use superseded point-in-time status language from them as the current product architecture or gate truth.
+
+## Historical Thesis-Work Rule
+
+Do not rewrite dated receipts merely because later work changed the status. Add a superseding addendum or direct readers to the canonical current docs instead. This preserves evidence of what was known and verified at each point in time without allowing old prose to mislead future agents.
+
+The August 21 QA follow-up plan and its agent dispatch instructions are general Festival QA history, not the current thesis-demo roadmap. For thesis implementation, follow the current Demo roadmap and Festival claim/runbook documents listed above.
 
 ## Historical Product/App Documentation
 
@@ -82,6 +92,6 @@ Documentation is organized by purpose:
 - `sessions/` — dated session notes
 - `modules/` — module-specific deep docs
   - `camp-grid/`
-- `thesis-demo/` — controlled Festival environment used by the sibling Demo QA-platform thesis
+- `thesis-demo/` — controlled Festival environment and current thesis-specific docs
 
 If you are starting a normal Festival feature, begin with `handoffs/feature-handoff-index.md`. If you are working on the thesis demo, begin with the shared current-status and architecture sources listed above.
