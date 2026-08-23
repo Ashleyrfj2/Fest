@@ -4,6 +4,12 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ## Outstanding Issues
 
+### Session Update (August 22, 2026 - Unlogged `next3` Implementation Reconciled)
+- This repository is on branch `next3` at `740dbc1`, not `main` (`4479bde`). Despite its documentation-only commit message, `740dbc1` also carries the Gate 1 supply-mutation work and previously unlogged Gate 3 stale-proxy scoping.
+- The stale proxy is now scoped to one actor, session, credential digest, and exact canonicalized query with a fail-open TTL, covered by isolated mock tests.
+- Still open: the live two-session equipment test targets Supabase directly and `run-equipment-test.sh` never launches the proxy, so the composed stale condition is unwired. `BUG-20260822-006` is **In progress** under canonical Demo `CURRENT.md`; do not mint a Festival-specific ID for it.
+- Read-only reconciliation. No lint, typecheck, test, reset, seed, or browser run was performed. See the dated session note for the full receipt.
+
 ### Session Update (August 22, 2026 - Gate 1 Documentation Synchronized)
 - Current local setup, testing, feature-status, Supply List, handoff-index, and user-audit documentation now matches the accepted Gate 1 database-authoritative behavior.
 - The normative runbook identifies `late-tester-d` as editor, preserves `viewer-b` as the denial actor, and uses the guarded reset wrapper. The sibling Demo tutorial is explicitly historical and portable.

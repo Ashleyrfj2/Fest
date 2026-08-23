@@ -207,3 +207,29 @@ Demo:
 - The two runbooks are byte-identical at SHA-256 `4ae5fc379ea5cf5a89e95cb263f575863692b65dc68cb29bffb6ce289fc70ee8`; `git diff --check` passed in both repositories after the documentation edits.
 - `ISSUE-20260822-007` remains **In progress**. Closure still requires the broader current-facing scan, command/path verification, final byte-identical runbooks, and the documentation updates triggered by accepted Gate 2 and Gate 3 receipts. `ISSUE-20260822-008`, both blockers, Gate 2, and Gate 3 retain their canonical Demo statuses.
 - This documentation pass changed no code, contracts, migrations, tests, scripts, packages, credentials, generated state, services, remote resources, commits, pushes, PRs, or deployments.
+
+## 20:45 CDT — Unlogged `next3` implementation reconciliation
+
+### Ref correction
+
+- This repository is checked out on `next3` at `740dbc1` (`clean: document cleanup`), pushed to `origin/next3`, with no open pull request. `main` remains `4479bde`, so the earlier merge receipts stay accurate for `main`.
+- Despite its commit message, `740dbc1` carries implementation: the Gate 1 authoritative supply-mutation migration and adapter work already described in the 20:01 note, plus previously unlogged Gate 3 stale-proxy work.
+
+### Previously unlogged Festival change
+
+- `scripts/demo/stale-proxy.mjs` now derives an identity from the request bearer token (`sub`, `session_id`, and a digest of the opaque token), arms only for `editor-a` on one exact canonicalized `supply_items` read, keys the cached response on identity plus canonical query, and expires the armed condition on a TTL so the condition fails open.
+- `tests/demo/stale-proxy.test.mjs` covers session and query isolation and TTL expiry against a spawned mock upstream.
+
+### Gap found by reading the code
+
+- The proxy is scoped but not composed. `tests/demo/equipment-handoff.spec.ts` still targets `EXPO_PUBLIC_SUPABASE_URL` / `127.0.0.1:54321`, and `scripts/demo/run-equipment-test.sh` never launches the proxy. The documented two-session stale condition is unwired, not merely unverified. This is a static observation; nothing was executed.
+
+### Shared status boundary
+
+- Canonical Demo `docs/agent-logs/CURRENT.md` now records `BUG-20260822-006` as **In progress** rather than Open, and moves the Demo-owned `BUG-20260822-004` and `BUG-20260822-007` to **Implemented — awaiting verification**. Do not mint a separate Festival ID for the proxy defect.
+- No bug is closed. Gate 2, Gate 3, composed-workflow, experiment, public-onboarding, and human-study readiness are all unchanged, and `BLOCK-20260822-001` and `BLOCK-20260822-002` still stand.
+- Next Festival-owned task: route the live two-session equipment test through the proxy and prove per-session isolation, restoring canonical fingerprint `7d1385137cf6f12fa326000ead9e86fbe71f9907959a62aba62b3501e4bdc06a` before and after. That task holds the Festival stack exclusively; the Demo manual extension exercise must wait until it releases.
+
+### Validation
+
+- Read-only pass. Branch, ref, remote, pull-request, and commit-content inspection only. No lint, TypeScript, deterministic test, reset, seed, browser test, or service start was run, and no code, migration, script, test, credential, generated state, or remote resource was changed.
