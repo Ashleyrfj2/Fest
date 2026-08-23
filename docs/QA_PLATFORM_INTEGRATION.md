@@ -1,150 +1,206 @@
 # QA Platform Integration Guide
 
-This document describes how the Festival application integrates with the sibling Demo QA Platform.
+Last synchronized with Demo: 2026-08-23 18:04 CDT
 
-## 1. Product and repository boundary
+This document describes how Festival integrates with the sibling Demo QA Platform.
 
-Festival is the real, rendered **source application and controlled validation environment**. Demo is the vendor-neutral **Validation-Evidence System of Record + Information-Value Router**.
+## Product and repository boundary
 
-Festival provides application behavior and source observations. Demo owns the validation-evidence semantics above those observations:
+Festival is the real rendered **source application and controlled validation environment**.
+
+Demo is the vendor-neutral **Validation-Evidence System of Record + Information-Value Router** and owns:
 
 - `ClaimDefinition` identity;
 - `EvidenceContext` identity;
 - observation-to-claim linkage;
 - evidence provenance and reconciliation;
-- confidence, freshness, verification depth, source independence, context compatibility, and conflict handling;
-- derived evidence labels such as **Solid / Weak / Stale / Conflicted / Untouched / Blocked**;
-- recommendation events, accept/override feedback, and experiment metrics.
+- derived evidence labels;
+- next-validation routing;
+- recommendation feedback/corrections;
+- experiment metrics.
 
-A Festival route or state visit is **not automatically knowledge that a behavior is valid**. Candidate-state identity remains useful capture/canonicalization infrastructure, while the refined product model reasons about behavioral claims and the evidence that supports or contradicts them.
+A Festival route/state visit is not automatically proof that a behavior is valid.
 
-## 2. Local integration target
+## Current shared milestone status
 
-- **Target Application**: Festival (React Native / Expo Web Export)
-- **Repository**: `Ashleyrfj2/Fest`
-- **Browser Build Command**:
+```text
+Gate 1  PASS
+Gate 2  PASS
+Gate 3  PASS
+M4A     PASS
+M4B     PASS
+M4C     PASS
+M4D     NEXT
+```
+
+Current Demo M4C commit:
+
+```text
+31a5a18 feat: add evidence reconciliation v0
+```
+
+M4C verification before commit: **25/25 backend integration tests PASS** and **7/7 Gate 3 preflight checks PASS**.
+
+## Local integration target
+
+- Repository: `Ashleyrfj2/Fest`
+- Browser export:
 
 ```bash
 cd "$FESTIVAL_REPO_ROOT"
 node scripts/export-browser-app.mjs
 ```
 
-Resolve `FESTIVAL_REPO_ROOT` from the active checkout rather than depending on a developer-specific absolute path.
+- Festival web: `http://127.0.0.1:4173`
+- Controlled route: `/trips/10000000-0000-4000-8000-000000000001/camp-grid`
+- Verified Gate 3 natural interaction: `Start Building`
 
-- **Local Application Target**: `http://127.0.0.1:4173`
-- **Controlled Integration Route**: `/trips/10000000-0000-4000-8000-000000000001/camp-grid`
-- **Verified Interaction Target**: `<BUTTON role="button">Start Building</BUTTON>`
+## Gate 3 verification
 
-## 3. Gate 3 integration verification
-
-The live cross-repository Gate 3 integration between Festival and Demo was **successfully verified on August 23, 2026** (**STATUS: PASS**).
-
-### Verified chain
-
-1. Real Festival rendered DOM on `http://127.0.0.1:4173/trips/10000000-0000-4000-8000-000000000001/camp-grid`.
-2. Real unpacked Demo Chrome MV3 extension with capture-phase click handling.
-3. Event normalization and durable extension queue.
-4. Authenticated delivery to `http://127.0.0.1:8080/api/v1/events`.
-5. Demo candidate-scope canonicalization and `validation_events` persistence in PostgreSQL.
-6. Exact session/event correlation.
-7. Extension queue drain to `0`.
-
-Final verified receipt:
-
-- session: `session-gate3-final-1787473951348`
-- event: `6671ec3f-a50e-4ab0-9d7f-701701ed17ea`
-
-### What Gate 3 proves
-
-Gate 3 proves the **Layer 1 ingestion foundation plus foundational Layer 2 plumbing**:
-
-- passive unscripted browser capture;
-- local masking/minimal payload behavior;
-- durable delivery;
-- authenticated source provenance;
-- deterministic normalized event ingestion;
-- candidate-state/context canonicalization;
-- PostgreSQL persistence;
-- exact source/session correlation.
-
-Gate 3 does **not** by itself prove that Demo can accurately reconcile claim-level evidence, detect conflicts, or improve validation allocation. The August 23 refinement extends upward from this verified foundation rather than replacing it.
-
-## 4. Refined four-layer relationship
+Verified on 2026-08-23:
 
 ```text
-Festival / human / Playwright / agent / CI
-        ↓
-Layer 1 — Demo Ingestion + Normalization
-        ↓
-Layer 2 — Claim-Based Validation Ledger
-  ClaimDefinition + EvidenceContext + Observation
-        ↓
-Layer 3 — Evidence Reconciliation
-        ↓
-Layer 4 — Information-Value Router
-        ↓
-Build Validation / Evidence Ledger UI
+Festival rendered DOM
+→ unpacked Demo Chrome MV3 extension
+→ capture-phase click handling
+→ normalized ValidationEvent
+→ durable extension queue
+→ authenticated Demo Go API
+→ candidate-scope canonicalization
+→ Demo PostgreSQL persistence
+→ exact session/event correlation
+→ queue drain to 0
 ```
 
-Festival remains an execution environment and source of observations. It does not decide whether evidence is sufficient or what should be validated next.
+Final receipt:
 
-## 5. Accelerator-demo interpretation
+```text
+session = session-gate3-final-1787473951348
+event   = 6671ec3f-a50e-4ab0-9d7f-701701ed17ea
+```
 
-The accelerator demo should use approximately **6–10 predefined Festival behavioral claims** rather than present generic state coverage as the product.
+Gate 3 proves capture/provenance/delivery/persistence. It does not by itself prove the claim-level economic thesis.
 
-Target sequence:
+## Claim and evidence model
 
-1. a human performs a shallow action in Festival;
-2. Demo records that observation and the relevant claim becomes **Weak**, not automatically Solid;
-3. Playwright, an agent, a database verifier, or another independent source provides deeper evidence;
-4. the claim becomes **Solid** or **Conflicted** depending on the result;
-5. Demo recommends the highest-value weak/untouched/conflicted claim with explicit rationale;
-6. a late-arriving human accepts or overrides the recommendation;
-7. the ledger and recommendation order update.
+```text
+ClaimDefinition = Target + StateSignature + ActorContext + ValidationIntent
 
-Festival's controlled claim definitions are documented in `docs/thesis-demo/FESTIVAL_CLAIM_CATALOG.md`.
+EvidenceContext = Build + Environment + Tenant/Data Context
+                + Feature Flags + optional Device/Region + time
 
-## 6. Trust boundaries and local service ports
+Observation = validator result linked to claim/context/run
+```
 
-The Festival and Demo repositories operate across strict, independent trust boundaries.
+Festival provides application behavior and evidence sources. Demo decides evidence sufficiency/classification.
+
+## M4A/M4B now implemented in Demo
+
+Demo now persists claim definitions, evidence contexts, and observations. These are no longer future schema work.
+
+Important migration history:
+
+- Demo `0006_claim_evidence_ledger.sql` is empty in committed history.
+- Demo `0007_reconciliation_v0.sql` is the first reproducible migration containing the claim-ledger schema and includes a forward repair for pre-existing M4B observations constraints.
+
+Festival must not copy or apply Demo migrations.
+
+## M4C now implemented in Demo
+
+Demo exposes:
+
+```text
+GET /api/v1/claims/evidence
+```
+
+and computes backend-derived classifications:
+
+```text
+Solid / Weak / Stale / Conflicted / Untouched / Blocked
+```
+
+The current summary includes verification depth, freshness/context, source/observation counts, conflicts, reason text, and a nullable non-probabilistic heuristic score.
+
+Verification depth:
+
+```text
+1  surface / DOM
+2  client interaction/mutation
+3  backend/persistence/reload-requery
+4  cross-system/asynchronous
+```
+
+## Controlled Festival claim catalog
+
+Use:
+
+```text
+docs/thesis-demo/FESTIVAL_CLAIM_CATALOG.md
+```
+
+The current controlled set contains 8 behavioral claims for the group-equipment handoff scenario.
+
+Festival behavior claims remain normative for expected application behavior. Source independence/classification belongs to Demo.
+
+## Known M4C cross-repository semantic follow-ups
+
+Before the final demo relies on authorization/conflict edge cases:
+
+1. Demo currently labels contradict-only compatible evidence `Conflicted` even if there is no supporting observation.
+2. Demo currently treats `verifier_result` containing `denied_mutation` as `Blocked` before evaluating a supporting assessment. Festival authorization claims intentionally treat database-enforced denial as positive evidence that permission enforcement worked.
+
+These are Demo reconciliation implementation follow-ups. Do not weaken Festival authorization behavior or rewrite the claim catalog to hide them.
+
+## Next milestone
+
+**M4D — Shared Build Validation / Evidence Ledger UI** in Demo.
+
+The UI should consume Demo's M4C API rather than recompute evidence classifications.
+
+The eventual accelerator sequence remains:
+
+1. human shallow observation → **Weak**;
+2. deeper verifier → **Solid** or meaningful disagreement → **Conflicted**;
+3. information-value router recommends a high-value unresolved claim with explicit rationale;
+4. late human accepts or overrides;
+5. ledger and recommendation order update.
+
+## Trust boundaries and ports
 
 ### Festival local Supabase
 
-Festival's local Supabase stack uses distinct service ports:
+```text
+54321  Supabase API
+54322  Festival PostgreSQL
+54323  Studio
+54324  local email inbox
+```
 
-- **Supabase API:** `http://127.0.0.1:54321`
-- **Festival PostgreSQL:** `127.0.0.1:54322`
-- **Supabase Studio:** `http://127.0.0.1:54323`
-- **Local email inbox:** `http://127.0.0.1:54324`
+### Demo
 
-Festival PostgreSQL stores Festival trip/application data, users, roles, equipment, invites, and application-side audit/activity data. It is owned by Festival and must remain independent of Demo persistence and migrations.
+```text
+5173   Demo frontend
+8080   Demo API
+54332  Demo PostgreSQL
+```
 
-### Demo QA database
+Mandatory rules:
 
-`qa_platform` on `127.0.0.1:54332`:
-
-- stores Demo validation events and derived QA-platform state;
-- is owned by Demo;
-- is the persistence boundary for the validation-evidence system.
-
-### Mandatory rules
-
-- Festival does **not** own Demo claim/evidence semantics, extension bearer tokens, recommendation state, or Demo database tables.
-- Demo tools must not reset or mutate Festival Supabase except through the explicitly controlled application/test interfaces designed for the scenario.
-- **Never** copy Supabase URLs, keys, JWTs, database credentials, migrations, reset commands, or bearer tokens between Festival and Demo.
-- Never hardcode environment credentials or secrets in documentation or source files.
+- Festival application data stays in Festival Supabase/Postgres.
+- Demo evidence stays in Demo PostgreSQL.
+- Festival does not own Demo bearer credentials, reconciliation tables, recommendations, or metrics.
+- Demo tools must not reset Festival Supabase except through approved controlled application/test interfaces.
+- Never copy keys, JWTs, database URLs, migrations, reset commands, or bearer tokens between repositories.
 - Safety/Emergency data is outside the controlled thesis-demo scope.
 
-## 7. Source-of-truth docs
+## Source-of-truth reading order
 
-Read in this order for thesis work:
+1. Demo `docs/agent-logs/CURRENT.md`
+2. Demo `docs/CANONICAL_MVP.md`
+3. Demo `docs/architecture.md`
+4. Demo `docs/festival-virtual-qa-environment.md`
+5. Demo `docs/EXPERIMENT_METRICS.md`
+6. Festival `docs/thesis-demo/FESTIVAL_CLAIM_CATALOG.md`
+7. Festival `docs/thesis-demo/festival-virtual-qa-environment.md`
 
-1. Demo `docs/agent-logs/CURRENT.md` — current verified implementation state.
-2. Demo `docs/CANONICAL_MVP.md` — compact canonical product/MVP definition.
-3. Demo `docs/architecture.md` — canonical four-layer product/data architecture.
-4. Demo `docs/EXPERIMENT_METRICS.md` — fixed-budget experiment and metric definitions.
-5. Demo `docs/festival-virtual-qa-environment.md` — cross-repository execution runbook.
-6. Festival `docs/thesis-demo/FESTIVAL_CLAIM_CATALOG.md` — controlled behavioral claim vocabulary.
-7. Festival `docs/thesis-demo/festival-virtual-qa-environment.md` — Festival-side environment/runbook.
-
-Older dated reports remain historical verification receipts, not the current product architecture.
+Older dated reports remain historical verification receipts, not current implementation status.

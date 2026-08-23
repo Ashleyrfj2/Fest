@@ -1,5 +1,7 @@
 # Festival Thesis Demo — Claim Catalog
 
+Last synchronized with Demo: 2026-08-23 18:04 CDT
+
 This file defines the controlled behavioral claims used by the Festival accelerator demo. It is product/experiment ground truth for the demo, not a universal model of Festival and not a tester-facing checklist.
 
 ## Claim identity
@@ -13,11 +15,30 @@ ClaimDefinition = Target + StateSignature + ActorContext + ValidationIntent
 Evidence for a claim is collected inside an `EvidenceContext`:
 
 ```text
-EvidenceContext = BuildHash + Environment + Tenant/Data Context
-                + Feature Flags + optional Device/Region + Timestamp
+EvidenceContext = Build + Environment + Tenant/Data Context
+                + Feature Flags + optional Device/Region + time
 ```
 
-A source observation may support, weaken, contradict, or invalidate a claim. A state visit alone does not make a claim Solid.
+A source observation may support, weaken, contradict, invalidate, or explicitly report inability to validate. A state visit alone does not make a claim Solid.
+
+## Current Demo implementation status
+
+The sibling Demo repository has completed M4A, M4B, and M4C. Claim persistence and Evidence Reconciliation V0 are implemented; M4D Build Validation / Evidence Ledger UI is next.
+
+Current Demo M4C commit:
+
+```text
+31a5a18 feat: add evidence reconciliation v0
+```
+
+The catalog below remains the normative description of expected Festival behavior. Demo reconciliation must adapt to these claims; Festival behavior should not be rewritten to accommodate implementation quirks.
+
+Two current Demo semantic follow-ups are especially relevant to this catalog:
+
+1. contradict-only compatible evidence is currently classified as `Conflicted` even without a supporting observation;
+2. a `verifier_result` containing `denied_mutation` is currently recognized as `Blocked` before supporting assessment evaluation, while claims 05/06/08 intentionally use database-enforced denial as positive evidence that authorization controls worked.
+
+Resolve those in Demo code/tests before relying on those paths in the final accelerator demo.
 
 ## Verification-depth scale
 
@@ -26,7 +47,7 @@ A source observation may support, weaken, contradict, or invalidate a claim. A s
 - **Depth 3 — Persistence/backend**: authoritative persisted state is verified and survives reload/requery.
 - **Depth 4 — Cross-system/asynchronous**: expected audit/webhook/async/system-side effect is verified.
 
-The minimum depth below is the intended threshold for the **controlled demo**, subject to context compatibility, freshness, source independence, and conflict status.
+The minimum depth below is the intended threshold for the controlled demo, subject to context compatibility, freshness, source independence, and conflict status.
 
 ## Controlled claim set
 
@@ -41,7 +62,7 @@ The minimum depth below is the intended threshold for the **controlled demo**, s
 | `FEST-CLAIM-07` | After the controlled stale/offline refresh condition ends, the client converges to the authoritative packed state. | Supply List realtime/reconciliation | stale client view → authoritative packed view | editor/late tester in controlled build | `DataPersistenceOnRefresh` | High | 3 | fresh browser requery plus authoritative persisted state |
 | `FEST-CLAIM-08` | A trip member who does not own a claimed canopy cannot pack it, and the authoritative item state remains unchanged after the denied attempt. | Supply List ownership authorization | claimed by another member → pack attempt denied, item remains claimed | authenticated non-owner trip member | `RolePermissionEnforcement` | High | 3 | database-owned denial audit + authoritative item requery confirms unchanged state |
 
-`FEST-CLAIM-08` is intentionally a **Festival behavior claim**. Source independence is evaluated later by Demo's evidence-reconciliation layer and is not itself a behavioral claim in this catalog.
+`FEST-CLAIM-08` is intentionally a **Festival behavior claim**. Source independence is evaluated by Demo's evidence-reconciliation layer and is not itself a behavioral claim in this catalog.
 
 ## How the accelerator demo should use these claims
 
@@ -50,9 +71,9 @@ The demo does not need to exercise all claims equally. Select the smallest seque
 Recommended visible sequence:
 
 1. Start with `FEST-CLAIM-04` as **Weak** after a human performs the pack action but persistence has not been verified.
-2. Run a Playwright/backend verification. If persisted state survives refresh, move the claim toward **Solid**; if authoritative state disagrees, show **Conflicted**.
+2. Run Playwright/backend verification. If persisted state survives refresh, move the claim toward **Solid**; if authoritative state meaningfully disagrees, show **Conflicted** after the M4C conflict semantic is finalized.
 3. Keep `FEST-CLAIM-05`, `FEST-CLAIM-07`, or `FEST-CLAIM-08` **Untouched** or uncertain at the start.
-4. Let the information-value router recommend the higher-value remaining claim with explicit rationale.
+4. Let the future information-value router recommend the higher-value remaining claim with explicit rationale.
 5. Let `late-tester-d` accept or override the recommendation and record the reason.
 6. Update the ledger and recommendation order from the resulting observation.
 
@@ -63,9 +84,9 @@ Simple UI labels are derived from evidence dimensions rather than stored as prim
 - **Solid** — sufficiently current/context-compatible evidence, adequate verification depth, and no unresolved hard conflict.
 - **Weak** — shallow or low-confidence evidence.
 - **Stale** — prior evidence weakened by change or context drift.
-- **Conflicted** — credible sources disagree.
+- **Conflicted** — credible observations meaningfully disagree; final V0 contradict-only semantics are still being reviewed in Demo.
 - **Untouched** — no relevant evidence for the required claim/context.
-- **Blocked** — validation cannot currently be completed.
+- **Blocked** — validation cannot currently be completed; an expected authorization denial is not inherently the same thing as blocked validation.
 
 Do not automatically promote a claim to Solid because:
 
@@ -77,15 +98,13 @@ Do not automatically promote a claim to Solid because:
 
 ## Source-independence examples
 
-Source independence is an **evidence-reconciliation dimension**, not a claim definition.
-
 Potentially useful independent combinations:
 
 - human browser interaction + backend/Supabase assertion;
 - human browser observation + Playwright persistence check;
 - UI transition + database-owned authorization denial audit.
 
-Potentially correlated observations that should not be treated as strong independence by default:
+Potentially correlated observations:
 
 - repeated identical Playwright runs;
 - several agents using the same DOM assertion/oracle;
@@ -112,7 +131,7 @@ human actors    leader, editor-a, viewer-b, late-tester-d
 agent actor     playwright-agent-c
 ```
 
-Canonical deterministic Festival roles are:
+Canonical deterministic Festival roles:
 
 ```text
 leader         leader
@@ -126,7 +145,7 @@ These identifiers belong to the controlled local thesis environment and do not d
 ## Ownership
 
 - Product/QA meaning, claim semantics, validation intent, business risk, and experiment ground truth are product/QA decisions.
-- Demo owns the technical persistence/linkage/reconciliation/routing implementation.
+- Demo owns technical persistence/linkage/reconciliation/routing implementation.
 - Changes to claim identity, evidence thresholds, privacy boundaries, or what counts as proof should be reviewed jointly.
 
 ## Scope guardrail
