@@ -4,6 +4,20 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ## Outstanding Issues
 
+### Session Update (August 22, 2026 - Gate 1 Documentation Synchronized)
+- Current local setup, testing, feature-status, Supply List, handoff-index, and user-audit documentation now matches the accepted Gate 1 database-authoritative behavior.
+- The normative runbook identifies `late-tester-d` as editor, preserves `viewer-b` as the denial actor, and uses the guarded reset wrapper. The sibling Demo tutorial is explicitly historical and portable.
+- Documentation scans and cross-repository runbook byte-equality passed; the exact final hash and both whitespace receipts are in the dated session note.
+- Gate 2, Gate 3, the composed workflow, human runs, and public onboarding remain pending or blocked under canonical Demo `CURRENT.md`. No implementation/runtime state was changed by this documentation pass.
+
+### Session Update (August 22, 2026 - Gate 1 Evidence Authority Accepted)
+- Closed and verified `BUG-20260822-003`: builds are explicitly registered in an immutable order; unknown builds fail closed; delayed old-build evidence cannot become current or stale newer evidence.
+- Closed and verified `BUG-20260822-005`: permission denials now originate in immutable private database audits and normalize through the authenticated adapter with deterministic IDs.
+- Closed and verified `BUG-20260822-008`: Supply List transitions use database RPC ownership/state checks; only leaders/editors delete; direct authenticated workflow-column mutation is unavailable.
+- Accepted checks: Demo unit/PostgreSQL/conformance PASS; Festival lint/typecheck/43 tests PASS; local reset/migrate/seed PASS; live equipment test PASS 1/1; four audits reconciled to exactly four authoritative Demo events; final canonical reset and both diff checks PASS.
+- The adapter now requires `FESTNEST_EXPERIMENT_RUN_ID`. Gate 2 run/metric lifecycle and Gate 3 stale/extension/composed validation remain pending.
+- This focused Gate 1 receipt is not overall experiment readiness. Human baseline/guided work remains blocked until Bugs 001–008 are closed and the fresh composed workflow gate passes; public onboarding has its separate history-remediation blocker.
+
 ### Session Update (August 22, 2026 - Festival PR Merged)
 - Festival PR #4 passed its complete GitHub workflow and was squash-merged to Festival `main` as `4479bde`.
 - Demo PR #2 remains merged to Demo `main` as `af9ac0b`; both implementation feature branches were deleted remotely.

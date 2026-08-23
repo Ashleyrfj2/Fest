@@ -1,32 +1,12 @@
 # Docs Index
 
-## Latest Status (April 22, 2026)
+## Latest Status (August 22, 2026)
 
-- Completed:
-  - Food Planner dietary icon bug fix is implemented and verified.
-  - Lint gate baseline is implemented (`lint`, `lint:fix`, CI workflow).
-  - Travel QA blocker remediation is implemented and verified:
-    - Viewer write restrictions are enforced in Travel UI and mutation paths.
-    - Meetup pin realtime subscription is wired on `trips` updates.
-  - Safety/Crypto TypeScript cleanup is implemented and verified (`npx tsc --noEmit` passes).
-  - Safety emergency PIN field-preservation remediation is implemented and verified.
-    - Normal safety profile saves preserve encrypted emergency PIN fields.
-    - Save flow fails closed on inconsistent partial emergency PIN field state.
-  - Agent dispatch planning docs and handoff briefs are in place.
-- QA completed with updated outcome:
-  - Safety + Camp Grid re-validation closed the Camp Grid destructive-save blocker.
-  - Safety emergency PIN reliability still has two open medium-severity issues.
-- Current focus:
-  1. Complete remaining Safety reliability hardening (PIN fallback/rehydration + stale-cache unlock mitigation).
-  2. Add focused regression coverage for Safety PIN and Camp Grid destructive-save guard paths.
-  3. Re-run targeted Safety/Camp Grid QA after the Safety fixes land.
-
-See the latest reports:
-- `reports/travel-qa-audit-2026-04-12.md` (includes April 20 remediation update)
-- `reports/safety-camp-grid-revalidation-report-2026-04-22.md`
-
-See the latest session summary:
-- `sessions/session-notes-2026-04-20.md`
+- Gate 1 thesis-demo evidence authority is accepted: explicit Demo build ordering and Festival database-owned Supply List transitions/denial audits passed focused checks.
+- Gate 2 experiment lifecycle/metrics and Gate 3 stale-proxy/extension/composed validation remain pending; the human study is still blocked.
+- Safety PIN rehydration and stale-cache unlock mitigations were implemented in June; the April priority text is historical.
+- For current shared thesis-demo status, read sibling Demo `docs/agent-logs/CURRENT.md` first, then `sessions/session-notes-2026-08-22.md` and `test-notes.md`.
+- Use `thesis-demo/festival-virtual-qa-environment.md` and root `AGENTS.md` for guarded local setup. Older reports and sessions are dated receipts, not current instructions.
 
 Documentation is organized by purpose:
 

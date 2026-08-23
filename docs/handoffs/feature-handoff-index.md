@@ -1,5 +1,11 @@
 # Feature Handoff Index
 
+## Current Update (August 22, 2026)
+
+- Gate 1 thesis-demo evidence authority passed focused checks. Supply List workflow transitions and deletion are database-owned, and permission denials come from immutable private audits.
+- Gate 2 metrics/run lifecycle and Gate 3 stale-proxy/extension/composed validation remain pending. See sibling Demo `docs/agent-logs/CURRENT.md`, this repository's `docs/test-notes.md`, and `docs/sessions/session-notes-2026-08-22.md`.
+- Current priorities are the remaining thesis-demo gates, their corresponding documentation updates, the separately reviewed unrelated-script cleanup, and a fresh two-cycle composed run. The dated April queues below are retained as historical context.
+
 ## Recently Completed (April 9, 2026)
 - Added a new workspace custom agent: Senior QA Engineer.
 - Ran a high-confidence cleanup pass for dead and outdated assets.
@@ -48,7 +54,7 @@
   - [Travel QA Audit - 2026-04-12](../reports/travel-qa-audit-2026-04-12.md)
   - [Safety + Camp Grid Validation - 2026-04-12](../reports/safety-camp-grid-validation-report-2026-04-12.md)
 
-## Current Priority Queue (April 22)
+## Historical Priority Queue (April 22)
 1. **P1:** Complete remaining Safety resilience hardening (PIN set/disable fallback + stale-cache unlock mitigation).
   - Context: [Safety + Camp Grid Re-validation - 2026-04-22](../reports/safety-camp-grid-revalidation-report-2026-04-22.md)
 2. **P2:** Add focused regression coverage for Safety PIN preservation, missing-local-row PIN mutation, stale-cache unlock, and Camp Grid destructive-save guard.
@@ -68,15 +74,15 @@
 - [Safety and Camp Grid Validation](safety-camp-grid-validation-handoff.md)
 - [Lint Gate Implementation](lint-gate-handoff.md)
 
-## Current Status by Module
+## Historical Status by Module (April snapshot; see current update above)
 - **Travel**: ✅ Complete (QA blockers remediated Apr 20)
 - **Trip Dashboard**: ✅ Complete
 - **Food Planner**: ✅ Complete (dietary icon bug fixed Apr 12)
 - **Lineup Scheduler**: ✅ Complete
 - **Budget Tracker**: ✅ Complete
-- **Supply List**: ✅ Complete
+- **Supply List**: ✅ Core product flow implemented; database-authoritative role/ownership enforcement verified in focused Gate 1 checks; composed thesis validation pending
 - **Camp Grid**: ✅ Apr 22 guard fix validated; follow-up work is regression coverage and optional polish
-- **Safety Profile**: 🟡 Emergency PIN preservation and typecheck fixes landed (Apr 20); two reliability issues remain open from Apr 22 re-validation
+- **Safety Profile**: 🟡 April snapshot; PIN rehydration and stale-cache unlock mitigations later landed in June, with broader runtime QA still applicable
 - **Packing Checklist**: ✅ Complete (implemented and wired; continue behavior QA and polish)
 - **Tooling / Quality Gate**: ✅ Lint gate implemented (Apr 12)
 

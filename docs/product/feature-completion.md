@@ -1,6 +1,6 @@
 # FestNest Feature Completion Snapshot
 
-Last updated: June 5, 2026
+Last updated: August 22, 2026
 
 This is a working estimate based on the current codebase, handoff docs, QA notes, and product specs. Percentages reflect end-to-end product completeness, not just whether a screen exists.
 
@@ -19,12 +19,12 @@ This is a working estimate based on the current codebase, handoff docs, QA notes
 | --- | ---: | --- |
 | Camp Grid | 85% | Strong implementation with offline/local persistence and shared save flow; collision detection, PNG export, and final QA re-validation are still open. |
 | Collaboration and permissions | 70% | Invite/share roles and activity history exist, but approval queue UX and deeper member-management flows still need full product completion. |
-| Supply List | 95% | Core CRUD, assignment, status flow, and category handling are in good shape; remaining work is mostly polish and follow-up QA. |
+| Supply List | 95% | Core CRUD/category UI remains in place. Claim/unclaim/pack/unpack and deletion now use database-owned RPCs: members change only their own claim state, and only leaders/editors delete. Focused authorization/audit checks passed; the fully composed thesis workflow remains pending. |
 | Food Planner | 90% | Meal planning is implemented and recent bugs were fixed; auto-populating supply items and a few workflow refinements still remain from spec. |
 | Travel Plans | 92% | Vehicles, flights, meetup pin flows, and role restrictions are shipped; multi-pin mapping and richer route visualization are future work. |
 | Lineup Scheduler | 88% | Voting, consensus, conflict warnings, and schedule-building exist; lineup import tooling is still a notable gap. |
 | Packing Checklist | 90% | The route is implemented and wired; this is mostly in polish/QA territory now. |
-| Safety and Emergency Info | 82% | Encrypted/offline-aware safety profiles are implemented, but emergency PIN fallback and stale-cache mitigation are still outstanding. |
+| Safety and Emergency Info | 82% | Encrypted/offline-aware safety profiles are implemented; PIN rehydration and stale-cache unlock mitigations landed in June. Broader runtime QA and remaining product polish still govern this estimate. |
 | Budget Tracker | 88% | Shared expenses and settle-up flows are implemented; receipt/photo and deeper polish work are the remaining gaps. |
 
 ## Planned and Stretch Features
@@ -40,5 +40,5 @@ This is a working estimate based on the current codebase, handoff docs, QA notes
 ## Quick Read
 
 - Most core trip-planning modules are in the 85-95% range.
-- The biggest unfinished product areas are collaboration depth, settings/account completion, and safety PIN hardening.
+- The biggest unfinished product areas are collaboration depth, settings/account completion, and broader runtime QA/polish.
 - The biggest not-yet-built roadmap items are mesh mode, live festival mode, weather, and past-trip reuse.

@@ -67,3 +67,14 @@ This is a P1 collaboration feature with direct utility and relatively low design
 - Too many status controls can make the list feel heavy.
 - Duplicate handling can become confusing if not explained well.
 - If permissions are unclear, members may hesitate to use the module.
+
+## Dated implementation correction — August 22, 2026
+
+The original handoff above is preserved as the implementation brief. Current verified authorization behavior is narrower:
+
+- Leaders/editors create and edit item details; only leaders/editors delete.
+- Any trip member may claim an unassigned item.
+- A member may unclaim, pack, or unpack only an item they own.
+- Assignment/status workflow changes use database-owned RPCs; direct authenticated workflow-column mutation is unavailable.
+- Expected denials return a non-applied result and write an immutable private audit. Ordinary clients cannot forge the reserved denial activity or read/write the private audit.
+- Focused lint, type, deterministic, reset, RLS/RPC, live equipment, and adapter reconciliation checks passed. The fresh two-cycle composed thesis workflow remains pending.

@@ -1101,6 +1101,10 @@ export type Database = {
         Args: { trip_uuid: string; user_uuid: string }
         Returns: boolean
       }
+      delete_supply_item: {
+        Args: { p_item_id: string }
+        Returns: Json
+      }
       is_trip_leader: {
         Args: { trip_uuid: string; user_uuid: string }
         Returns: boolean
@@ -1123,6 +1127,24 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      read_supply_mutation_denials: {
+        Args: { p_trip_id: string }
+        Returns: {
+          actor_id: string
+          actor_role: string | null
+          attempted_action: string
+          audit_id: string
+          created_at: string
+          provenance: string
+          reason_code: string | null
+          supply_item_id: string
+          trip_id: string
+        }[]
+      }
+      transition_supply_item: {
+        Args: { p_item_id: string; p_transition: string }
+        Returns: Json
       }
       transfer_trip_leadership: {
         Args: { p_new_leader_id: string; p_trip_id: string }

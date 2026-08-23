@@ -28,6 +28,10 @@ const liveAuthorizationFixes = fs.readFileSync(
   path.join(repoRoot, 'supabase/migrations/20260827000000_fix_live_authorization_functions.sql'),
   'utf8'
 );
+const supplyAuthorization = fs.readFileSync(
+  path.join(repoRoot, 'supabase/migrations/20260830000000_authoritative_supply_mutations.sql'),
+  'utf8'
+);
 
 test('safety policy and emergency RPC preserve owner and trip-member boundaries', () => {
   assert.match(hardening, /DROP POLICY IF EXISTS "Trip members can read safety profiles"/);
@@ -79,6 +83,35 @@ test('live authorization RPCs qualify output-variable names and proposal JSON ex
   assert.match(liveAuthorizationFixes, /gm_target\.user_id = p_target_user_id/);
   assert.match(liveAuthorizationFixes, /\(NEW\.payload->>'description'\)/);
   assert.match(liveAuthorizationFixes, /COALESCE\(/);
+});
+
+test('supply workflow uses authenticated row-locked RPCs and immutable private audits', () => {
+  assert.match(supplyAuthorization, /v_actor_id UUID := auth\.uid\(\)/g);
+  assert.match(supplyAuthorization, /WHERE id = p_item_id\s+FOR UPDATE/g);
+  assert.match(supplyAuthorization, /SET search_path = public, private, pg_temp/g);
+  assert.match(supplyAuthorization, /supply_mutation_audits_immutable/);
+  assert.match(supplyAuthorization, /BEFORE UPDATE OR DELETE ON private\.supply_mutation_audits/);
+  assert.match(supplyAuthorization, /DROP POLICY IF EXISTS "Trip members can update supply items"/);
+  assert.match(supplyAuthorization, /REVOKE UPDATE, DELETE ON public\.supply_items FROM authenticated/);
+  assert.match(supplyAuthorization, /GRANT UPDATE \(name, quantity, category\) ON public\.supply_items TO authenticated/);
+  assert.match(supplyAuthorization, /REVOKE ALL ON FUNCTION public\.transition_supply_item\(UUID, TEXT\) FROM PUBLIC, anon/);
+  assert.match(supplyAuthorization, /GRANT EXECUTE ON FUNCTION public\.transition_supply_item\(UUID, TEXT\) TO authenticated/);
+  assert.match(supplyAuthorization, /v_item\.claimed_by = v_actor_id/g);
+  assert.doesNotMatch(supplyAuthorization, /v_item\.claimed_by = v_actor_id OR v_role/);
+});
+
+test('expected supply authorization denials return committed database audit results', () => {
+  assert.match(supplyAuthorization, /INSERT INTO private\.supply_mutation_audits/g);
+  assert.match(supplyAuthorization, /'applied', v_allowed/g);
+  assert.match(supplyAuthorization, /'audit_id', v_audit_id/g);
+  assert.match(supplyAuthorization, /'reason_code', v_reason/g);
+  assert.equal((supplyAuthorization.match(/'item', CASE WHEN v_allowed THEN/g) ?? []).length, 2);
+  assert.doesNotMatch(supplyAuthorization, /ELSE to_jsonb\(v_item\)/);
+  assert.match(supplyAuthorization, /activity_logs_reject_forged_supply_denial/);
+  assert.match(supplyAuthorization, /GRANT EXECUTE ON FUNCTION public\.read_supply_mutation_denials\(UUID\) TO service_role/);
+  const supplyHook = fs.readFileSync(path.join(repoRoot, 'lib/hooks/useSupplyList.ts'), 'utf8');
+  assert.match(supplyHook, /result\.applied && \(typeof result\.audit_id !== 'string' \|\| result\.audit_id\.length === 0\)/);
+  assert.match(supplyHook, /Applied supply mutation did not return an audit receipt/);
 });
 
 test('approval hook passes active-trip and permission context to its UI gate', () => {
