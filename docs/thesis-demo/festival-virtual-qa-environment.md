@@ -1,18 +1,49 @@
 # Festival Virtual QA Environment — Agent Implementation Runbook
 
-This tracked document mirrors the private Notion tutorial's operational requirements. It is the GitHub/Codespaces source for Riley and all agents. The private Notion page and Ashley's local filesystem are not required.
+This is the Festival-side operational source of truth for the controlled thesis demo. It should be used with the sibling Demo repository's `docs/agent-logs/CURRENT.md`, `docs/architecture.md`, and `docs/festival-virtual-qa-environment.md`.
 
-## Truth boundary and goal
+## Current truth boundary — August 23, 2026
 
-The repositories are not a working end-to-end demo until every relevant gate in this runbook passes. Festival currently provides collaborative workflows and browser fixtures; the thesis repository begins as an evidence-system scaffold. Passing lint, type checking, or a health check alone does not prove the demo.
+Gate 1, Gate 2, and Gate 3 are **PASS**.
 
-The outcome is a controlled, synthetic Festival environment in which two humans and one Playwright agent explore the same seeded build, a late tester receives an explainable evidence-based area recommendation, and baseline/guided metrics test whether routing closes uncertainty without suppressing useful independent verification.
+Verified live chain:
 
-Festival is the application environment and evidence source. The thesis remains the vendor-neutral evidence ledger, state/evidence reconciler, information-gain router, UI, and metrics system. Keep Festival application data in local Supabase and thesis evidence in the thesis PostgreSQL database.
+```text
+Festival rendered DOM
+→ unpacked Demo Chrome MV3 extension
+→ capture-phase browser event
+→ normalized ValidationEvent envelope
+→ durable extension queue
+→ authenticated Demo Go API
+→ candidate-scope canonicalization
+→ Demo PostgreSQL persistence
+→ exact session/event correlation
+→ queue drain to zero
+```
 
-## Fixed V1 scope
+Do **not** rebuild this spine. Gate 3 proves capture, provenance, delivery, candidate-state/context identity, and persistence. It does not by itself prove the refined claim-reconciliation or information-value-routing thesis.
 
-Use only the shared group-equipment handoff. Do not expand V1 across Festival's other modules and do not use Safety/Emergency data.
+## Product boundary
+
+Festival is the controlled **application environment and evidence source**.
+
+Demo is the **Validation-Evidence System of Record + Information-Value Router** and owns:
+
+- `ClaimDefinition` identity;
+- `EvidenceContext` identity;
+- observation-to-claim linkage;
+- evidence reconciliation;
+- confidence/freshness/verification-depth/source-independence/context/conflict semantics;
+- derived evidence labels;
+- next-validation recommendations;
+- correction and recommendation-response history;
+- experiment metrics.
+
+A Festival state visit is not automatically proof that the behavior is valid. Candidate states remain useful infrastructure, but the primary demo unit is a behavioral claim plus observations collected under a specific evidence context.
+
+## Fixed V1 accelerator scope
+
+Use the shared group-equipment handoff. Do not expand the accelerator demo across all Festival modules and do not use Safety/Emergency data.
 
 ```text
 tenant_id       festival-thesis-demo
@@ -23,91 +54,136 @@ human actors    leader, editor-a, viewer-b, late-tester-d
 agent actor     playwright-agent-c
 ```
 
-Canonical trajectory:
+Use approximately **6–10 predefined behavioral claims**. The controlled catalog lives in:
 
-1. Leader creates a shared canopy item.
-2. Editor A claims it.
-3. A second human independently observes the claimed state.
-4. Editor A marks it packed while the controlled stale/offline condition is active.
-5. Viewer B attempts a restricted mutation and must be denied.
-6. The environment returns online and shared state reconciles.
-7. The Playwright agent examines a different context.
-8. Late Tester D receives the highest-value unresolved area, explores naturally, and updates the shared evidence model.
+`docs/thesis-demo/FESTIVAL_CLAIM_CATALOG.md`
 
-Evidence meaning:
+## Claim model
 
-| Action | Candidate evidence | Value |
-| --- | --- | --- |
-| Create canopy | item exists / unassigned | new state evidence |
-| Claim canopy | unassigned to claimed | new transition evidence |
-| Independent claimed-state check | claimed state corroborated | useful once |
-| Viewer mutation attempt | viewer mutation denied | high-value role-context evidence |
-| Pack during stale/offline condition | claimed to packed with conflicting freshness | high uncertainty |
-| Reconciliation check | targeted verification | closes prioritized gap |
-
-## Portable repositories and expected files
-
-Resolve both roots dynamically. In Codespaces they are normally `/workspaces/Demo` and `/workspaces/Fest`, but no implementation may depend on those literal paths.
-
-Festival files to extend or create:
+### ClaimDefinition
 
 ```text
-scripts/export-browser-app.mjs
-tests/browser/app.spec.ts
-lib/hooks/useSupplyList.ts
-scripts/demo/seed-demo.mjs
-scripts/demo/reset-demo.sh
-scripts/demo/verify-seed.mjs
-scripts/demo/activity-log-adapter.mjs
-scripts/demo/run-agent.mjs or tests/demo/equipment-handoff.spec.ts
-demo/scenarios/equipment-handoff-v1.json
-demo/.generated/manifest.json              # generated and ignored
+Target + StateSignature + ActorContext + ValidationIntent
 ```
 
-Thesis files to extend or create:
+### EvidenceContext
 
 ```text
-docker-compose.yml
-backend/internal/httpapi/router.go
-backend/internal/state/service.go
-backend/internal/evidence/service.go
-backend/internal/sufficiency/service.go
-backend/internal/routing/service.go
-backend/internal/store/postgres.go
-backend/internal/experiment/metrics.go
-supabase/migrations/*
-extension/manifest.json
-extension/src/config.ts
-extension/src/normalize.ts
-extension/src/content.ts
-extension/src/background.ts
-frontend/src/App.tsx
-frontend/src/api.ts
+BuildHash + Environment + Tenant/Data Context
++ Feature Flags + optional Device/Region + Timestamp
 ```
 
-The existing Festival Playwright fixture is useful smoke infrastructure but is per-page and largely canned. Do not use it as the shared multi-user store; use local Supabase.
+### Observation
 
-## Prerequisites and safety
+A human, Playwright/agent, database verifier, application adapter, CI assertion, or later operational signal linked to a claim in an evidence context.
 
-- Node.js 20+, npm, Docker, Chrome/Chromium, Supabase CLI through `npx`, and Playwright Chromium.
-- Go 1.23+ is optional when Docker is used for the backend.
-- Work only against local Supabase or an explicitly approved disposable demo project.
-- On Docker Desktop, verify published port bindings before recording. If Festival Supabase remains on all interfaces, use only a trusted or offline network; do not expose the private demo stack to an untrusted network.
-- Reset and seed scripts must refuse non-loopback Supabase URLs unless `ALLOW_REMOTE_DEMO_RESET=true` is deliberately supplied.
-- Never commit passwords, tokens, service-role keys, generated user IDs, or the manifest.
-- Never place a service-role key in an `EXPO_PUBLIC_` variable, browser bundle, extension, log, screenshot, or agent response.
+An observation may support, weaken, contradict, or invalidate the claim.
 
-Preflight:
+## Evidence depth
 
-```bash
-node --version
-npm --version
-docker --version
-docker compose version
-npx supabase --version
+Use the following V1 interpretation when deciding how strong an observation is:
+
+1. **Depth 1 — surface**: visual/DOM presence or shallow observation.
+2. **Depth 2 — interaction**: action/transition succeeds in the client.
+3. **Depth 3 — persistence/backend**: persisted data or backend truth is verified and survives reload/requery.
+4. **Depth 4 — cross-system/asynchronous**: an expected audit/webhook/async/system-side effect is verified.
+
+A shallow successful click does not automatically make a claim Solid.
+
+## Derived demo labels
+
+Demo may present simple labels derived from underlying evidence dimensions:
+
+- **Solid** — sufficiently strong/current/context-compatible evidence, adequate depth, no unresolved hard conflict.
+- **Weak** — shallow or low-confidence evidence.
+- **Stale** — prior evidence weakened by build/context change or explicit invalidation.
+- **Conflicted** — credible observations disagree.
+- **Untouched** — no relevant evidence for the required claim/context.
+- **Blocked** — validation cannot currently be completed.
+
+These are presentation classes, not the primitive stored truth.
+
+## Canonical accelerator story
+
+The demo should prove that the ledger changes what the next validator should do, not simply that the system can draw a coverage map.
+
+### Step 1 — Start with Build Validation
+
+Show a small claim list grouped by evidence state. Example:
+
+| Claim | Initial evidence |
+| --- | --- |
+| Shared equipment item can be created | Solid or previously established |
+| Equipment state persists after refresh | Weak |
+| Viewer cannot perform privileged delete | Untouched |
+| Packed state reconciles after stale/offline condition | Untouched or Conflicted |
+
+Explain that these are claims about behavior, not URLs or raw visited states.
+
+### Step 2 — Human creates shallow evidence
+
+A human naturally interacts with Festival. The existing Chrome extension captures the event through the verified Gate 3 path.
+
+Example:
+
+```text
+Claim: equipment state persists after update
+Human observation: edit/pack action succeeds in UI
+Result: Weak
 ```
+
+The claim stays Weak because the interaction succeeded but persistence has not yet been verified.
+
+### Step 3 — Deeper verifier or agent observation
+
+Use Playwright, the Festival activity/audit adapter, or a database/backend verification path to collect deeper evidence.
+
+Example:
+
+```text
+pack → refresh/requery → persisted packed state verified
+```
+
+If the deeper observation agrees, evidence can move **Weak → Solid**.
+
+If the UI says success while the persisted/backend state disagrees, the claim should become **Conflicted** rather than falsely Solid.
+
+### Step 4 — Information-value recommendation
+
+Demo recommends a claim/area, never a click-by-click script.
+
+Example:
+
+> Recommended next validation: verify viewer permission enforcement on shared equipment. High business risk · untouched on this build · role boundary · estimated low validation cost.
+
+The recommendation should expose explicit reason factors rather than black-box wording.
+
+### Step 5 — Late-arriving human accepts or overrides
+
+`late-tester-d` may accept the recommendation or override it. Record the response and reason. The resulting observation updates the ledger and recommendation order.
+
+This is the accelerator-demo endpoint: a late validator becomes smarter about **what is worth checking next** because the system reconciled what other validators actually established.
+
+## Controlled Festival scenario
+
+The existing shared-equipment environment remains useful because it provides role, persistence, realtime, stale/offline, and database-authoritative behavior.
+
+Possible source events include:
+
+- leader/editor creates equipment;
+- editor claims an unassigned item;
+- another signed-in session observes shared state;
+- owner packs/unpacks equipment;
+- viewer attempts a restricted delete and is denied at the database boundary;
+- the controlled stale proxy suppresses the first refresh after packing and later returns authoritative persisted state;
+- activity/audit records provide a second source of evidence;
+- Playwright verifies a deeper persistence or permission claim.
+
+These actions are inputs to claims; they are not themselves the claim model.
 
 ## Deterministic Festival setup
+
+Resolve repository roots dynamically. Do not depend on one developer's absolute path.
 
 From `FESTIVAL_REPO_ROOT`:
 
@@ -121,200 +197,153 @@ npx supabase status
 ./scripts/demo/reset-demo.sh
 ```
 
-Local Festival ports are API `54321`, PostgreSQL `54322`, Studio `54323`, and inbox `54324`. Obtain the local anon and service-role values from `npx supabase status` without printing them in handoffs.
+Local Festival services use the existing local Supabase configuration. Demo PostgreSQL is a separate trust domain on `54332`.
 
-`scripts/demo/seed-demo.mjs` must:
+### Reset/seed requirements
 
-1. Read `EXPO_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` from the environment.
-2. Enforce the loopback safety rule.
-3. Create confirmed synthetic accounts `leader@example.test`, `editor-a@example.test`, `viewer-b@example.test`, and `late-d@example.test` through the admin API.
-4. Let the existing auth trigger create corresponding `public.users` records.
-5. Create one stable trip named `Thesis Demo Festival Trip` with a stable UUID and invite code.
-6. Assign roles in order: leader, editor, viewer, editor.
-7. Seed canopy, stakes, first-aid kit, and water.
-8. Insert only synthetic activity records.
-9. Write generated user IDs and stable record IDs to ignored `demo/.generated/manifest.json`.
-10. Print only the four local login emails and one local-only password.
+The controlled reset remains responsible for producing the stable synthetic environment:
 
-`scripts/demo/reset-demo.sh` must run reset, seed, and verification in that order. Verification must fail unless exactly one demo trip, all four users, the exact role matrix, and the fixed initial records exist. Run reset twice when validating determinism.
+- four confirmed synthetic users;
+- leader/editor/viewer/editor role matrix;
+- one stable thesis-demo trip;
+- canopy, stakes, first-aid kit, and water records;
+- synthetic activity only;
+- ignored generated manifest for generated IDs;
+- deterministic reset verification.
 
-The browser export must prefer caller-provided values:
+Reset/seed tooling must refuse unsafe remote destinations unless the explicit guard intended for controlled remote demo reset is supplied.
 
-```javascript
-EXPO_PUBLIC_SUPABASE_URL:
-  process.env.EXPO_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321',
-EXPO_PUBLIC_SUPABASE_ANON_KEY:
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'festnest-browser-fixture-anon-key',
-```
+Never expose a service-role key in browser/Expo public variables, extension configuration, documentation, logs, screenshots, or agent responses.
 
-Never pass the service-role key to the export. Export to a temporary directory and serve at port `4173`. In Codespaces use the forwarded Festival URL when a browser cannot reach container loopback directly.
+## Browser environment
 
-Browser gate:
+Festival remains served as the real rendered browser target on `4173`.
 
-- Welcome/sign-in render and all four users authenticate.
-- Seeded trip appears and roles behave differently.
-- Supply changes appear in a second session after realtime/refetch.
-- Reset restores the exact original data.
-- No request targets production Supabase.
+The controlled Gate 3 route is:
+
+`/trips/10000000-0000-4000-8000-000000000001/camp-grid`
+
+The verified natural interaction target is `Start Building`.
+
+The Festival browser gate should preserve:
+
+- real sign-in with synthetic users;
+- seeded trip visibility;
+- meaningful role differences;
+- shared state between sessions;
+- deterministic reset behavior;
+- no production Supabase destination.
 
 ## Hidden ground truth and controlled condition
 
-`demo/scenarios/equipment-handoff-v1.json` must contain stable scenario/build IDs, expected states and transitions, risk weights, useful independent-verification rules, low-information same-context repeat rules, expected viewer RLS denial, the seeded stale/offline condition, known failure IDs, and success/stop conditions.
+`demo/scenarios/equipment-handoff-v1.json` remains experiment ground truth, not a tester-facing checklist.
 
-Do not bundle this file into the tester-facing application. It is research ground truth, not an authored exploratory checklist.
+It may contain:
 
-V1 uses one controlled condition: delay or suppress the first realtime refresh after Editor A marks the canopy packed, using Requestly or a demo-only local proxy rule against local Supabase.
+- stable scenario/build IDs;
+- expected application behavior;
+- business-risk weights;
+- seeded stale/offline condition;
+- known experimental findings;
+- role/permission expectations;
+- stop/safety conditions;
+- scoring metadata for the later controlled experiment.
 
-- Activate only for `festnest-demo-001`.
-- Record activation and deactivation time.
-- Keep it hidden from testers until debrief.
-- Never alter production logic or production data.
-- Call discoveries `seeded experimental findings`, not production defects.
+The stale/offline condition remains bounded to the controlled local build and must not alter production behavior or data. Discoveries are **seeded experimental findings**, not production defects.
 
-## Thesis database and API
-
-Festival owns host DB port `54322`; map thesis PostgreSQL as `54332:5432`. The thesis API connects inside Docker to `postgres:5432`.
-
-Migrations must create immutable `build_registry`, `validation_events`, `candidate_states`, `state_corrections`, `evidence_records`, `verification_requests`, `recommendation_events`, `recommendation_responses`, `experiment_runs`, and versioned `experiment_metrics`. Index tenant/build/environment; actor/session/run; route/state fingerprint; source type; outcome; and occurrence time.
-
-Register each build before creating a run or ingesting evidence. `POST /api/v1/builds` requires the tenant-bound controller credential and an explicit positive sequence plus the immediately preceding build ID after sequence 1. Build IDs are opaque: never infer order from names, timestamps, or event arrival. Registration is immutable and idempotent only for an exact retry. Unknown builds fail closed for ingest, evidence, and recommendation requests. Registering a newer build immediately marks older-build evidence stale; a delayed older-build event must remain stale and must never stale newer evidence.
-
-`POST /api/v1/events` must require a registered local bearer credential, derive tenant/actor/role/source identity from that credential, enforce the normalized contract and allowed values, reject oversized/malformed input, preserve immutable raw evidence, enforce `event_id` idempotency, trigger recomputation, return `202` for new input, return a stable duplicate response for an exact retry, and return `409` when the same ID carries a different payload.
-
-Required reads/actions:
-
-```text
-POST /api/v1/builds
-GET  /api/v1/evidence?tenant_id=&build_id=&environment_id=
-GET  /api/v1/recommendations/next?actor_id=&role=&build_id=
-POST /api/v1/recommendations/{id}/responses
-POST /api/v1/states/{id}/merge
-POST /api/v1/states/{id}/split
-POST /api/v1/states/{id}/rename
-GET  /api/v1/experiments/{id}/metrics
-```
-
-## Three evidence sources
+## Festival evidence sources
 
 ### Passive browser capture
 
-The extension may match only local Festival port `4173` and post only to the local QA API on `8080`. Configuration in `chrome.storage.local` must include tenant/build/environment/scenario, actor/role/session, API base URL, and capture enabled state. Do not hardcode secrets.
+The Demo Chrome extension captures bounded local interaction envelopes from Festival. It should exclude passwords, tokens, cookies, request bodies, Safety values, and arbitrary sensitive user-entered text.
 
-Capture bounded envelopes: route, stable control identity, action type, step index, and masking metadata. Exclude auth routes, passwords, tokens, cookies, request bodies, Safety values, and arbitrary user-entered text. Batch and normalize events, use bounded exponential backoff, preserve event IDs across retries, and expose transport failure visibly.
+The browser event is a source observation. Demo decides how it relates to a claim and what evidence depth it provides.
 
-### Festival activity adapter
+### Festival activity/audit adapter
 
-Read new `activity_logs` plus database-owned Supply List denial audits for the seeded trip. Map ordinary allowed activity such as `supply_item_added`, `supply_item_claimed`, and `supply_item_packed` to the shared vocabulary. Permission denial is never client-authored: it comes only from the private immutable audit read path and normalizes to `action_type=supply_item_permission_denied`, `outcome=blocked`, `verifier_result=database_authorization_denied`, and `context.attempted_action`. Derive its deterministic event ID only from the audit ID. Require `FESTNEST_EXPERIMENT_RUN_ID` and stamp every adapter event with that run. Maintain durable cursors, advance only after an accepted/duplicate API response, and exclude descriptions and audit before/after bodies. The adapter never decides sufficiency or routing.
+Festival activity records and database-owned permission-denial audits can provide a more authoritative source for selected claims.
 
-Supply List authorization is database-owned. Any trip member may claim an unassigned item and may unclaim, pack, or unpack only an item they own. Only leaders/editors may delete. Direct authenticated mutation of assignment/status workflow columns is unavailable; expected denial returns an explicit non-applied RPC result and writes one immutable private audit. A viewer delete that applies is a stop-the-demo security failure.
+Permission denial must remain database-owned; do not manufacture client-side denial evidence. The adapter should normalize reviewed fields only and omit arbitrary descriptions and sensitive before/after bodies.
 
-### Playwright agent
+The adapter does **not** decide whether a claim is Solid, Weak, or Conflicted.
 
-Sign in with a synthetic agent/editor context, explore an area not already assigned to a human, emit `source_type=agent` and `source_adapter=playwright`, record steps/verifier results under the fixed build/environment, and produce a targeted human verification request for high-risk or ambiguous results.
+### Playwright agent/verifier
 
-## State, sufficiency, and recommendation behavior
+Playwright can provide deeper evidence by checking a claim at a higher verification depth, such as:
 
-Start with a coarse, correctable state key:
+- action succeeds and persisted state survives refresh;
+- a restricted mutation remains denied;
+- authoritative backend state agrees/disagrees with the UI;
+- a fresh independent context resolves a stale/realtime conflict.
+
+It should emit through the same Demo source contract with distinct source provenance.
+
+## Claim-level recommendation behavior
+
+The V0 router should prioritize claim/area validation using transparent factors such as:
 
 ```text
-build x environment x role x module x record x business-state
+uncertainty reduction
+× business risk
+× diff impact
+× smoothed failure prior
+÷ expected validation cost
 ```
 
-Support: strongly represented, weak/uncertain, conflicting, stale, blocked, untouched, and needs independent verification. Preserve the first independent confirmation; changes in role, build, browser/device, or online/offline context; intermittent/high-risk reproduction; and fix verification. Deprioritize only same-build, same-role, same-context repeats after evidence is sufficient.
+Use manual/explicit weights first. Include a novelty/floor so new workflows are not starved because they lack failure history.
 
-The recommendation is an area plus rationale, never a click script. Initial expected example:
+Every recommendation should explain why it was selected and allow accept/override with reason.
 
-> High-value area: verify the canopy's packed state after reconnect as late-tester-d in the editor role. The claim path and viewer denial are represented, but the offline/realtime result remains conflicting and a fresh independent actor is valuable.
+## Build Validation UI expectation
 
-## Evidence UI and metrics
+Prefer **Build Validation**, **Validation Evidence**, or **Evidence Ledger** as the main screen language.
 
-The API-backed UI must show tenant/build/environment/scenario, status by Festival area, source provenance, role/context, freshness, conflicts, verification requests, recommendation factors/rationale, required-reason accept/dismiss controls, state merge/split/rename controls, and baseline/guided status with a metrics link. Polling is acceptable; do not add realtime infrastructure only for visual effect.
+The UI should make it possible to understand:
 
-Compute and export the same versioned definitions for both runs:
+- the current claim catalog;
+- derived evidence class;
+- evidence provenance;
+- verification depth;
+- freshness/context;
+- conflicts;
+- recommendation factors/reason;
+- accept/override feedback;
+- correction history where relevant.
 
-- Low-information overlap rate.
-- Useful independent verification preserved.
-- Novel or risk-relevant evidence per tester-hour.
-- Late tester time-to-next-useful-area.
-- High-risk gap closure time.
-- Accepted defect/evidence yield.
-- Recommendation acceptance and dismissal reasons.
-- Seeded-condition discovery rate.
-- Evidence completeness for build/environment/role/source/time.
-- State correction and false merge/split rate.
-- Capture/adapter overhead and failure rate.
+A state graph or heatmap may remain a supporting visualization, not the centerpiece.
 
-Keep raw activity, code coverage, exploratory evidence, accepted findings, and allocation efficiency distinct.
+## Experiment boundary
 
-## Validation gates
+The accelerator demo and the later fixed-budget experiment are different milestones.
 
-Festival: lint, types, deterministic tests, and browser tests pass; migrations apply; reset succeeds twice identically; four accounts sign in; Supply List RPC ownership/state transitions and private-audit access controls pass; roles/RLS work; two sessions share state; and no production destination appears.
+The demo proves the product interaction loop. The controlled study tests the causal hypothesis:
 
-Thesis: health passes; builds register in an explicit immutable order; unknown builds fail closed; valid events persist; invalid events fail closed; duplicates remain idempotent; human/adapter/agent events share the contract; state grouping is explainable/correctable; delayed old-build events remain stale without affecting newer evidence; database-authoritative viewer denial is role-context evidence; rationale matches factors; responses persist; and metrics reproduce.
+> Given the same fixed validation budget, teams using reconciled shared evidence plus information-value recommendations will produce more valuable validation evidence than unguided teams, without increasing false confidence.
 
-Privacy: only local allowlisted origins and synthetic data; auth routes/passwords/cookies/tokens/keys/raw bodies/Safety values excluded; descriptions masked or omitted. If a viewer mutation succeeds, stop the demo and investigate RLS.
+The later experiment should use pre-registered matched scenarios, fixed actor time, evaluator-blinded scoring, and claim/evidence metrics such as Useful Validation Yield, high-severity seeded recall, low-information actor-minutes, false-confidence rate, recommendation outcomes, and claim/evidence correction rates.
 
-## Baseline and guided runs
+Do not present one synthetic demo as proof of the market thesis.
 
-Baseline `festival-baseline-001`: reset; create the run; hide evidence/recommendations from testers; give the broad mission “Explore how a group prepares and tracks shared equipment”; allow normal coordination for the fixed timebox; capture evidence/findings; freeze metrics.
+## Trust boundaries and privacy
 
-Guided `festival-guided-001`: reset to identical ground truth; enable shared evidence and area recommendations; let two humans explore; run the agent through the same contract; introduce `late-tester-d` in the editor role only after meaningful evidence exists; persist the recommendation, rationale, response, and reason; let that tester explore naturally; stop at the identical timebox; freeze metrics.
+- Festival application data remains in Festival Supabase.
+- Demo validation evidence remains in Demo PostgreSQL.
+- Never copy credentials, migrations, JWTs, database URLs, reset commands, or bearer tokens between repositories.
+- Use synthetic data only for the controlled environment.
+- Exclude Safety/Emergency from V1.
+- If a viewer performs a privileged mutation that should be denied, stop and investigate the authorization boundary.
 
-Continue the thesis claim only if routing improves information allocation without suppressing useful verification or lowering accepted yield. One demo does not prove the market thesis, every repeat is not waste, and seeded findings are not production defects.
+## Readiness for the accelerator recording
 
-## Startup after implementation
+The recording-ready product loop is:
 
-Use separate terminals and dynamically resolved roots:
+1. Festival claim catalog loaded.
+2. Human shallow observation enters Demo through verified Gate 3 capture.
+3. Claim displays **Weak**.
+4. Playwright/agent/backend source adds deeper evidence.
+5. Claim becomes **Solid** or **Conflicted**.
+6. Router recommends a high-value Weak/Untouched/Conflicted claim with explicit rationale.
+7. Late-arriving human accepts or overrides.
+8. Ledger and recommendation order update.
 
-```bash
-# Festival services and deterministic data
-cd "$FESTIVAL_REPO_ROOT"
-npx supabase start
-./scripts/demo/reset-demo.sh
-
-# Festival browser export
-EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 \
-EXPO_PUBLIC_SUPABASE_ANON_KEY='<local-anon-key>' \
-FESTNEST_BROWSER_EXPORT_DIR=/tmp/festnest-thesis-browser \
-node scripts/export-browser-app.mjs
-
-# Thesis API/database
-cd "$THESIS_REPO_ROOT"
-node scripts/demo/create-local-auth.mjs
-docker compose up --build
-
-# Activity adapter
-cd "$FESTIVAL_REPO_ROOT"
-EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 \
-SUPABASE_SERVICE_ROLE_KEY='<local-service-role-key>' \
-QA_API_BASE_URL=http://127.0.0.1:8080 \
-QA_API_TOKENS_JSON='<tokens from the ignored Demo source-tokens manifest>' \
-FESTNEST_EXPERIMENT_RUN_ID='<created experiment run ID>' \
-node scripts/demo/activity-log-adapter.mjs
-
-# UI when not containerized
-cd "$THESIS_REPO_ROOT/frontend"
-npm install
-npm run dev
-```
-
-Open Festival `4173`, thesis UI `5173`, thesis API `8080`, and local Studio `54323`. In Codespaces use forwarded URLs and keep non-UI/database ports private.
-
-## Readiness and presentation boundary
-
-Ready means: Festival is the only target; scope stays bounded; reset and hidden truth work; human/agent identities remain distinct; all evidence carries build/environment/context/source/time; useful verification is preserved; redundant overlap can be deprioritized; stale/offline uncertainty creates a verification request; a late tester receives an explainable recommendation; evidence/routing update after action; metrics export automatically; backup dataset/screenshots/recording exist; and no production or sensitive data is used.
-
-For the five-minute demo: state the problem, show the synthetic environment and hidden-condition boundary, let humans explore, show shared evidence, add the agent, route the late tester, show evidence/routing update, compare the runs, and finish with the narrow thesis claim.
-
-## Troubleshooting
-
-- Supabase start fails: ensure Docker runs and ports `54321`–`54324` are free.
-- Port `54322` conflicts: map thesis PostgreSQL to `54332`; do not move Festival mid-run.
-- Export uses fixture configuration: ensure caller environment values win and rebuild.
-- Browser smoke passes but shared state fails: replace canned per-page data with local Supabase sessions.
-- Extension cannot post: check its narrow host permission, local configuration, worker errors, and API health.
-- Duplicate Festival activity: inspect adapter cursor and API idempotency.
-- Evidence remains static: inspect persistence, recomputation, and frontend API/polling integration.
-- Viewer can mutate: stop; verify current RLS migrations at the database boundary.
-- Old-build evidence appears current: treat as evidence correctness failure.
-- Recommendation reads like a script: reduce it to an area and transparent rationale.
+Infrastructure receipts and older reports remain valid historical evidence, but the sequence above is the current product story.
