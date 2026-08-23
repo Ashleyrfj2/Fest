@@ -8,12 +8,15 @@ Mobile app for coordinating camping music festival trips with your group.
 # Install dependencies
 npm install
 
-# Set up Supabase database (first time only)
-# See docs/setup/supabase-setup.md for detailed instructions
+# Start and rebuild the local Supabase project only
+npx supabase start
+./scripts/demo/reset-demo.sh
 
 # Start Expo development server
 npm start
 ```
+
+The reset command refuses non-loopback Supabase by default. Never reset, seed, or apply thesis-demo migrations to the shared/production Festival project without explicit approval. Use `npx supabase`; global npm installation is unsupported.
 
 Then:
 - Press `i` for iOS simulator
@@ -22,14 +25,11 @@ Then:
 
 ### Supabase Setup
 
-1. Run the database migrations in your Supabase project:
-   - Go to https://supabase.com/dashboard/project/tumtuhzrgczhkiirdpqt/editor
-   - Copy contents of `supabase/migrations/20260319000000_initial_schema.sql` and run
-   - Copy contents of `supabase/migrations/20260319000001_rls_policies.sql` and run
+1. Run `npx supabase status` and use only the generated local URL and keys.
+2. Copy `.env.example` to an ignored `.env`; never assume credentials are already configured.
+3. Use the tracked migrations in repository order through local reset tooling; do not paste selected historical migrations into a remote dashboard.
 
-2. Environment variables are already configured in `.env`
-
-See **docs/setup/supabase-setup.md** for complete setup guide.
+See `AGENTS.md` and **docs/setup/supabase-setup.md** for the guarded local-first workflow.
 
 ## Project Structure
 

@@ -16,6 +16,27 @@ import {
 } from '@/lib/supplyTypes';
 import { useAuth } from '@/lib/auth/AuthContext';
 
+type SupplyMutationResult = {
+  applied: boolean;
+  audit_id?: string;
+  reason_code?: string | null;
+  item?: SupplyItem;
+};
+
+function parseMutationResult(value: unknown): SupplyMutationResult {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('Supply mutation returned an invalid result');
+  }
+  const result = value as Partial<SupplyMutationResult>;
+  if (typeof result.applied !== 'boolean') {
+    throw new Error('Supply mutation did not return an authorization decision');
+  }
+  if (result.applied && (typeof result.audit_id !== 'string' || result.audit_id.length === 0)) {
+    throw new Error('Applied supply mutation did not return an audit receipt');
+  }
+  return result as SupplyMutationResult;
+}
+
 /**
  * Hook to fetch and subscribe to supply items for a trip
  */
@@ -167,34 +188,48 @@ export function useSupplyList(tripId: string) {
     []
   );
 
+  const transitionItem = useCallback(
+    async (itemId: string, transition: 'claim' | 'unclaim' | 'pack' | 'unpack') => {
+      try {
+        const { data, error: mutationError } = await supabase.rpc('transition_supply_item', {
+          p_item_id: itemId,
+          p_transition: transition,
+        });
+        if (mutationError) throw mutationError;
+        const result = parseMutationResult(data);
+        if (!result.applied || !result.item) {
+          return { data: null, error: result.reason_code || 'Supply transition was denied' };
+        }
+        setItems((previous) => previous.map((item) => (
+          item.id === itemId ? result.item as SupplyItem : item
+        )));
+        await fetchItems();
+        return { data: result.item, error: null };
+      } catch (err) {
+        console.error('Error transitioning supply item:', err);
+        return {
+          data: null,
+          error: err instanceof Error ? err.message : 'Failed to transition item',
+        };
+      }
+    },
+    [fetchItems]
+  );
+
   // Delete item
   const deleteItem = useCallback(
     async (itemId: string) => {
       try {
-        const item = items.find((i) => i.id === itemId);
-
-        const { error: deleteError } = await supabase
-          .from('supply_items')
-          .delete()
-          .eq('id', itemId);
-
+        const { data, error: deleteError } = await supabase.rpc('delete_supply_item', {
+          p_item_id: itemId,
+        });
         if (deleteError) throw deleteError;
-
-        // Optimistic update
-        setItems((prev) => prev.filter((item) => item.id !== itemId));
-
-        // Log activity
-        if (item) {
-          await supabase.from('activity_logs').insert({
-            trip_id: tripId,
-            user_id: userProfile?.id,
-            action_type: 'supply_item_deleted',
-            module: 'supply_list',
-            target_id: itemId,
-            description: `Removed ${item.name} from supply list`,
-          });
+        const result = parseMutationResult(data);
+        if (!result.applied) {
+          return { error: result.reason_code || 'Supply deletion was denied' };
         }
 
+        setItems((prev) => prev.filter((item) => item.id !== itemId));
         return { error: null };
       } catch (err) {
         console.error('Error deleting supply item:', err);
@@ -203,7 +238,7 @@ export function useSupplyList(tripId: string) {
         };
       }
     },
-    [items, tripId, userProfile?.id]
+    []
   );
 
   // Claim item (assign to current user)
@@ -213,55 +248,17 @@ export function useSupplyList(tripId: string) {
         return { data: null, error: 'User not authenticated' };
       }
 
-      const item = items.find((i) => i.id === itemId);
-
-      const result = await updateItem(itemId, {
-        claimed_by: userProfile.id,
-        status: 'claimed',
-      });
-
-      // Log activity
-      if (result.data && item) {
-        await supabase.from('activity_logs').insert({
-          trip_id: tripId,
-          user_id: userProfile.id,
-          action_type: 'supply_item_claimed',
-          module: 'supply_list',
-          target_id: itemId,
-          description: `Claimed ${item.name}`,
-        });
-      }
-
-      return result;
+	  return transitionItem(itemId, 'claim');
     },
-    [userProfile?.id, items, updateItem, tripId]
+    [userProfile?.id, transitionItem]
   );
 
   // Unclaim item (remove assignment)
   const unclaimItem = useCallback(
     async (itemId: string) => {
-      const item = items.find((i) => i.id === itemId);
-
-      const result = await updateItem(itemId, {
-        claimed_by: null,
-        status: 'unassigned',
-      });
-
-      // Log activity
-      if (result.data && item) {
-        await supabase.from('activity_logs').insert({
-          trip_id: tripId,
-          user_id: userProfile?.id,
-          action_type: 'supply_item_unclaimed',
-          module: 'supply_list',
-          target_id: itemId,
-          description: `Unclaimed ${item.name}`,
-        });
-      }
-
-      return result;
+	  return transitionItem(itemId, 'unclaim');
     },
-    [items, updateItem, tripId, userProfile?.id]
+    [transitionItem]
   );
 
   // Toggle pack status
@@ -274,25 +271,9 @@ export function useSupplyList(tripId: string) {
 
       const newStatus: SupplyStatus = item.status === 'packed' ? 'claimed' : 'packed';
 
-      const result = await updateItem(itemId, {
-        status: newStatus,
-      });
-
-      // Log activity
-      if (result.data) {
-        await supabase.from('activity_logs').insert({
-          trip_id: tripId,
-          user_id: userProfile?.id,
-          action_type: newStatus === 'packed' ? 'supply_item_packed' : 'supply_item_unpacked',
-          module: 'supply_list',
-          target_id: itemId,
-          description: `${newStatus === 'packed' ? 'Packed' : 'Unpacked'} ${item.name}`,
-        });
-      }
-
-      return result;
+	  return transitionItem(itemId, newStatus === 'packed' ? 'pack' : 'unpack');
     },
-    [items, updateItem, tripId, userProfile?.id]
+    [items, transitionItem]
   );
 
   // Find duplicate items (fuzzy matching)

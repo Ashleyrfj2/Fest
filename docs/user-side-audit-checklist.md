@@ -265,12 +265,13 @@ Current build read: Implemented.
 - [ ] Item quantity works correctly
 - [ ] Category selection works correctly
 - [ ] Assignment to a person works correctly
-- [ ] Claim flow works correctly
-- [ ] Packed flow works correctly
+- [ ] Any member can claim an unassigned item
+- [ ] Only the owner can unclaim, pack, or unpack the item
 - [ ] Status is easy to understand at a glance
 - [ ] Duplicate item handling is visible and useful
-- [ ] Editing/deleting items works if allowed
-- [ ] Role restrictions behave correctly
+- [ ] Leaders/editors can edit item details and delete; viewers cannot
+- [ ] Denied viewer deletion reports failure and leaves the item present
+- [ ] Direct authenticated assignment/status mutation is unavailable outside the workflow RPC
 - [ ] Changes are visible to other members after refresh/reopen
 
 Notes:

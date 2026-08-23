@@ -118,7 +118,7 @@ npx tsc --noEmit
 npm test
 npx supabase start
 npx supabase status
-npx supabase db reset
+./scripts/demo/reset-demo.sh
 ```
 
 Local Festival ports are API `54321`, PostgreSQL `54322`, Studio `54323`, and inbox `54324`. Obtain the local anon and service-role values from `npx supabase status` without printing them in handoffs.
@@ -175,13 +175,16 @@ V1 uses one controlled condition: delay or suppress the first realtime refresh a
 
 Festival owns host DB port `54322`; map thesis PostgreSQL as `54332:5432`. The thesis API connects inside Docker to `postgres:5432`.
 
-Migrations must create immutable `validation_events`, `candidate_states`, `state_corrections`, `evidence_records`, `verification_requests`, `recommendation_events`, `recommendation_responses`, `experiment_runs`, and versioned `experiment_metrics`. Index tenant/build/environment; actor/session/run; route/state fingerprint; source type; outcome; and occurrence time.
+Migrations must create immutable `build_registry`, `validation_events`, `candidate_states`, `state_corrections`, `evidence_records`, `verification_requests`, `recommendation_events`, `recommendation_responses`, `experiment_runs`, and versioned `experiment_metrics`. Index tenant/build/environment; actor/session/run; route/state fingerprint; source type; outcome; and occurrence time.
+
+Register each build before creating a run or ingesting evidence. `POST /api/v1/builds` requires the tenant-bound controller credential and an explicit positive sequence plus the immediately preceding build ID after sequence 1. Build IDs are opaque: never infer order from names, timestamps, or event arrival. Registration is immutable and idempotent only for an exact retry. Unknown builds fail closed for ingest, evidence, and recommendation requests. Registering a newer build immediately marks older-build evidence stale; a delayed older-build event must remain stale and must never stale newer evidence.
 
 `POST /api/v1/events` must require a registered local bearer credential, derive tenant/actor/role/source identity from that credential, enforce the normalized contract and allowed values, reject oversized/malformed input, preserve immutable raw evidence, enforce `event_id` idempotency, trigger recomputation, return `202` for new input, return a stable duplicate response for an exact retry, and return `409` when the same ID carries a different payload.
 
 Required reads/actions:
 
 ```text
+POST /api/v1/builds
 GET  /api/v1/evidence?tenant_id=&build_id=&environment_id=
 GET  /api/v1/recommendations/next?actor_id=&role=&build_id=
 POST /api/v1/recommendations/{id}/responses
@@ -201,7 +204,9 @@ Capture bounded envelopes: route, stable control identity, action type, step ind
 
 ### Festival activity adapter
 
-Read new `activity_logs` for the seeded trip and map at least `supply_item_added`, `supply_item_claimed`, `supply_item_packed`, and permission failures to the shared vocabulary. Add actor, role, build, environment, route, target, and timestamp. Derive deterministic fingerprints such as `supply-list:item:<id>:status:<status>`, deterministic event IDs, and a durable local cursor. Post once and exclude unreviewed descriptions. The adapter never decides sufficiency or routing.
+Read new `activity_logs` plus database-owned Supply List denial audits for the seeded trip. Map ordinary allowed activity such as `supply_item_added`, `supply_item_claimed`, and `supply_item_packed` to the shared vocabulary. Permission denial is never client-authored: it comes only from the private immutable audit read path and normalizes to `action_type=supply_item_permission_denied`, `outcome=blocked`, `verifier_result=database_authorization_denied`, and `context.attempted_action`. Derive its deterministic event ID only from the audit ID. Require `FESTNEST_EXPERIMENT_RUN_ID` and stamp every adapter event with that run. Maintain durable cursors, advance only after an accepted/duplicate API response, and exclude descriptions and audit before/after bodies. The adapter never decides sufficiency or routing.
+
+Supply List authorization is database-owned. Any trip member may claim an unassigned item and may unclaim, pack, or unpack only an item they own. Only leaders/editors may delete. Direct authenticated mutation of assignment/status workflow columns is unavailable; expected denial returns an explicit non-applied RPC result and writes one immutable private audit. A viewer delete that applies is a stop-the-demo security failure.
 
 ### Playwright agent
 
@@ -219,7 +224,7 @@ Support: strongly represented, weak/uncertain, conflicting, stale, blocked, unto
 
 The recommendation is an area plus rationale, never a click script. Initial expected example:
 
-> High-value area: verify the canopy's packed state after reconnect as viewer-b. The claim path is already represented, but the offline/realtime result is conflicting and the viewer context is missing.
+> High-value area: verify the canopy's packed state after reconnect as late-tester-d in the editor role. The claim path and viewer denial are represented, but the offline/realtime result remains conflicting and a fresh independent actor is valuable.
 
 ## Evidence UI and metrics
 
@@ -243,9 +248,9 @@ Keep raw activity, code coverage, exploratory evidence, accepted findings, and a
 
 ## Validation gates
 
-Festival: lint, types, deterministic tests, and browser tests pass; migrations apply; reset succeeds twice identically; four accounts sign in; roles/RLS work; two sessions share state; and no production destination appears.
+Festival: lint, types, deterministic tests, and browser tests pass; migrations apply; reset succeeds twice identically; four accounts sign in; Supply List RPC ownership/state transitions and private-audit access controls pass; roles/RLS work; two sessions share state; and no production destination appears.
 
-Thesis: health passes; valid events persist; invalid events fail closed; duplicates remain idempotent; human/adapter/agent events share the contract; state grouping is explainable/correctable; build changes make affected evidence stale; viewer denial is role-context evidence; rationale matches factors; responses persist; and metrics reproduce.
+Thesis: health passes; builds register in an explicit immutable order; unknown builds fail closed; valid events persist; invalid events fail closed; duplicates remain idempotent; human/adapter/agent events share the contract; state grouping is explainable/correctable; delayed old-build events remain stale without affecting newer evidence; database-authoritative viewer denial is role-context evidence; rationale matches factors; responses persist; and metrics reproduce.
 
 Privacy: only local allowlisted origins and synthetic data; auth routes/passwords/cookies/tokens/keys/raw bodies/Safety values excluded; descriptions masked or omitted. If a viewer mutation succeeds, stop the demo and investigate RLS.
 
@@ -253,7 +258,7 @@ Privacy: only local allowlisted origins and synthetic data; auth routes/password
 
 Baseline `festival-baseline-001`: reset; create the run; hide evidence/recommendations from testers; give the broad mission “Explore how a group prepares and tracks shared equipment”; allow normal coordination for the fixed timebox; capture evidence/findings; freeze metrics.
 
-Guided `festival-guided-001`: reset to identical ground truth; enable shared evidence and area recommendations; let two humans explore; run the agent through the same contract; introduce Human D only after meaningful evidence exists; persist the recommendation, rationale, response, and reason; let D explore naturally; stop at the identical timebox; freeze metrics.
+Guided `festival-guided-001`: reset to identical ground truth; enable shared evidence and area recommendations; let two humans explore; run the agent through the same contract; introduce `late-tester-d` in the editor role only after meaningful evidence exists; persist the recommendation, rationale, response, and reason; let that tester explore naturally; stop at the identical timebox; freeze metrics.
 
 Continue the thesis claim only if routing improves information allocation without suppressing useful verification or lowering accepted yield. One demo does not prove the market thesis, every repeat is not waste, and seeded findings are not production defects.
 
@@ -284,6 +289,7 @@ EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 \
 SUPABASE_SERVICE_ROLE_KEY='<local-service-role-key>' \
 QA_API_BASE_URL=http://127.0.0.1:8080 \
 QA_API_TOKENS_JSON='<tokens from the ignored Demo source-tokens manifest>' \
+FESTNEST_EXPERIMENT_RUN_ID='<created experiment run ID>' \
 node scripts/demo/activity-log-adapter.mjs
 
 # UI when not containerized
