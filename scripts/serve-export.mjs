@@ -2,7 +2,12 @@
 
 import path from 'node:path';
 import process from 'node:process';
-import { browserBaseURL, parseBrowserPort, startBrowserExportServer } from './lib/browser-runtime.mjs';
+import {
+  browserBaseURL,
+  computeBrowserArtifactId,
+  parseBrowserPort,
+  startBrowserExportServer,
+} from './lib/browser-runtime.mjs';
 
 const args = process.argv.slice(2);
 const getArg = (name, fallback) => {
@@ -31,8 +36,9 @@ process.once('SIGTERM', () => void shutdown(143));
 try {
   const rootDir = path.resolve(getArg('--dir', '.'));
   const port = parseBrowserPort(getArg('--port', process.env.FESTNEST_BROWSER_PORT));
-  controller = await startBrowserExportServer({ port, rootDir });
-  console.log(`FestNest browser server listening on ${browserBaseURL(port)}`);
+  const artifactId = computeBrowserArtifactId(rootDir);
+  controller = await startBrowserExportServer({ port, rootDir, artifactId });
+  console.log(`FestNest browser server listening on ${browserBaseURL(port)} (${artifactId})`);
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);
   process.exitCode = 1;

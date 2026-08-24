@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import {
   assertBrowserDiskSpace,
   browserBaseURL,
+  computeBrowserArtifactId,
   markBrowserExportDirectoryOwned,
   parseBrowserPort,
   startBrowserExportServer,
@@ -119,9 +120,10 @@ try {
 
   if (abortController.signal.aborted) throw new Error('FestNest browser export was interrupted');
   markBrowserExportDirectoryOwned(outputDir);
-  controller.markReady(outputDir);
+  const artifactId = computeBrowserArtifactId(outputDir);
+  controller.markReady(outputDir, artifactId);
   exportReady = true;
-  console.log(`FestNest browser export ready at ${browserBaseURL(port)}`);
+  console.log(`FestNest browser export ready at ${browserBaseURL(port)} (${artifactId})`);
 
   await new Promise((resolve, reject) => {
     controller.server.once('close', resolve);

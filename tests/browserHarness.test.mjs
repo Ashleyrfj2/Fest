@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { connect } from 'node:net';
 import os from 'node:os';
@@ -7,11 +7,16 @@ import path from 'node:path';
 import test from 'node:test';
 import {
   BROWSER_EXPORT_OWNERSHIP_MARKER,
+  BROWSER_BUILD_ID,
+  BROWSER_CONTROLLED_ROUTE,
   BROWSER_HEALTH_PATH,
+  BROWSER_SCENARIO_ID,
+  BROWSER_SCHEMA_VERSION,
   BROWSER_SERVICE_NAME,
   assertBrowserDiskSpace,
   assertBrowserPortAvailable,
   browserBaseURL,
+  computeBrowserArtifactId,
   isPortAvailable,
   markBrowserExportDirectoryOwned,
   parseBrowserPort,
@@ -69,20 +74,38 @@ test('export server reports preparing, then serves identity and dynamic routes',
   const reservation = createServer();
   const port = await listen(reservation);
   await close(reservation);
-  const controller = await startBrowserExportServer({ port, buildId: 'test-build' });
+  const controller = await startBrowserExportServer({ port, buildId: 'untrusted-build' });
   try {
     const preparing = await fetch(`${browserBaseURL(port)}${BROWSER_HEALTH_PATH}`);
     assert.equal(preparing.status, 503);
-    assert.equal((await preparing.json()).status, 'preparing');
+    const preparingIdentity = await preparing.json();
+    assert.deepEqual(preparingIdentity, {
+      schemaVersion: BROWSER_SCHEMA_VERSION,
+      service: BROWSER_SERVICE_NAME,
+      status: 'preparing',
+      buildId: BROWSER_BUILD_ID,
+      scenarioId: BROWSER_SCENARIO_ID,
+      controlledRoute: BROWSER_CONTROLLED_ROUTE,
+    });
+    assert.equal(Object.hasOwn(preparingIdentity, 'artifactId'), false);
 
-    controller.markReady(exportRoot);
+    const artifactId = computeBrowserArtifactId(exportRoot);
+    assert.throws(() => controller.markReady(exportRoot), /artifactId/);
+    assert.throws(
+      () => controller.markReady(exportRoot, `sha256:${'0'.repeat(64)}`),
+      /does not match/
+    );
+    controller.markReady(exportRoot, artifactId);
     const health = await fetch(`${browserBaseURL(port)}${BROWSER_HEALTH_PATH}`);
     assert.equal(health.status, 200);
     assert.deepEqual(await health.json(), {
-      schemaVersion: 1,
+      schemaVersion: BROWSER_SCHEMA_VERSION,
       service: BROWSER_SERVICE_NAME,
       status: 'ready',
-      buildId: 'test-build',
+      buildId: BROWSER_BUILD_ID,
+      scenarioId: BROWSER_SCENARIO_ID,
+      controlledRoute: BROWSER_CONTROLLED_ROUTE,
+      artifactId,
     });
     const route = await fetch(`${browserBaseURL(port)}/trips/10000000-0000-4000-8000-000000000001/camp-grid`);
     assert.equal(route.status, 200);
@@ -306,11 +329,17 @@ test('ready export roots are validated and missing roots fail closed', async () 
   const controller = await startBrowserExportServer({ port });
   try {
     assert.throws(
-      () => controller.markReady(path.join(exportRoot, 'missing')),
+      () => controller.markReady(path.join(exportRoot, 'missing'), computeBrowserArtifactId(exportRoot)),
       /existing directory/
     );
-    controller.markReady(exportRoot);
+    const artifactId = computeBrowserArtifactId(exportRoot);
+    controller.markReady(exportRoot, artifactId);
     assert.equal((await fetch(browserBaseURL(port))).status, 200);
+
+    writeFileSync(path.join(exportRoot, 'index.html'), '<h1>changed after ready</h1>');
+    assert.equal((await fetch(browserBaseURL(port) + BROWSER_HEALTH_PATH)).status, 503);
+    writeFileSync(path.join(exportRoot, 'index.html'), '<h1>ready</h1>');
+    assert.equal((await fetch(browserBaseURL(port) + BROWSER_HEALTH_PATH)).status, 200);
 
     rmSync(exportRoot, { recursive: true });
     const health = await fetch(browserBaseURL(port) + BROWSER_HEALTH_PATH);
@@ -321,6 +350,33 @@ test('ready export roots are validated and missing roots fail closed', async () 
     rmSync(exportRoot, { recursive: true, force: true });
   }
   assert.equal(await isPortAvailable(port), true);
+});
+
+test('browser artifact digest is deterministic and changes with file content or path', () => {
+  const fixtureRoot = mkdtempSync(path.join(os.tmpdir(), 'festnest-browser-artifact-'));
+  const firstRoot = path.join(fixtureRoot, 'first');
+  const secondRoot = path.join(fixtureRoot, 'second');
+  for (const root of [firstRoot, secondRoot]) {
+    mkdirSync(path.join(root, 'assets'), { recursive: true });
+    writeFileSync(path.join(root, 'index.html'), '<h1>FestNest</h1>');
+    writeFileSync(path.join(root, 'assets', 'app.js'), 'console.log("stable");');
+  }
+
+  try {
+    const firstArtifactId = computeBrowserArtifactId(firstRoot);
+    assert.match(firstArtifactId, /^sha256:[a-f0-9]{64}$/);
+    assert.equal(firstArtifactId, computeBrowserArtifactId(firstRoot));
+    assert.equal(firstArtifactId, computeBrowserArtifactId(secondRoot));
+
+    writeFileSync(path.join(secondRoot, 'assets', 'app.js'), 'console.log("changed");');
+    assert.notEqual(firstArtifactId, computeBrowserArtifactId(secondRoot));
+
+    writeFileSync(path.join(secondRoot, 'assets', 'app.js'), 'console.log("stable");');
+    renameSync(path.join(secondRoot, 'assets', 'app.js'), path.join(secondRoot, 'assets', 'renamed.js'));
+    assert.notEqual(firstArtifactId, computeBrowserArtifactId(secondRoot));
+  } finally {
+    rmSync(fixtureRoot, { recursive: true, force: true });
+  }
 });
 
 test('owned child commands time out, cancel promptly, and do not expose captured output', async () => {

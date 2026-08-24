@@ -1,7 +1,9 @@
+import { createHash } from 'node:crypto';
 import {
   createReadStream,
   existsSync,
   lstatSync,
+  readFileSync,
   readdirSync,
   realpathSync,
   statSync,
@@ -17,8 +19,16 @@ export const BROWSER_HOST = '127.0.0.1';
 export const DEFAULT_BROWSER_PORT = 4173;
 export const BROWSER_HEALTH_PATH = '/__festnest/browser-health';
 export const BROWSER_SERVICE_NAME = 'festnest-browser-export';
+export const BROWSER_SCHEMA_VERSION = 1;
+export const BROWSER_BUILD_ID = 'festnest-demo-001';
+export const BROWSER_SCENARIO_ID = 'equipment-handoff-v1';
+export const BROWSER_CONTROLLED_ROUTE = '/trips/10000000-0000-4000-8000-000000000001/camp-grid';
 export const BROWSER_EXPORT_OWNERSHIP_MARKER = '.festnest-browser-export-owned';
 export const DEFAULT_MIN_FREE_BYTES = 2 * 1024 * 1024 * 1024;
+
+const BROWSER_ARTIFACT_ID_PATTERN = /^sha256:[a-f0-9]{64}$/;
+// Versioned domain plus length-prefixed path/byte records keeps the receipt unambiguous.
+const BROWSER_ARTIFACT_HASH_DOMAIN = 'festnest-browser-export-artifact-v1\0';
 
 const contentTypes = {
   '.css': 'text/css; charset=utf-8',
@@ -258,6 +268,60 @@ function resolveExistingDirectory(rootDir) {
   }
 }
 
+function collectArtifactFiles(directory, relativeDirectory = '', files = []) {
+  const entries = readdirSync(directory, { withFileTypes: true })
+    .sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0);
+
+  for (const entry of entries) {
+    const absolutePath = path.join(directory, entry.name);
+    const relativePath = relativeDirectory
+      ? path.posix.join(relativeDirectory, entry.name)
+      : entry.name;
+    const stats = lstatSync(absolutePath);
+    if (stats.isSymbolicLink()) {
+      throw new Error(`Browser export artifacts must not contain symbolic links: ${relativePath}`);
+    }
+    if (stats.isDirectory()) {
+      collectArtifactFiles(absolutePath, relativePath, files);
+    } else if (stats.isFile()) {
+      files.push({ absolutePath, relativePath });
+    } else {
+      throw new Error(`Browser export artifacts may contain only files and directories: ${relativePath}`);
+    }
+  }
+  return files;
+}
+
+export function isValidBrowserArtifactId(value) {
+  return typeof value === 'string' && BROWSER_ARTIFACT_ID_PATTERN.test(value);
+}
+
+export function computeBrowserArtifactId(rootDir) {
+  const realRoot = resolveExistingDirectory(rootDir);
+  if (!realRoot) throw new Error('Browser export artifact root must be an existing directory');
+
+  const files = collectArtifactFiles(realRoot).sort((left, right) => {
+    if (left.relativePath < right.relativePath) return -1;
+    if (left.relativePath > right.relativePath) return 1;
+    return 0;
+  });
+  if (files.length === 0) throw new Error('Browser export artifact root must contain files');
+
+  const hash = createHash('sha256');
+  hash.update(BROWSER_ARTIFACT_HASH_DOMAIN, 'utf8');
+  for (const file of files) {
+    const relativePath = Buffer.from(file.relativePath, 'utf8');
+    const bytes = readFileSync(file.absolutePath);
+    const recordHeader = Buffer.alloc(12);
+    recordHeader.writeUInt32BE(relativePath.length, 0);
+    recordHeader.writeBigUInt64BE(BigInt(bytes.length), 4);
+    hash.update(recordHeader);
+    hash.update(relativePath);
+    hash.update(bytes);
+  }
+  return `sha256:${hash.digest('hex')}`;
+}
+
 function captureDirectoryIdentity(rootDir) {
   const configuredPath = path.resolve(rootDir);
   const realPath = resolveExistingDirectory(configuredPath);
@@ -299,12 +363,38 @@ function unavailable(response) {
 export async function startBrowserExportServer({
   port = parseBrowserPort(),
   rootDir = null,
-  buildId = process.env.FESTNEST_DEMO_BUILD_ID || 'festnest-demo-001',
+  artifactId = null,
 } = {}) {
   let activeRoot = null;
+  let activeArtifactId = null;
+
+  const activateRoot = (nextRootDir, nextArtifactId) => {
+    if (!isValidBrowserArtifactId(nextArtifactId)) {
+      throw new Error('Browser export artifactId must use sha256:<64 lowercase hex characters>');
+    }
+    const nextRoot = captureDirectoryIdentity(nextRootDir);
+    if (!nextRoot) throw new Error('Browser export root must be an existing directory');
+    const indexPath = path.join(nextRoot.realPath, 'index.html');
+    try {
+      const indexStats = lstatSync(indexPath);
+      if (indexStats.isSymbolicLink() || !indexStats.isFile()) throw new Error('invalid index');
+    } catch {
+      throw new Error('Browser export root must contain a regular index.html file');
+    }
+
+    const computedArtifactId = computeBrowserArtifactId(nextRoot.realPath);
+    if (computedArtifactId !== nextArtifactId) {
+      throw new Error('Browser export artifactId does not match the export root contents');
+    }
+    activeRoot = nextRoot;
+    activeArtifactId = computedArtifactId;
+    return computedArtifactId;
+  };
+
   if (rootDir) {
-    activeRoot = captureDirectoryIdentity(rootDir);
-    if (!activeRoot) throw new Error('Browser export root must be an existing directory');
+    activateRoot(rootDir, artifactId);
+  } else if (artifactId !== null) {
+    throw new Error('Browser export artifactId cannot be supplied without a root directory');
   }
 
   const server = createServer((request, response) => {
@@ -312,14 +402,25 @@ export async function startBrowserExportServer({
       const requestUrl = new URL(request.url || '/', browserBaseURL(port));
       const readyRoot = resolveCurrentDirectory(activeRoot);
       if (requestUrl.pathname === BROWSER_HEALTH_PATH) {
-        const ready = Boolean(readyRoot);
-        response.writeHead(ready ? 200 : 503, { 'content-type': 'application/json; charset=utf-8' });
-        response.end(`${JSON.stringify({
-          schemaVersion: 1,
+        let ready = Boolean(readyRoot && activeArtifactId);
+        if (ready) {
+          try {
+            ready = computeBrowserArtifactId(readyRoot) === activeArtifactId;
+          } catch {
+            ready = false;
+          }
+        }
+        const identity = {
+          schemaVersion: BROWSER_SCHEMA_VERSION,
           service: BROWSER_SERVICE_NAME,
           status: ready ? 'ready' : 'preparing',
-          buildId,
-        })}\n`);
+          buildId: BROWSER_BUILD_ID,
+          scenarioId: BROWSER_SCENARIO_ID,
+          controlledRoute: BROWSER_CONTROLLED_ROUTE,
+        };
+        if (ready) identity.artifactId = activeArtifactId;
+        response.writeHead(ready ? 200 : 503, { 'content-type': 'application/json; charset=utf-8' });
+        response.end(`${JSON.stringify(identity)}\n`);
         return;
       }
       if (!readyRoot) {
@@ -369,10 +470,8 @@ export async function startBrowserExportServer({
   return {
     port,
     server,
-    markReady(nextRootDir) {
-      const nextRoot = captureDirectoryIdentity(nextRootDir);
-      if (!nextRoot) throw new Error('Browser export root must be an existing directory');
-      activeRoot = nextRoot;
+    markReady(nextRootDir, nextArtifactId) {
+      return activateRoot(nextRootDir, nextArtifactId);
     },
     async close(timeoutMs = 4000) {
       if (!server.listening) return;
