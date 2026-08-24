@@ -90,7 +90,8 @@ try {
     ...verifiedSupabase.publicEnvironment,
     EXPO_NO_DOTENV: 'true',
   };
-  for (const secretName of ['SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'DB_URL', 'JWT_SECRET']) {
+  delete exportEnvironment.SUPABASE_SERVICE_ROLE_KEY;
+  for (const secretName of ['SERVICE_ROLE_KEY', 'DB_URL', 'JWT_SECRET']) {
     delete exportEnvironment[secretName];
   }
 
