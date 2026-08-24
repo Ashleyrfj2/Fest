@@ -2,7 +2,6 @@
 
 import { mkdtempSync, rmSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { spawn } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
@@ -10,9 +9,13 @@ import { fileURLToPath } from 'node:url';
 import {
   assertBrowserDiskSpace,
   browserBaseURL,
+  markBrowserExportDirectoryOwned,
   parseBrowserPort,
   startBrowserExportServer,
+  validateExplicitBrowserExportDirectory,
 } from './lib/browser-runtime.mjs';
+import { runOwnedCommand } from './lib/owned-command.mjs';
+import { resolveVerifiedLocalSupabaseEnvironment } from './lib/local-supabase-env.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDir, '..');
@@ -20,32 +23,19 @@ const require = createRequire(import.meta.url);
 const expoCli = require.resolve('expo/bin/cli');
 const explicitOutputDir = process.env.FESTNEST_BROWSER_EXPORT_DIR;
 const port = parseBrowserPort();
+const abortController = new AbortController();
 
-let activeChild;
 let controller;
 let outputDir;
-let shuttingDown = false;
+let exportReady = false;
+let receivedSignalExitCode;
 
-function waitForExit(child, timeoutMs) {
-  if (!child || child.exitCode !== null || child.signalCode !== null) return Promise.resolve(true);
-  return new Promise((resolve) => {
-    const timeout = globalThis.setTimeout(() => resolve(false), timeoutMs);
-    timeout.unref();
-    child.once('exit', () => {
-      globalThis.clearTimeout(timeout);
-      resolve(true);
-    });
-  });
-}
-
-async function stopOwnedChild() {
-  const child = activeChild;
-  if (!child || child.exitCode !== null || child.signalCode !== null) return;
-  child.kill('SIGTERM');
-  if (!(await waitForExit(child, 5000)) && child.exitCode === null && child.signalCode === null) {
-    child.kill('SIGKILL');
-    await waitForExit(child, 2000);
+function positiveTimeout(rawValue, fallback, name) {
+  const value = Number(rawValue || fallback);
+  if (!Number.isInteger(value) || value < 1 || value > 600_000) {
+    throw new Error(`${name} must be an integer from 1 to 600000`);
   }
+  return value;
 }
 
 function removeGeneratedOutput() {
@@ -53,78 +43,75 @@ function removeGeneratedOutput() {
 }
 
 async function cleanup() {
-  await stopOwnedChild();
-  const closePromise = controller?.close();
+  await controller?.close();
   removeGeneratedOutput();
-  await closePromise;
 }
 
-function shutdown(exitCode) {
-  if (shuttingDown) return;
-  shuttingDown = true;
-  const child = activeChild;
-  if (child && child.exitCode === null && child.signalCode === null) {
-    child.kill('SIGTERM');
-    const killTimer = globalThis.setTimeout(() => {
-      if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
-    }, 3000);
-    killTimer.unref();
-    child.once('exit', () => {
-      globalThis.clearTimeout(killTimer);
-      removeGeneratedOutput();
-      controller?.server.closeAllConnections?.();
-      controller?.server.close();
+function handleSignal(exitCode) {
+  if (receivedSignalExitCode !== undefined) return;
+  receivedSignalExitCode = exitCode;
+  abortController.abort();
+  if (exportReady) {
+    void controller?.close().catch((error) => {
+      console.error(`Browser export shutdown failed: ${error instanceof Error ? error.message : error}`);
     });
   }
-  controller?.server.closeAllConnections?.();
-  controller?.server.close();
-  removeGeneratedOutput();
-  process.exitCode = exitCode;
 }
 
-process.once('SIGINT', () => shutdown(130));
-process.once('SIGTERM', () => shutdown(143));
-
-function runExpoExport(args, options = {}) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [expoCli, ...args], {
-      cwd: projectRoot,
-      stdio: 'inherit',
-      ...options,
-    });
-    activeChild = child;
-    child.once('error', reject);
-    child.once('exit', (code, signal) => {
-      if (activeChild === child) activeChild = undefined;
-      if (code === 0) resolve();
-      else reject(new Error(`Expo export exited with ${code ?? signal}`));
-    });
-  });
-}
-
-const exportEnvironment = {
-  ...process.env,
-  EXPO_NO_DOTENV: 'true',
-  EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321',
-  EXPO_PUBLIC_SUPABASE_ANON_KEY:
-    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'festnest-browser-fixture-anon-key',
-};
-delete exportEnvironment.SUPABASE_SERVICE_ROLE_KEY;
+process.once('SIGINT', () => handleSignal(130));
+process.once('SIGTERM', () => handleSignal(143));
 
 try {
   assertBrowserDiskSpace({ projectRoot });
+
+  const statusResult = await runOwnedCommand({
+    command: process.platform === 'win32' ? 'npx.cmd' : 'npx',
+    args: ['--no-install', 'supabase', 'status', '-o', 'env'],
+    cwd: projectRoot,
+    label: 'local Supabase status',
+    timeoutMs: 30_000,
+    abortSignal: abortController.signal,
+    captureOutput: true,
+  });
+  const verifiedSupabase = resolveVerifiedLocalSupabaseEnvironment(statusResult.stdout, process.env);
+
+  outputDir = explicitOutputDir
+    ? validateExplicitBrowserExportDirectory({
+        targetPath: explicitOutputDir,
+        projectRoot,
+      })
+    : mkdtempSync(path.join(os.tmpdir(), 'festnest-browser-export-'));
+
   controller = await startBrowserExportServer({ port });
   console.log(`Reserved ${browserBaseURL(port)} while the FestNest browser export is preparing.`);
 
-  outputDir = explicitOutputDir
-    ? path.resolve(explicitOutputDir)
-    : mkdtempSync(path.join(os.tmpdir(), 'festnest-browser-export-'));
-  await runExpoExport(
-    ['export', '--clear', '--platform', 'web', '--output-dir', outputDir],
-    { env: exportEnvironment }
-  );
-  if (shuttingDown) throw new Error('FestNest browser export was interrupted');
+  const exportEnvironment = {
+    ...process.env,
+    ...verifiedSupabase.publicEnvironment,
+    EXPO_NO_DOTENV: 'true',
+  };
+  for (const secretName of ['SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'DB_URL', 'JWT_SECRET']) {
+    delete exportEnvironment[secretName];
+  }
+
+  await runOwnedCommand({
+    command: process.execPath,
+    args: [expoCli, 'export', '--clear', '--platform', 'web', '--output-dir', outputDir],
+    cwd: projectRoot,
+    env: exportEnvironment,
+    label: 'Expo browser export',
+    timeoutMs: positiveTimeout(
+      process.env.FESTNEST_BROWSER_EXPORT_TIMEOUT_MS,
+      170_000,
+      'FESTNEST_BROWSER_EXPORT_TIMEOUT_MS'
+    ),
+    abortSignal: abortController.signal,
+  });
+
+  if (abortController.signal.aborted) throw new Error('FestNest browser export was interrupted');
+  markBrowserExportDirectoryOwned(outputDir);
   controller.markReady(outputDir);
+  exportReady = true;
   console.log(`FestNest browser export ready at ${browserBaseURL(port)}`);
 
   await new Promise((resolve, reject) => {
@@ -132,16 +119,17 @@ try {
     controller.server.once('error', reject);
   });
 } catch (error) {
-  console.error(error instanceof Error ? error.message : error);
-  process.exitCode = 1;
-} finally {
-  if (!shuttingDown) {
-    shuttingDown = true;
-    try {
-      await cleanup();
-    } catch (error) {
-      console.error(`Browser workflow cleanup failed: ${error instanceof Error ? error.message : error}`);
-      process.exitCode = 1;
-    }
+  if (receivedSignalExitCode === undefined) {
+    console.error(error instanceof Error ? error.message : error);
+    process.exitCode = 1;
   }
+} finally {
+  abortController.abort();
+  try {
+    await cleanup();
+  } catch (error) {
+    console.error(`Browser workflow cleanup failed: ${error instanceof Error ? error.message : error}`);
+    if (receivedSignalExitCode === undefined) process.exitCode = 1;
+  }
+  if (receivedSignalExitCode !== undefined) process.exitCode = receivedSignalExitCode;
 }

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -16,6 +17,25 @@ const warnings = [];
 const requiredNode = readFileSync(path.join(projectRoot, '.nvmrc'), 'utf8').trim();
 if (process.versions.node !== requiredNode) {
   failures.push(`Node ${requiredNode} is required; current runtime is ${process.version}. Run \"nvm install && nvm use\" in the repository.`);
+}
+
+const packageManifest = JSON.parse(readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
+const requiredNpm = /^npm@(.+)$/.exec(packageManifest.packageManager || '')?.[1];
+if (requiredNpm !== '10.9.4') {
+  failures.push(`package.json must pin packageManager to npm@10.9.4; found ${JSON.stringify(packageManifest.packageManager)}.`);
+} else {
+  const npmResult = spawnSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['--version'], {
+    cwd: projectRoot,
+    encoding: 'utf8',
+    timeout: 10_000,
+  });
+  if (npmResult.error) {
+    failures.push(`npm 10.9.4 could not be verified: ${npmResult.error.message}`);
+  } else if (npmResult.status !== 0) {
+    failures.push(`npm --version exited with status ${npmResult.status}`);
+  } else if (npmResult.stdout.trim() !== requiredNpm) {
+    failures.push(`npm ${requiredNpm} is required; current npm is ${npmResult.stdout.trim() || 'unknown'}.`);
+  }
 }
 
 const isWSL = process.platform === 'linux' && /microsoft/i.test(os.release());

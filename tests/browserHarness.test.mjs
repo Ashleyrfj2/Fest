@@ -6,15 +6,27 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import {
+  BROWSER_EXPORT_OWNERSHIP_MARKER,
   BROWSER_HEALTH_PATH,
   BROWSER_SERVICE_NAME,
   assertBrowserDiskSpace,
   assertBrowserPortAvailable,
   browserBaseURL,
   isPortAvailable,
+  markBrowserExportDirectoryOwned,
   parseBrowserPort,
   startBrowserExportServer,
+  validateExplicitBrowserExportDirectory,
 } from '../scripts/lib/browser-runtime.mjs';
+import { CommandCancelledError, runOwnedCommand } from '../scripts/lib/owned-command.mjs';
+import {
+  parseSupabaseStatusEnvironment,
+  resolveVerifiedLocalSupabaseEnvironment,
+} from '../scripts/lib/local-supabase-env.mjs';
+import {
+  assertCanonicalResetPolicy,
+  canonicalRestorationResult,
+} from '../scripts/lib/browser-workflow-state.mjs';
 
 async function listen(server, port = 0) {
   await new Promise((resolve, reject) => {
@@ -134,4 +146,217 @@ test('disk-space preflight is enforceable and supports an explicit zero threshol
   } finally {
     rmSync(projectRoot, { recursive: true, force: true });
   }
+});
+
+
+test('local Supabase status parsing pins the browser environment without exposing keys', () => {
+  const statusOutput = [
+    'API_URL="http://127.0.0.1:54321"',
+    'ANON_KEY="local-anon-key"',
+    'IGNORED_VALUE="not-used"',
+  ].join('\n');
+  assert.deepEqual(parseSupabaseStatusEnvironment(statusOutput), {
+    API_URL: 'http://127.0.0.1:54321',
+    ANON_KEY: 'local-anon-key',
+    IGNORED_VALUE: 'not-used',
+  });
+
+  const verified = resolveVerifiedLocalSupabaseEnvironment(statusOutput, {
+    EXPO_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
+    EXPO_PUBLIC_SUPABASE_ANON_KEY: 'local-anon-key',
+  });
+  assert.equal(verified.apiUrl, 'http://127.0.0.1:54321');
+  assert.equal(verified.anonKey, 'local-anon-key');
+  assert.deepEqual(verified.publicEnvironment, {
+    EXPO_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
+    EXPO_PUBLIC_SUPABASE_ANON_KEY: 'local-anon-key',
+  });
+
+  for (const invalidStatus of [
+    'API_URL="https://example.supabase.co"\nANON_KEY="local-anon-key"',
+    'API_URL="http://127.0.0.1:54322"\nANON_KEY="local-anon-key"',
+    'API_URL="http://127.0.0.1:54321"',
+  ]) {
+    assert.throws(() => resolveVerifiedLocalSupabaseEnvironment(invalidStatus, {}));
+  }
+
+  assert.throws(
+    () =>
+      resolveVerifiedLocalSupabaseEnvironment(statusOutput, {
+        EXPO_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
+      }),
+    /Ambient EXPO_PUBLIC_SUPABASE_URL/
+  );
+  assert.throws(
+    () =>
+      resolveVerifiedLocalSupabaseEnvironment(statusOutput, {
+        EXPO_PUBLIC_SUPABASE_ANON_KEY: 'different-secret',
+      }),
+    (error) =>
+      /Ambient EXPO_PUBLIC_SUPABASE_ANON_KEY/.test(error.message) &&
+      !error.message.includes('local-anon-key') &&
+      !error.message.includes('different-secret')
+  );
+});
+
+
+test('canonical restoration reporting is fail-closed and the skip switch is rejected', () => {
+  assert.throws(
+    () => assertCanonicalResetPolicy({ FESTNEST_SKIP_FINAL_RESET: 'false' }),
+    /no longer supported/
+  );
+  assert.doesNotThrow(() => assertCanonicalResetPolicy({}));
+
+  assert.deepEqual(
+    canonicalRestorationResult({
+      mutatedDemo: true,
+      finalRestorationVerified: true,
+      interrupted: false,
+      portReleased: true,
+      finalResetFailed: false,
+    }),
+    { required: true, restored: true, reason: null }
+  );
+  assert.deepEqual(
+    canonicalRestorationResult({
+      mutatedDemo: true,
+      finalRestorationVerified: false,
+      interrupted: false,
+      portReleased: false,
+      finalResetFailed: false,
+    }),
+    {
+      required: true,
+      restored: false,
+      reason: 'the Festival browser port did not release',
+    }
+  );
+  assert.equal(
+    canonicalRestorationResult({
+      mutatedDemo: true,
+      finalRestorationVerified: false,
+      interrupted: true,
+      portReleased: true,
+      finalResetFailed: false,
+    }).restored,
+    false
+  );
+  assert.match(
+    canonicalRestorationResult({
+      mutatedDemo: true,
+      finalRestorationVerified: false,
+      interrupted: false,
+      portReleased: true,
+      finalResetFailed: true,
+    }).reason,
+    /reset or seed verification failed/
+  );
+});
+
+test('explicit browser export directories must be dedicated and owned', () => {
+  const fixtureRoot = mkdtempSync(path.join(os.tmpdir(), 'festnest-browser-export-guard-'));
+  const projectRoot = path.join(fixtureRoot, 'festnest-browser-export-project');
+  const homeDir = path.join(fixtureRoot, 'festnest-browser-export-home');
+  const tempDir = path.join(fixtureRoot, 'festnest-browser-export-temp');
+  const safeTarget = path.join(fixtureRoot, 'festnest-browser-export-safe');
+  mkdirSync(projectRoot);
+  mkdirSync(homeDir);
+  mkdirSync(tempDir);
+
+  const validate = (targetPath) =>
+    validateExplicitBrowserExportDirectory({ targetPath, projectRoot, homeDir, tempDir });
+
+  try {
+    assert.equal(validate(safeTarget), safeTarget);
+    mkdirSync(safeTarget);
+    assert.equal(validate(safeTarget), safeTarget);
+
+    writeFileSync(path.join(safeTarget, 'unrelated.txt'), 'do not clear');
+    assert.throws(() => validate(safeTarget), /nonempty/);
+    rmSync(path.join(safeTarget, 'unrelated.txt'));
+
+    markBrowserExportDirectoryOwned(safeTarget);
+    writeFileSync(path.join(safeTarget, 'index.html'), '<h1>owned export</h1>');
+    assert.equal(validate(safeTarget), safeTarget);
+    assert.ok(BROWSER_EXPORT_OWNERSHIP_MARKER.startsWith('.festnest-browser-export'));
+
+    for (const rejectedTarget of [
+      path.parse(fixtureRoot).root,
+      homeDir,
+      tempDir,
+      projectRoot,
+      fixtureRoot,
+      path.join(projectRoot, 'festnest-browser-export-inside'),
+      path.join(fixtureRoot, 'unrelated-output'),
+    ]) {
+      assert.throws(() => validate(rejectedTarget));
+    }
+  } finally {
+    rmSync(fixtureRoot, { recursive: true, force: true });
+  }
+});
+
+test('ready export roots are validated and missing roots fail closed', async () => {
+  const exportRoot = mkdtempSync(path.join(os.tmpdir(), 'festnest-browser-ready-root-'));
+  writeFileSync(path.join(exportRoot, 'index.html'), '<h1>ready</h1>');
+
+  const reservation = createServer();
+  const port = await listen(reservation);
+  await close(reservation);
+  const controller = await startBrowserExportServer({ port });
+  try {
+    assert.throws(
+      () => controller.markReady(path.join(exportRoot, 'missing')),
+      /existing directory/
+    );
+    controller.markReady(exportRoot);
+    assert.equal((await fetch(browserBaseURL(port))).status, 200);
+
+    rmSync(exportRoot, { recursive: true });
+    const health = await fetch(browserBaseURL(port) + BROWSER_HEALTH_PATH);
+    assert.equal(health.status, 503);
+    assert.equal((await fetch(browserBaseURL(port))).status, 503);
+  } finally {
+    await controller.close();
+    rmSync(exportRoot, { recursive: true, force: true });
+  }
+  assert.equal(await isPortAvailable(port), true);
+});
+
+test('owned child commands time out, cancel promptly, and do not expose captured output', async () => {
+  await assert.rejects(
+    runOwnedCommand({
+      command: process.execPath,
+      args: ['-e', 'setInterval(() => {}, 1000)'],
+      label: 'timeout fixture',
+      timeoutMs: 30,
+      killGraceMs: 20,
+      killWaitMs: 500,
+    }),
+    /timed out/
+  );
+
+  const abortController = new AbortController();
+  const cancelled = runOwnedCommand({
+    command: process.execPath,
+    args: ['-e', 'setInterval(() => {}, 1000)'],
+    label: 'cancel fixture',
+    timeoutMs: 2_000,
+    abortSignal: abortController.signal,
+    killGraceMs: 20,
+    killWaitMs: 500,
+  });
+  globalThis.setTimeout(() => abortController.abort(), 30);
+  await assert.rejects(cancelled, (error) => error instanceof CommandCancelledError);
+
+  await assert.rejects(
+    runOwnedCommand({
+      command: process.execPath,
+      args: ['-e', "process.stderr.write('sensitive-output'); process.exit(2)"],
+      label: 'redacted fixture',
+      timeoutMs: 2_000,
+      captureOutput: true,
+    }),
+    (error) => /redacted fixture failed/.test(error.message) && !error.message.includes('sensitive-output')
+  );
 });

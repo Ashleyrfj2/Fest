@@ -1,4 +1,13 @@
-import { createReadStream, existsSync, realpathSync, statSync, statfsSync } from 'node:fs';
+import {
+  createReadStream,
+  existsSync,
+  lstatSync,
+  readdirSync,
+  realpathSync,
+  statSync,
+  statfsSync,
+  writeFileSync,
+} from 'node:fs';
 import { createServer } from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
@@ -8,6 +17,7 @@ export const BROWSER_HOST = '127.0.0.1';
 export const DEFAULT_BROWSER_PORT = 4173;
 export const BROWSER_HEALTH_PATH = '/__festnest/browser-health';
 export const BROWSER_SERVICE_NAME = 'festnest-browser-export';
+export const BROWSER_EXPORT_OWNERSHIP_MARKER = '.festnest-browser-export-owned';
 export const DEFAULT_MIN_FREE_BYTES = 2 * 1024 * 1024 * 1024;
 
 const contentTypes = {
@@ -131,6 +141,83 @@ function findExistingParent(targetPath) {
   return candidate;
 }
 
+function isSameOrInside(candidate, parent) {
+  const relative = path.relative(parent, candidate);
+  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
+}
+
+function assertNotBroadTarget(targetPath, { projectRoot, homeDir, tempDir }) {
+  const filesystemRoot = path.parse(targetPath).root;
+  const protectedRoots = [
+    filesystemRoot,
+    path.resolve(homeDir),
+    path.resolve(tempDir),
+    path.resolve(projectRoot),
+  ];
+
+  for (const protectedRoot of protectedRoots) {
+    if (targetPath === protectedRoot || isSameOrInside(protectedRoot, targetPath)) {
+      throw new Error(`FESTNEST_BROWSER_EXPORT_DIR is too broad or contains a protected workspace: ${targetPath}`);
+    }
+  }
+  if (isSameOrInside(targetPath, path.resolve(projectRoot))) {
+    throw new Error('FESTNEST_BROWSER_EXPORT_DIR must stay outside the Festival repository');
+  }
+}
+
+export function validateExplicitBrowserExportDirectory({
+  targetPath,
+  projectRoot,
+  homeDir = os.homedir(),
+  tempDir = os.tmpdir(),
+} = {}) {
+  if (!targetPath) throw new Error('FESTNEST_BROWSER_EXPORT_DIR is required');
+  if (!projectRoot) throw new Error('projectRoot is required to validate FESTNEST_BROWSER_EXPORT_DIR');
+
+  const resolvedTarget = path.resolve(targetPath);
+  const name = path.basename(resolvedTarget);
+  if (!/^festnest-browser-export(?:[-_.][A-Za-z0-9][A-Za-z0-9._-]*)?$/.test(name)) {
+    throw new Error('FESTNEST_BROWSER_EXPORT_DIR must use a dedicated festnest-browser-export-* leaf directory');
+  }
+
+  assertNotBroadTarget(resolvedTarget, { projectRoot, homeDir, tempDir });
+
+  const existingParent = findExistingParent(resolvedTarget);
+  const realParent = realpathSync(existingParent);
+  const physicalTarget = path.resolve(realParent, path.relative(existingParent, resolvedTarget));
+  assertNotBroadTarget(physicalTarget, {
+    projectRoot: realpathSync(projectRoot),
+    homeDir: existsSync(homeDir) ? realpathSync(homeDir) : path.resolve(homeDir),
+    tempDir: realpathSync(tempDir),
+  });
+
+  if (!existsSync(resolvedTarget)) return resolvedTarget;
+
+  const targetStats = lstatSync(resolvedTarget);
+  if (targetStats.isSymbolicLink()) {
+    throw new Error('FESTNEST_BROWSER_EXPORT_DIR must not be a symbolic link');
+  }
+  if (!targetStats.isDirectory()) {
+    throw new Error('FESTNEST_BROWSER_EXPORT_DIR must be a directory');
+  }
+
+  const entries = readdirSync(resolvedTarget);
+  if (entries.length > 0 && !entries.includes(BROWSER_EXPORT_OWNERSHIP_MARKER)) {
+    throw new Error('FESTNEST_BROWSER_EXPORT_DIR is nonempty and is not marked as a FestNest export directory');
+  }
+  return resolvedTarget;
+}
+
+export function markBrowserExportDirectoryOwned(targetPath) {
+  const root = resolveExistingDirectory(targetPath);
+  if (!root) throw new Error('Cannot mark a missing browser export directory as owned');
+  writeFileSync(
+    path.join(root, BROWSER_EXPORT_OWNERSHIP_MARKER),
+    `${JSON.stringify({ schemaVersion: 1, owner: BROWSER_SERVICE_NAME })}\n`,
+    { encoding: 'utf8', mode: 0o600 }
+  );
+}
+
 function safeRelativePath(pathname) {
   let decoded;
   try {
@@ -161,19 +248,52 @@ function candidateFiles(relativePath) {
   return candidates;
 }
 
+function resolveExistingDirectory(rootDir) {
+  if (!rootDir) return null;
+  try {
+    if (!statSync(rootDir).isDirectory()) return null;
+    return realpathSync(rootDir);
+  } catch {
+    return null;
+  }
+}
+
+function captureDirectoryIdentity(rootDir) {
+  const configuredPath = path.resolve(rootDir);
+  const realPath = resolveExistingDirectory(configuredPath);
+  return realPath ? Object.freeze({ configuredPath, realPath }) : null;
+}
+
+function resolveCurrentDirectory(identity) {
+  if (!identity) return null;
+  const currentRealPath = resolveExistingDirectory(identity.configuredPath);
+  return currentRealPath === identity.realPath ? identity.realPath : null;
+}
+
 function resolveFile(rootDir, pathname) {
   const relativePath = safeRelativePath(pathname);
   if (!relativePath) return null;
-  const realRoot = realpathSync(rootDir);
+  const realRoot = resolveExistingDirectory(rootDir);
+  if (!realRoot) return null;
+
   for (const candidate of candidateFiles(relativePath)) {
-    const filePath = path.resolve(rootDir, candidate);
-    if (!filePath.startsWith(`${rootDir}${path.sep}`) && filePath !== rootDir) continue;
-    if (!existsSync(filePath) || !statSync(filePath).isFile()) continue;
-    const realFile = realpathSync(filePath);
-    if (!realFile.startsWith(`${realRoot}${path.sep}`) && realFile !== realRoot) continue;
-    return realFile;
+    const filePath = path.resolve(realRoot, candidate);
+    if (!filePath.startsWith(`${realRoot}${path.sep}`) && filePath !== realRoot) continue;
+    try {
+      if (!statSync(filePath).isFile()) continue;
+      const realFile = realpathSync(filePath);
+      if (!realFile.startsWith(`${realRoot}${path.sep}`) && realFile !== realRoot) continue;
+      return realFile;
+    } catch {
+      continue;
+    }
   }
   return null;
+}
+
+function unavailable(response) {
+  response.writeHead(503, { 'content-type': 'text/plain; charset=utf-8', 'retry-after': '1' });
+  response.end('FestNest browser export is unavailable.\n');
 }
 
 export async function startBrowserExportServer({
@@ -181,45 +301,55 @@ export async function startBrowserExportServer({
   rootDir = null,
   buildId = process.env.FESTNEST_DEMO_BUILD_ID || 'festnest-demo-001',
 } = {}) {
-  let activeRoot = rootDir ? path.resolve(rootDir) : null;
+  let activeRoot = null;
+  if (rootDir) {
+    activeRoot = captureDirectoryIdentity(rootDir);
+    if (!activeRoot) throw new Error('Browser export root must be an existing directory');
+  }
+
   const server = createServer((request, response) => {
-    const requestUrl = new URL(request.url || '/', browserBaseURL(port));
-    if (requestUrl.pathname === BROWSER_HEALTH_PATH) {
-      const ready = Boolean(activeRoot);
-      response.writeHead(ready ? 200 : 503, { 'content-type': 'application/json; charset=utf-8' });
-      response.end(`${JSON.stringify({
-        schemaVersion: 1,
-        service: BROWSER_SERVICE_NAME,
-        status: ready ? 'ready' : 'preparing',
-        buildId,
-      })}\n`);
-      return;
-    }
-    if (!activeRoot) {
-      response.writeHead(503, { 'content-type': 'text/plain; charset=utf-8', 'retry-after': '1' });
-      response.end('FestNest browser export is preparing.\n');
-      return;
-    }
-    const filePath = resolveFile(activeRoot, requestUrl.pathname);
-    if (!filePath) {
-      response.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
-      response.end('Not found');
-      return;
-    }
-    const extension = path.extname(filePath);
-    const headers = { 'content-type': contentTypes[extension] || 'application/octet-stream' };
-    if (request.method === 'HEAD') {
+    try {
+      const requestUrl = new URL(request.url || '/', browserBaseURL(port));
+      const readyRoot = resolveCurrentDirectory(activeRoot);
+      if (requestUrl.pathname === BROWSER_HEALTH_PATH) {
+        const ready = Boolean(readyRoot);
+        response.writeHead(ready ? 200 : 503, { 'content-type': 'application/json; charset=utf-8' });
+        response.end(`${JSON.stringify({
+          schemaVersion: 1,
+          service: BROWSER_SERVICE_NAME,
+          status: ready ? 'ready' : 'preparing',
+          buildId,
+        })}\n`);
+        return;
+      }
+      if (!readyRoot) {
+        unavailable(response);
+        return;
+      }
+      const filePath = resolveFile(readyRoot, requestUrl.pathname);
+      if (!filePath) {
+        response.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
+        response.end('Not found');
+        return;
+      }
+      const extension = path.extname(filePath);
+      const headers = { 'content-type': contentTypes[extension] || 'application/octet-stream' };
+      if (request.method === 'HEAD') {
+        response.writeHead(200, headers);
+        response.end();
+        return;
+      }
       response.writeHead(200, headers);
-      response.end();
-      return;
+      const stream = createReadStream(filePath);
+      stream.once('error', () => {
+        if (!response.headersSent) response.writeHead(500, { 'content-type': 'text/plain; charset=utf-8' });
+        response.end('Failed to read export file.\n');
+      });
+      stream.pipe(response);
+    } catch {
+      if (!response.headersSent) unavailable(response);
+      else response.destroy();
     }
-    response.writeHead(200, headers);
-    const stream = createReadStream(filePath);
-    stream.once('error', () => {
-      if (!response.headersSent) response.writeHead(500, { 'content-type': 'text/plain; charset=utf-8' });
-      response.end('Failed to read export file.\n');
-    });
-    stream.pipe(response);
   });
 
   await new Promise((resolve, reject) => {
@@ -240,7 +370,9 @@ export async function startBrowserExportServer({
     port,
     server,
     markReady(nextRootDir) {
-      activeRoot = path.resolve(nextRootDir);
+      const nextRoot = captureDirectoryIdentity(nextRootDir);
+      if (!nextRoot) throw new Error('Browser export root must be an existing directory');
+      activeRoot = nextRoot;
     },
     async close(timeoutMs = 4000) {
       if (!server.listening) return;
