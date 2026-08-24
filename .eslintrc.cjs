@@ -9,6 +9,12 @@ module.exports = {
     'coverage/',
     'supabase/.temp/',
   ],
+  overrides: [
+    {
+      files: ['**/*.mjs'],
+      env: { node: true },
+    },
+  ],
   rules: {
     '@typescript-eslint/no-unused-vars': 'off',
     '@typescript-eslint/array-type': 'off',

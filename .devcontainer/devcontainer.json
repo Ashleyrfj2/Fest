@@ -1,6 +1,13 @@
 {
   "name": "Festival and QA Thesis Demo",
   "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {
+    "ghcr.io/devcontainers/features/node:2": {
+      "version": "22.21.0",
+      "npmVersion": "10.9.4",
+      "nodeGypDependencies": true
+    }
+  },
   "hostRequirements": {
     "cpus": 4,
     "memory": "8gb",
@@ -29,6 +36,7 @@
       "onAutoForward": "silent"
     }
   },
+  "postCreateCommand": "npm ci && npx playwright install --with-deps chromium && npm run workspace:check",
   "customizations": {
     "codespaces": {
       "repositories": {

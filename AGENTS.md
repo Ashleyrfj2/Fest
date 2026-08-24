@@ -1,6 +1,6 @@
 # Agent Operating Guide — Festival / FestNest
 
-Last thesis synchronization: 2026-08-23 18:04 CDT
+Last thesis synchronization: 2026-08-24 CDT
 
 This file is required reading for agent work in `Ashleyrfj2/Fest`.
 
@@ -33,13 +33,15 @@ Gate 3  PASS
 M4A     PASS
 M4B     PASS
 M4C     PASS
-M4D     NEXT
+M4D     PASS
+M5A     NEXT
 ```
 
-Current Demo M4C commit:
+Current Demo milestone commits on `main`:
 
 ```text
 31a5a18 feat: add evidence reconciliation v0
+4d75c1f feat: add M4D evidence ledger UI (#9)
 ```
 
 M4C verification before commit: **25/25 backend integration tests PASS** and **7/7 Gate 3 preflight checks PASS**.
@@ -78,20 +80,15 @@ late-tester-d  editor
 
 Do not use Safety/Emergency data in the thesis demo.
 
-## Known Demo M4C semantic follow-ups
+## Resolved Demo M4C semantics
 
-Festival behavior remains normative. Do not weaken or rewrite Festival behavior to match these current Demo implementation quirks:
-
-1. Demo currently labels contradict-only compatible evidence as `Conflicted` even when no supporting observation exists.
-2. Demo currently treats a verifier result containing `denied_mutation` as `Blocked` before evaluating a supporting assessment, while Festival permission/ownership claims intentionally treat database-enforced denial as positive authorization evidence.
-
-Resolve those in Demo code/tests before final demo reliance.
+Festival behavior remains normative. Compatible contradict-only evidence intentionally derives `Conflicted`. An expected database-enforced `denied_mutation` may support a permission claim; `Blocked` requires an explicit blocked assessment. These semantics are implemented and covered by Demo tests.
 
 ## Next shared milestone
 
-**M4D — Shared Build Validation / Evidence Ledger UI** is next in Demo.
+**M5A — Information-Value Router V0** is next in Demo.
 
-After M4D:
+Remaining roadmap:
 
 ```text
 M5A  Information-value router V0
@@ -102,6 +99,38 @@ M8   Fixed-budget guided/control experiment
 M9   Explicit build invalidation V0
 ```
 
+## Browser-branch remediation status — August 24, 2026
+
+Current implementation branch: `fix/browser-test-reliability`.
+
+Implementation commits after `main`:
+
+```text
+afb3715  fix: harden browser workflow across macOS and WSL
+d96d8e0  chore: align devcontainer with browser workflow
+9b8e4cb  fix: harden browser workflow lifecycle
+595d153  test: preserve browser secret-removal contract
+e09b4db  test: retain ambient Supabase source guard
+4c766e2  fix: bind browser identity to exported artifact
+```
+
+`4c766e295ec957b5d77c34649deb7ecf3bfd5532` is the executable implementation tip immediately before the documentation-only reconciliation commit containing this section.
+
+Fest Actions **Lint run #49** (`32741534261`) completed successfully at `4c766e2`. The branch adds local-environment validation, bounded owned-process cleanup, fail-closed export readiness, ambient Supabase-source protection, and a deterministic export receipt.
+
+Strict producer identity:
+
+```text
+schemaVersion    1
+service          festnest-browser-export
+buildId          festnest-demo-001
+scenarioId       equipment-handoff-v1
+controlledRoute  /trips/10000000-0000-4000-8000-000000000001/camp-grid
+artifactId       sha256:<64 lowercase hex characters>
+```
+
+Festival owns the export process and cleanup. Demo is a strict consumer and never stops an existing listener. If these branches are merged, merge this Fest producer before the Demo consumer. No Supabase reset or seed, live browser run, repeated workflow, native-WSL replay, or live Festival → extension → Demo API → PostgreSQL composition was executed at the final implementation tips. The August 23 Gate 3 receipt remains historical. Codespaces manual forwarded-browser composition is unsupported unless separately implemented.
+
 ## Portable paths and Codespaces
 
 Repositories:
@@ -111,7 +140,7 @@ Festival  https://github.com/Ashleyrfj2/Fest
 Demo      https://github.com/Ashleyrfj2/Demo
 ```
 
-Typical Codespaces paths may be `/workspaces/Fest` and `/workspaces/Demo`, but code/scripts must use resolved roots rather than literal paths.
+Typical Codespaces paths may be `/workspaces/Fest` and `/workspaces/Demo`, but code/scripts must use resolved roots rather than literal paths. Manual composition through a Codespaces forwarded browser is unsupported unless separately implemented.
 
 ## Technical conventions
 
@@ -196,7 +225,7 @@ Do not change Festival's database port to solve Demo conflicts. Keep the trust d
 ## Validation commands
 
 ```bash
-npm install
+npm ci
 npm run lint -- --no-cache
 npx tsc --noEmit
 npm test

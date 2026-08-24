@@ -9,6 +9,10 @@ FestNest uses Supabase for:
 - Authentication and user management
 - File storage for photos and receipts
 
+## Browser-branch verification boundary
+
+The browser-reliability branch did not run a Supabase reset or seed at final implementation tips. Its evidence is static/unit/CI, including green Fest Actions Lint run #49. The historical Gate 3 receipt remains historical; a new live browser/repeated/composed run is still outstanding.
+
 ## Quick Start
 
 ### 1. Start the local project and apply every tracked migration
@@ -152,7 +156,7 @@ The tracked migration `20260829000000_enable_supply_realtime.sql` idempotently a
 
 1. ✅ Deterministic local reset, synthetic seed, and role verification are tracked.
 2. ✅ Supply List realtime and database-authoritative workflow/denial behavior are tracked and verified in focused Gate 1 checks.
-3. ⬜ Gate 2 run/metric lifecycle and Gate 3 stale/extension/composed validation remain pending.
+3. ✅ Gate 2 and Gate 3 are accepted milestones; the historical Gate 3 receipt was not rerun against the final browser-branch implementation tips.
 4. ⬜ Storage bucket provisioning remains outside this tracked local setup until it receives migrations and validation.
 
 ## Useful SQL Queries

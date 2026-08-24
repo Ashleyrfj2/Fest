@@ -5,11 +5,13 @@ Mobile app for coordinating camping music festival trips with your group.
 ## Quick Start
 
 ```bash
-# Install dependencies
-npm install
+# Use the repository-pinned runtime and install the lockfile exactly
+nvm install
+nvm use
+npm ci
 
 # Start and rebuild the local Supabase project only
-npx supabase start
+./scripts/demo/start-local-supabase.sh
 ./scripts/demo/reset-demo.sh
 
 # Start Expo development server
@@ -30,6 +32,18 @@ Then:
 3. Use the tracked migrations in repository order through local reset tooling; do not paste selected historical migrations into a remote dashboard.
 
 See `AGENTS.md` and **docs/setup/supabase-setup.md** for the guarded local-first workflow.
+
+### macOS and WSL workspace compatibility
+
+- Keep each clone in its native filesystem: a normal macOS folder for Ashley and
+  `~/repos/Fest` inside WSL for Riley. Do not run the WSL clone from `/mnt/c` or `/mnt/e`.
+- Open Riley's editor by running `code .` inside WSL so Git, Node, npm, Bash, and
+  Docker are all the Linux/WSL tools.
+- Never share `node_modules` or Playwright browser caches between machines.
+- Install Chromium once per clone: `npx playwright install chromium` on macOS, or
+  `npx playwright install --with-deps chromium` in WSL.
+- Run `npm run workspace:check` before browser work. The check fails on the wrong
+  Node version, a `/mnt` WSL checkout, CRLF shell files, or a missing browser.
 
 ## Project Structure
 
@@ -82,8 +96,9 @@ Festival serves as the real rendered target application for the Demo QA-Platform
 
 - **Browser Export Command**:
   ```bash
-  node scripts/export-browser-app.mjs
+  npm run browser:serve
   ```
+- **Three-run Browser Workflow**: `npm run test:demo-browser:repeat`
 - **Browser Target**: `http://127.0.0.1:4173`
 - **Controlled Integration Target Route**: `/trips/10000000-0000-4000-8000-000000000001/camp-grid` (`Start Building` button)
 - **Verified Integration Status**: **Gate 3 PASS** (Verified August 23, 2026)
