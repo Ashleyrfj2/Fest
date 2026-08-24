@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
 const PASSWORD = process.env.FESTNEST_DEMO_PASSWORD || 'FestNestLocalOnly!2026';
+const TRIP_ID = '10000000-0000-4000-8000-000000000001';
 const TRIP_NAME = 'Thesis Demo Festival Trip';
 const CANOPY_ID = '10000000-0000-4000-8000-000000000101';
 
@@ -11,8 +12,13 @@ async function signInAndOpenSupplyList(page: Page, email: string) {
   await page.getByText('Sign In', { exact: true }).click();
   await expect(page.getByText(TRIP_NAME, { exact: true })).toBeVisible();
   await page.getByText(TRIP_NAME, { exact: true }).click();
-  await page.getByText('Supply List', { exact: true }).click();
-  await expect(page.getByText('Shared Canopy', { exact: true })).toBeVisible();
+  const supplyListModule = page.getByTestId('trip-module-supply_list');
+  await expect(supplyListModule).toBeVisible();
+  await supplyListModule.click();
+  await expect(page).toHaveURL(new RegExp(`/trips/${TRIP_ID}/supply-list/?$`));
+  const canopy = page.getByTestId(`supply-item-${CANOPY_ID}`);
+  await expect(canopy).toBeVisible();
+  await expect(canopy.getByText('Shared Canopy', { exact: true })).toBeVisible();
 }
 
 test('two signed-in browser sessions share supply state and preserve viewer controls', async ({ browser }) => {
