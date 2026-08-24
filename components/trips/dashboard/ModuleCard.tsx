@@ -31,7 +31,14 @@ export function ModuleCard({ module, onPress }: ModuleCardProps) {
   const progressPercent = hasProgress ? module.progress : 0;
 
   return (
-    <TouchableOpacity style={[styles.card, module.isPrimary && styles.primaryCard]} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      testID={`trip-module-${module.id}`}
+      accessibilityRole="button"
+      accessibilityLabel={`${module.name}: ${module.description}`}
+      style={[styles.card, module.isPrimary && styles.primaryCard]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
       {module.isPrimary && (
         <View style={styles.primaryBadge}>
           <Text style={styles.primaryBadgeText}>START HERE</Text>
