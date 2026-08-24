@@ -3,10 +3,10 @@
 ## Current Update (August 24, 2026)
 
 - Gate 1–3 and M4A–M4D are PASS; M5A is NEXT. The August 23 Gate 3 receipt remains historical.
-- Browser branch `fix/browser-test-reliability` is implemented through `4c766e2`; Fest Actions Lint run #49 is green.
-- The branch hardens local environment validation, owned-process cleanup, export readiness, Supabase-source guarding, and deterministic `sha256:<64 lowercase hex characters>` artifact identity.
-- No Supabase reset/seed, live browser, repeated workflow, native-WSL, or Festival → Demo composed runtime replay was executed at the final implementation tips. Those manual/live checks remain outstanding.
-- Merge the Fest producer before the Demo strict consumer. The dated April and August 22 sections below remain historical context.
+- The hardened browser workflow is merged to `main`: Fest PR #10 at `681b8c94` and Demo PR #14 at `28bb48c8`, in producer-first order.
+- The merged workflow hardens local environment validation, owned-process cleanup, export readiness, Supabase-source guarding, and deterministic `sha256:<64 lowercase hex characters>` artifact identity.
+- Both PRs passed their final branch checks before merge, and the merge trees matched the audited PR-head trees.
+- No new exact-tip live browser, repeated workflow, native-WSL, or Festival -> Demo composed-runtime replay has been recorded on the merged `main` trees. Those manual/live checks remain outstanding. The dated April and August 22 sections below remain historical context.
 
 ## Recently Completed (April 9, 2026)
 - Added a new workspace custom agent: Senior QA Engineer.
