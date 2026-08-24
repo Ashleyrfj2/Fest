@@ -13,7 +13,8 @@ Gate 3  PASS
 M4A     PASS
 M4B     PASS
 M4C     PASS
-M4D     NEXT
+M4D     PASS
+M5A     NEXT
 ```
 
 Festival remains the controlled application/evidence source. Demo owns claim identity, evidence contexts, observation linkage, reconciliation, routing, corrections, UI evidence semantics, and experiment metrics.
@@ -88,7 +89,7 @@ Demo now has:
 - deterministic reason text;
 - read API `GET /api/v1/claims/evidence`.
 
-The next primary Demo milestone is **M4D — Shared Build Validation / Evidence Ledger UI**.
+The next primary Demo milestone is **M5A — transparent information-value router V0**.
 
 ## Verification depth
 
@@ -101,14 +102,12 @@ The next primary Demo milestone is **M4D — Shared Build Validation / Evidence 
 
 A shallow successful click should generally remain Weak when the claim requires persistence/backend proof.
 
-## Known cross-repository M4C follow-ups
+## Cross-repository evidence semantics
 
-The Festival claim catalog remains normative for expected application behavior. Do not change Festival behavior to fit these current Demo implementation quirks:
-
-1. Demo currently labels contradict-only compatible evidence as `Conflicted` even with no supporting observation.
-2. Demo currently treats `verifier_result` containing `denied_mutation` as `Blocked` before evaluating a supporting assessment. Festival permission/ownership claims intentionally use database-enforced denial as positive authorization evidence.
-
-Resolve those in Demo reconciliation code/tests before the final demo relies on them.
+Demo intentionally labels contradict-only compatible evidence as `Conflicted`.
+An expected database-enforced `denied_mutation` may positively support a permission
+claim; `Blocked` requires an explicit blocked assessment. Festival behavior must remain
+aligned with the controlled claim catalog.
 
 ## Canonical accelerator story
 
@@ -142,11 +141,14 @@ These actions are sources of observations attached to claims, not the claim mode
 
 ```bash
 cd "$FESTIVAL_REPO_ROOT"
-npm install
+nvm install
+nvm use
+npm ci
+npm run workspace:check
 npm run lint -- --no-cache
 npx tsc --noEmit
 npm test
-npx supabase start
+./scripts/demo/start-local-supabase.sh
 npx supabase status
 ./scripts/demo/reset-demo.sh
 ```
@@ -212,7 +214,6 @@ Use one deeper source in M6. Prefer persistence/backend/authorization verificati
 ## Remaining shared roadmap
 
 ```text
-M4D  Shared Build Validation / Evidence Ledger UI
 M5A  Information-value router V0
 M5B  Recommendation feedback
 M6   Deeper Playwright/agent/backend source

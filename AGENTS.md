@@ -196,7 +196,7 @@ Do not change Festival's database port to solve Demo conflicts. Keep the trust d
 ## Validation commands
 
 ```bash
-npm install
+npm ci
 npm run lint -- --no-cache
 npx tsc --noEmit
 npm test

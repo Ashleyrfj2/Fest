@@ -13,13 +13,15 @@ Gate 3  PASS  Live Browser Extension Ingestion
 M4A     PASS  Claim vocabulary/model semantics
 M4B     PASS  Claim ledger persistence
 M4C     PASS  Evidence Reconciliation V0
-M4D     NEXT  Shared Build Validation / Evidence Ledger UI
+M4D     PASS  Shared Build Validation / Evidence Ledger UI
+M5A     NEXT  Information-value router V0
 ```
 
-Current Demo M4C commit:
+Current Demo milestone commits:
 
 ```text
 31a5a18 feat: add evidence reconciliation v0
+4d75c1f feat: add M4D evidence ledger UI (#9)
 ```
 
 M4C was verified before commit with **25/25 backend integration tests** and **7/7 Gate 3 preflight checks**.
@@ -47,7 +49,7 @@ Layer 3 — Evidence Reconciliation
 Layer 4 — Information-Value Router
 ```
 
-Layers 1–3 now have an implemented backend foundation in Demo. M4D is the next UI milestone. The router remains future work.
+Layers 1–3 and the M4D evidence-ledger UI are implemented in Demo. M5A, the router, remains the next milestone.
 
 ## Current controlled Festival claim catalog
 
@@ -73,14 +75,12 @@ Target sequence:
 
 Primary UI language should be **Build Validation**, **Validation Evidence**, or **Evidence Ledger**.
 
-## Cross-repository M4C semantic follow-ups
+## Cross-repository evidence semantics
 
-Do not rewrite Festival claim semantics to match these current Demo implementation quirks. Resolve them in Demo code/tests before the final demo relies on them:
-
-1. Demo currently classifies contradict-only compatible evidence as `Conflicted` even when no supporting observation exists.
-2. Demo currently treats a `verifier_result` containing `denied_mutation` as `Blocked` before evaluating a supporting assessment. Festival permission/ownership claims intentionally treat a database-enforced denial as positive evidence that authorization worked.
-
-The Festival claim catalog remains the normative description of expected Festival behavior.
+Demo's reconciled semantics intentionally classify contradict-only compatible evidence as
+`Conflicted`. An expected database-enforced `denied_mutation` may positively support a
+permission claim; `Blocked` requires an explicit blocked assessment. The Festival claim
+catalog remains the normative description of expected Festival behavior.
 
 ## Where to read first
 
@@ -94,6 +94,7 @@ For thesis-demo work:
 6. Festival `docs/QA_PLATFORM_INTEGRATION.md` — cross-repository boundary.
 7. Festival `docs/thesis-demo/FESTIVAL_CLAIM_CATALOG.md` — controlled behavior claims.
 8. Festival `docs/thesis-demo/festival-virtual-qa-environment.md` — Festival-side runbook.
+9. Festival `docs/setup/cross-platform-workspace.md` — macOS/native-WSL compatibility contract.
 
 ## Historical documentation rule
 

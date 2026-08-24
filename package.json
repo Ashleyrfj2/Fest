@@ -2,16 +2,28 @@
   "name": "festnest",
   "version": "1.0.0",
   "main": "expo-router/entry",
+  "engines": {
+    "node": ">=22.21.0 <23"
+  },
+  "packageManager": "npm@10.9.4",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --cache",
+    "workspace:check": "node scripts/check-workspace.mjs",
+    "browser:preflight": "node scripts/check-browser-environment.mjs",
+    "prebrowser:serve": "npm run workspace:check && npm run browser:preflight",
+    "browser:serve": "node scripts/export-browser-app.mjs",
+    "lint": "eslint . --ext .js,.jsx,.mjs,.ts,.tsx --cache",
+    "pretest:browser": "npm run workspace:check && node scripts/check-browser-environment.mjs",
     "test:browser": "playwright test",
     "test:demo": "./scripts/demo/run-equipment-test.sh",
     "test:demo-proxy": "node --test tests/demo/stale-proxy.test.mjs",
+    "pretest:demo-browser": "npm run workspace:check && node scripts/check-browser-environment.mjs",
     "test:demo-browser": "playwright test --config playwright.live-demo.config.ts",
+    "test:demo-browser:repeat": "node scripts/demo/run-browser-workflow.mjs --runs 3",
+    "test:browser-harness": "node --test tests/browserHarness.test.mjs",
     "test:live": "node scripts/live-authorization-matrix.mjs",
     "test": "tsc -p tsconfig.qa-tests.json && node --test /tmp/festnest-qa-tests/tests/*.test.js",
     "lint:fix": "npm run lint -- --fix"
@@ -44,12 +56,14 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
-    "@playwright/test": "^1.55.0",
+    "@playwright/test": "1.61.0",
     "@types/react": "~19.2.10",
     "@typescript-eslint/eslint-plugin": "^8.58.1",
     "@typescript-eslint/parser": "^8.58.1",
+    "babel-preset-expo": "~55.0.16",
     "eslint": "^8.57.1",
     "eslint-config-expo": "^55.0.0",
+    "supabase": "2.115.0",
     "typescript": "~5.9.2"
   },
   "private": true
