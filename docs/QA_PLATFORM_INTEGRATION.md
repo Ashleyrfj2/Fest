@@ -43,24 +43,19 @@ Current Demo milestone commits on `main`:
 
 M4C verification before commit: **25/25 backend integration tests PASS** and **7/7 Gate 3 preflight checks PASS**.
 
-## Browser-branch remediation status — August 24, 2026
+## Browser workflow merge status — August 24, 2026
 
-Current implementation branch: `fix/browser-test-reliability`.
-
-Implementation commits after `main`:
+The cross-platform browser remediation is merged to `main` in the required producer-first order:
 
 ```text
-afb3715  fix: harden browser workflow across macOS and WSL
-d96d8e0  chore: align devcontainer with browser workflow
-9b8e4cb  fix: harden browser workflow lifecycle
-595d153  test: preserve browser secret-removal contract
-e09b4db  test: retain ambient Supabase source guard
-4c766e2  fix: bind browser identity to exported artifact
+Fest PR #10  fix: harden browser workflow across macOS and WSL
+             merge 681b8c94c5dfa881c9631dbfaefb3ef32ea3cee7
+
+Demo PR #14  Fix/cross platform browser workflow
+             merge 28bb48c855f2bdaf5cd9fe7d6be5d54152c59487
 ```
 
-`4c766e295ec957b5d77c34649deb7ecf3bfd5532` is the executable implementation tip immediately before the documentation-only reconciliation commit containing this section.
-
-Fest Actions **Lint run #49** (`32741534261`) completed successfully at `4c766e2`. The branch adds local-environment validation, bounded owned-process cleanup, fail-closed export readiness, ambient Supabase-source protection, and a deterministic export receipt.
+The final Fest branch run passed the pinned toolchain gate, lint, typecheck, deterministic tests, browser-harness tests, whitespace checks, and static Expo export. Demo PR #14 passed CI, branch hygiene, Go tests, frontend build, extension tests, contract conformance, diagnostic-safety tests, and strict Festival identity tests before merge.
 
 Strict producer identity:
 
@@ -73,7 +68,7 @@ controlledRoute  /trips/10000000-0000-4000-8000-000000000001/camp-grid
 artifactId       sha256:<64 lowercase hex characters>
 ```
 
-Festival owns the export process and cleanup. Demo is a strict consumer and never stops an existing listener. If these branches are merged, merge this Fest producer before the Demo consumer. No Supabase reset or seed, live browser run, repeated workflow, native-WSL replay, or live Festival → extension → Demo API → PostgreSQL composition was executed at the final implementation tips. The August 23 Gate 3 receipt remains historical. Codespaces manual forwarded-browser composition is unsupported unless separately implemented.
+Festival owns the export process and cleanup. Demo is a strict consumer and never stops an existing listener. The August 23 Gate 3 receipt remains historical. No new exact-tip live Festival -> extension -> Demo API -> PostgreSQL composed replay, repeated browser workflow, or native-WSL replay has been recorded on the merged `main` trees. Codespaces manual forwarded-browser composition remains unsupported unless separately implemented.
 
 ## Local integration target
 
@@ -95,15 +90,15 @@ Verified on 2026-08-23:
 
 ```text
 Festival rendered DOM
-→ unpacked Demo Chrome MV3 extension
-→ capture-phase click handling
-→ normalized ValidationEvent
-→ durable extension queue
-→ authenticated Demo Go API
-→ candidate-scope canonicalization
-→ Demo PostgreSQL persistence
-→ exact session/event correlation
-→ queue drain to 0
+-> unpacked Demo Chrome MV3 extension
+-> capture-phase click handling
+-> normalized ValidationEvent
+-> durable extension queue
+-> authenticated Demo Go API
+-> candidate-scope canonicalization
+-> Demo PostgreSQL persistence
+-> exact session/event correlation
+-> queue drain to 0
 ```
 
 Final receipt:
@@ -188,8 +183,8 @@ The implemented M4D UI consumes Demo's M4C API rather than recomputing evidence 
 
 The eventual accelerator sequence remains:
 
-1. human shallow observation → **Weak**;
-2. deeper verifier → **Solid** or meaningful disagreement → **Conflicted**;
+1. human shallow observation -> **Weak**;
+2. deeper verifier -> **Solid** or meaningful disagreement -> **Conflicted**;
 3. information-value router recommends a high-value unresolved claim with explicit rationale;
 4. late human accepts or overrides;
 5. ledger and recommendation order update.
