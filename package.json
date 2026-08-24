@@ -26,7 +26,8 @@
     "test:browser-harness": "node --test tests/browserHarness.test.mjs",
     "test:live": "node scripts/live-authorization-matrix.mjs",
     "test": "tsc -p tsconfig.qa-tests.json && node --test /tmp/festnest-qa-tests/tests/*.test.js",
-    "lint:fix": "npm run lint -- --fix"
+    "lint:fix": "npm run lint -- --fix",
+    "workspace:check:toolchain": "node scripts/check-workspace.mjs --toolchain-only"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",

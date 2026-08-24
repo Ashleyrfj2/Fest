@@ -30,7 +30,15 @@ npx playwright install chromium
 npx playwright install --with-deps chromium
 ```
 
-Then verify the checkout:
+CI and pre-install automation can verify only the pinned Node/npm contract without
+requiring Playwright Chromium or local services:
+
+```bash
+npm run workspace:check:toolchain
+```
+
+After dependencies and Chromium are installed, verify the complete checkout and
+then start the guarded local services:
 
 ```bash
 npm run workspace:check

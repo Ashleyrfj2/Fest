@@ -401,15 +401,16 @@ export async function startBrowserExportServer({
     try {
       const requestUrl = new URL(request.url || '/', browserBaseURL(port));
       const readyRoot = resolveCurrentDirectory(activeRoot);
-      if (requestUrl.pathname === BROWSER_HEALTH_PATH) {
-        let ready = Boolean(readyRoot && activeArtifactId);
-        if (ready) {
-          try {
-            ready = computeBrowserArtifactId(readyRoot) === activeArtifactId;
-          } catch {
-            ready = false;
-          }
+      const artifactIsCurrent = () => {
+        if (!readyRoot || !activeArtifactId) return false;
+        try {
+          return computeBrowserArtifactId(readyRoot) === activeArtifactId;
+        } catch {
+          return false;
         }
+      };
+      if (requestUrl.pathname === BROWSER_HEALTH_PATH) {
+        const ready = artifactIsCurrent();
         const identity = {
           schemaVersion: BROWSER_SCHEMA_VERSION,
           service: BROWSER_SERVICE_NAME,
@@ -423,7 +424,10 @@ export async function startBrowserExportServer({
         response.end(`${JSON.stringify(identity)}\n`);
         return;
       }
-      if (!readyRoot) {
+      if (
+        !readyRoot ||
+        (requestUrl.pathname === BROWSER_CONTROLLED_ROUTE && !artifactIsCurrent())
+      ) {
         unavailable(response);
         return;
       }

@@ -117,7 +117,7 @@ Simple UI labels are derived from evidence dimensions rather than stored as prim
 - **Solid** — sufficiently current/context-compatible evidence, adequate verification depth, and no unresolved hard conflict.
 - **Weak** — shallow or low-confidence evidence.
 - **Stale** — prior evidence weakened by change or context drift.
-- **Conflicted** — credible observations meaningfully disagree; final V0 contradict-only semantics are still being reviewed in Demo.
+- **Conflicted** — credible observations meaningfully disagree; compatible contradict-only evidence is intentionally `Conflicted`, including without a supporting observation.
 - **Untouched** — no relevant evidence for the required claim/context.
 - **Blocked** — validation cannot currently be completed; an expected authorization denial is not inherently the same thing as blocked validation.
 

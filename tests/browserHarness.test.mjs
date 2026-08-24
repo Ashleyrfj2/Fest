@@ -32,6 +32,10 @@ import {
   assertCanonicalResetPolicy,
   canonicalRestorationResult,
 } from '../scripts/lib/browser-workflow-state.mjs';
+import {
+  REQUIRED_NPM_VERSION,
+  evaluatePinnedToolchain,
+} from '../scripts/lib/workspace-toolchain.mjs';
 
 async function listen(server, port = 0) {
   await new Promise((resolve, reject) => {
@@ -45,6 +49,26 @@ async function close(server) {
   if (!server.listening) return;
   await new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
 }
+
+test('toolchain enforcement rejects a mocked wrong npm version', () => {
+  const exact = evaluatePinnedToolchain({
+    requiredNode: '22.21.0',
+    actualNode: '22.21.0',
+    packageManager: `npm@${REQUIRED_NPM_VERSION}`,
+    npmResult: { status: 0, stdout: `${REQUIRED_NPM_VERSION}\n` },
+  });
+  assert.deepEqual(exact.failures, []);
+
+  const wrongNpm = evaluatePinnedToolchain({
+    requiredNode: '22.21.0',
+    actualNode: '22.21.0',
+    packageManager: `npm@${REQUIRED_NPM_VERSION}`,
+    npmResult: { status: 0, stdout: '0.0.0\n' },
+  });
+  assert.deepEqual(wrongNpm.failures, [
+    `npm ${REQUIRED_NPM_VERSION} is required; current npm is 0.0.0.`,
+  ]);
+});
 
 test('browser port validation rejects invalid values', () => {
   for (const value of ['0', '65536', 'abc', '4.5']) {
@@ -345,6 +369,34 @@ test('ready export roots are validated and missing roots fail closed', async () 
     const health = await fetch(browserBaseURL(port) + BROWSER_HEALTH_PATH);
     assert.equal(health.status, 503);
     assert.equal((await fetch(browserBaseURL(port))).status, 503);
+  } finally {
+    await controller.close();
+    rmSync(exportRoot, { recursive: true, force: true });
+  }
+  assert.equal(await isPortAvailable(port), true);
+});
+
+test('controlled route fails closed when artifact content changes after health succeeds', async () => {
+  const exportRoot = mkdtempSync(path.join(os.tmpdir(), 'festnest-browser-toctou-'));
+  const dynamicRoot = path.join(exportRoot, 'trips', '[id]');
+  mkdirSync(dynamicRoot, { recursive: true });
+  writeFileSync(path.join(exportRoot, 'index.html'), '<h1>FestNest</h1>');
+  writeFileSync(path.join(dynamicRoot, 'camp-grid.html'), '<h1>Camp Grid</h1>');
+  writeFileSync(path.join(exportRoot, 'app.js'), 'console.log("original");');
+
+  const reservation = createServer();
+  const port = await listen(reservation);
+  await close(reservation);
+  const artifactId = computeBrowserArtifactId(exportRoot);
+  const controller = await startBrowserExportServer({ port, rootDir: exportRoot, artifactId });
+  try {
+    const health = await fetch(browserBaseURL(port) + BROWSER_HEALTH_PATH);
+    assert.equal(health.status, 200);
+
+    writeFileSync(path.join(exportRoot, 'app.js'), 'console.log("mutated");');
+    const route = await fetch(browserBaseURL(port) + BROWSER_CONTROLLED_ROUTE);
+    assert.equal(route.status, 503);
+    assert.match(await route.text(), /unavailable/);
   } finally {
     await controller.close();
     rmSync(exportRoot, { recursive: true, force: true });
