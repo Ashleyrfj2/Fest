@@ -104,7 +104,7 @@ The demo does not need to exercise all claims equally. Select the smallest seque
 Recommended visible sequence:
 
 1. Start with `FEST-CLAIM-04` as **Weak** after a human performs the pack action but persistence has not been verified.
-2. Run Playwright/backend verification. If persisted state survives refresh, move the claim toward **Solid**; if authoritative state meaningfully disagrees, show **Conflicted** after the M4C conflict semantic is finalized.
+2. Run Playwright/backend verification. If persisted state survives refresh, move the claim toward **Solid**; if authoritative evidence meaningfully disagrees, show **Conflicted**.
 3. Keep `FEST-CLAIM-05`, `FEST-CLAIM-07`, or `FEST-CLAIM-08` **Untouched** or uncertain at the start.
 4. Let the future information-value router recommend the higher-value remaining claim with explicit rationale.
 5. Let `late-tester-d` accept or override the recommendation and record the reason.
