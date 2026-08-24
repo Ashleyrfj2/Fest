@@ -1,10 +1,12 @@
 # Feature Handoff Index
 
-## Current Update (August 22, 2026)
+## Current Update (August 24, 2026)
 
-- Gate 1 thesis-demo evidence authority passed focused checks. Supply List workflow transitions and deletion are database-owned, and permission denials come from immutable private audits.
-- Gate 2 metrics/run lifecycle and Gate 3 stale-proxy/extension/composed validation remain pending. See sibling Demo `docs/agent-logs/CURRENT.md`, this repository's `docs/test-notes.md`, and `docs/sessions/session-notes-2026-08-22.md`.
-- Current priorities are the remaining thesis-demo gates, their corresponding documentation updates, the separately reviewed unrelated-script cleanup, and a fresh two-cycle composed run. The dated April queues below are retained as historical context.
+- Gate 1–3 and M4A–M4D are PASS; M5A is NEXT. The August 23 Gate 3 receipt remains historical.
+- Browser branch `fix/browser-test-reliability` is implemented through `4c766e2`; Fest Actions Lint run #49 is green.
+- The branch hardens local environment validation, owned-process cleanup, export readiness, Supabase-source guarding, and deterministic `sha256:<64 lowercase hex characters>` artifact identity.
+- No Supabase reset/seed, live browser, repeated workflow, native-WSL, or Festival → Demo composed runtime replay was executed at the final implementation tips. Those manual/live checks remain outstanding.
+- Merge the Fest producer before the Demo strict consumer. The dated April and August 22 sections below remain historical context.
 
 ## Recently Completed (April 9, 2026)
 - Added a new workspace custom agent: Senior QA Engineer.

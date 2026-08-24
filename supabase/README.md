@@ -23,3 +23,11 @@ Festival Supabase (`54321`/`54322`) separate from Demo PostgreSQL (`54332`).
 
 Hosted-project work is outside this private-demo workflow and requires a separate,
 explicitly approved release procedure.
+
+## Browser-branch verification boundary
+
+No Supabase reset or seed was executed while finalizing browser branch commits through
+`4c766e2`. Fest Actions Lint run #49 is green, but no live browser, repeated workflow,
+native-WSL, or Festival → Demo composed runtime replay was performed at those tips.
+Follow the guarded loopback workflow above only when a separately authorized live run
+is scheduled.

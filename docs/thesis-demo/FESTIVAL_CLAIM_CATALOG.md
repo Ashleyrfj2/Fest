@@ -1,6 +1,6 @@
 # Festival Thesis Demo — Claim Catalog
 
-Last synchronized with Demo: 2026-08-23 18:04 CDT
+Last synchronized with Demo: 2026-08-24 CDT
 
 This file defines the controlled behavioral claims used by the Festival accelerator demo. It is product/experiment ground truth for the demo, not a universal model of Festival and not a tester-facing checklist.
 
@@ -23,22 +23,55 @@ A source observation may support, weaken, contradict, invalidate, or explicitly 
 
 ## Current Demo implementation status
 
-The sibling Demo repository has completed M4A, M4B, and M4C. Claim persistence and Evidence Reconciliation V0 are implemented; M4D Build Validation / Evidence Ledger UI is next.
+The sibling Demo repository has completed M4A, M4B, M4C, and M4D. Claim persistence, Evidence Reconciliation V0, and the Build Validation / Evidence Ledger UI are implemented; M5A Information-Value Router V0 is next.
 
-Current Demo M4C commit:
+Current Demo milestone commits on `main`:
 
 ```text
 31a5a18 feat: add evidence reconciliation v0
+4d75c1f feat: add M4D evidence ledger UI (#9)
 ```
 
 The catalog below remains the normative description of expected Festival behavior. Demo reconciliation must adapt to these claims; Festival behavior should not be rewritten to accommodate implementation quirks.
 
-Two current Demo semantic follow-ups are especially relevant to this catalog:
+Resolved semantics relevant to this catalog:
 
-1. contradict-only compatible evidence is currently classified as `Conflicted` even without a supporting observation;
-2. a `verifier_result` containing `denied_mutation` is currently recognized as `Blocked` before supporting assessment evaluation, while claims 05/06/08 intentionally use database-enforced denial as positive evidence that authorization controls worked.
+1. compatible contradict-only evidence intentionally derives `Conflicted`, including without a supporting observation;
+2. expected database-enforced `denied_mutation` may support claims 05/06/08; `Blocked` requires an explicit blocked assessment.
 
-Resolve those in Demo code/tests before relying on those paths in the final accelerator demo.
+These semantics are implemented and covered by Demo tests.
+
+## Browser-branch remediation status — August 24, 2026
+
+Current implementation branch: `fix/browser-test-reliability`.
+
+Implementation commits after `main`:
+
+```text
+afb3715  fix: harden browser workflow across macOS and WSL
+d96d8e0  chore: align devcontainer with browser workflow
+9b8e4cb  fix: harden browser workflow lifecycle
+595d153  test: preserve browser secret-removal contract
+e09b4db  test: retain ambient Supabase source guard
+4c766e2  fix: bind browser identity to exported artifact
+```
+
+`4c766e295ec957b5d77c34649deb7ecf3bfd5532` is the executable implementation tip immediately before the documentation-only reconciliation commit containing this section.
+
+Fest Actions **Lint run #49** (`32741534261`) completed successfully at `4c766e2`. The branch adds local-environment validation, bounded owned-process cleanup, fail-closed export readiness, ambient Supabase-source protection, and a deterministic export receipt.
+
+Strict producer identity:
+
+```text
+schemaVersion    1
+service          festnest-browser-export
+buildId          festnest-demo-001
+scenarioId       equipment-handoff-v1
+controlledRoute  /trips/10000000-0000-4000-8000-000000000001/camp-grid
+artifactId       sha256:<64 lowercase hex characters>
+```
+
+Festival owns the export process and cleanup. Demo is a strict consumer and never stops an existing listener. If these branches are merged, merge this Fest producer before the Demo consumer. No Supabase reset or seed, live browser run, repeated workflow, native-WSL replay, or live Festival → extension → Demo API → PostgreSQL composition was executed at the final implementation tips. The August 23 Gate 3 receipt remains historical. Codespaces manual forwarded-browser composition is unsupported unless separately implemented.
 
 ## Verification-depth scale
 

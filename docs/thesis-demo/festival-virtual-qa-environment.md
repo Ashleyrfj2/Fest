@@ -1,6 +1,6 @@
 # Festival Virtual QA Environment — Festival-Side Runbook
 
-Last synchronized with Demo: 2026-08-23 18:04 CDT
+Last synchronized with Demo: 2026-08-24 CDT
 
 Use this with the sibling Demo repository's `docs/agent-logs/CURRENT.md`, `docs/architecture.md`, and `docs/festival-virtual-qa-environment.md`.
 
@@ -19,7 +19,39 @@ M5A     NEXT
 
 Festival remains the controlled application/evidence source. Demo owns claim identity, evidence contexts, observation linkage, reconciliation, routing, corrections, UI evidence semantics, and experiment metrics.
 
-Gate 3 verified:
+## Browser-branch remediation status — August 24, 2026
+
+Current implementation branch: `fix/browser-test-reliability`.
+
+Implementation commits after `main`:
+
+```text
+afb3715  fix: harden browser workflow across macOS and WSL
+d96d8e0  chore: align devcontainer with browser workflow
+9b8e4cb  fix: harden browser workflow lifecycle
+595d153  test: preserve browser secret-removal contract
+e09b4db  test: retain ambient Supabase source guard
+4c766e2  fix: bind browser identity to exported artifact
+```
+
+`4c766e295ec957b5d77c34649deb7ecf3bfd5532` is the executable implementation tip immediately before the documentation-only reconciliation commit containing this section.
+
+Fest Actions **Lint run #49** (`32741534261`) completed successfully at `4c766e2`. The branch adds local-environment validation, bounded owned-process cleanup, fail-closed export readiness, ambient Supabase-source protection, and a deterministic export receipt.
+
+Strict producer identity:
+
+```text
+schemaVersion    1
+service          festnest-browser-export
+buildId          festnest-demo-001
+scenarioId       equipment-handoff-v1
+controlledRoute  /trips/10000000-0000-4000-8000-000000000001/camp-grid
+artifactId       sha256:<64 lowercase hex characters>
+```
+
+Festival owns the export process and cleanup. Demo is a strict consumer and never stops an existing listener. If these branches are merged, merge this Fest producer before the Demo consumer. No Supabase reset or seed, live browser run, repeated workflow, native-WSL replay, or live Festival → extension → Demo API → PostgreSQL composition was executed at the final implementation tips. The August 23 Gate 3 receipt remains historical. Codespaces manual forwarded-browser composition is unsupported unless separately implemented.
+
+Historical Gate 3 verification (August 23 receipt; not rerun at final browser-branch tips):
 
 ```text
 Festival rendered DOM
@@ -120,7 +152,7 @@ aligned with the controlled claim catalog.
 7. `late-tester-d` accepts or overrides.
 8. Ledger and recommendation order update.
 
-M4D is the next implementation milestone; the information-value router remains M5A.
+M4D is implemented. The information-value router remains the next milestone, M5A.
 
 ## Controlled Festival scenario
 

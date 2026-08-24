@@ -1,6 +1,6 @@
 # QA Platform Integration Guide
 
-Last synchronized with Demo: 2026-08-23 18:04 CDT
+Last synchronized with Demo: 2026-08-24 CDT
 
 This document describes how Festival integrates with the sibling Demo QA Platform.
 
@@ -30,16 +30,50 @@ Gate 3  PASS
 M4A     PASS
 M4B     PASS
 M4C     PASS
-M4D     NEXT
+M4D     PASS
+M5A     NEXT
 ```
 
-Current Demo M4C commit:
+Current Demo milestone commits on `main`:
 
 ```text
 31a5a18 feat: add evidence reconciliation v0
+4d75c1f feat: add M4D evidence ledger UI (#9)
 ```
 
 M4C verification before commit: **25/25 backend integration tests PASS** and **7/7 Gate 3 preflight checks PASS**.
+
+## Browser-branch remediation status — August 24, 2026
+
+Current implementation branch: `fix/browser-test-reliability`.
+
+Implementation commits after `main`:
+
+```text
+afb3715  fix: harden browser workflow across macOS and WSL
+d96d8e0  chore: align devcontainer with browser workflow
+9b8e4cb  fix: harden browser workflow lifecycle
+595d153  test: preserve browser secret-removal contract
+e09b4db  test: retain ambient Supabase source guard
+4c766e2  fix: bind browser identity to exported artifact
+```
+
+`4c766e295ec957b5d77c34649deb7ecf3bfd5532` is the executable implementation tip immediately before the documentation-only reconciliation commit containing this section.
+
+Fest Actions **Lint run #49** (`32741534261`) completed successfully at `4c766e2`. The branch adds local-environment validation, bounded owned-process cleanup, fail-closed export readiness, ambient Supabase-source protection, and a deterministic export receipt.
+
+Strict producer identity:
+
+```text
+schemaVersion    1
+service          festnest-browser-export
+buildId          festnest-demo-001
+scenarioId       equipment-handoff-v1
+controlledRoute  /trips/10000000-0000-4000-8000-000000000001/camp-grid
+artifactId       sha256:<64 lowercase hex characters>
+```
+
+Festival owns the export process and cleanup. Demo is a strict consumer and never stops an existing listener. If these branches are merged, merge this Fest producer before the Demo consumer. No Supabase reset or seed, live browser run, repeated workflow, native-WSL replay, or live Festival → extension → Demo API → PostgreSQL composition was executed at the final implementation tips. The August 23 Gate 3 receipt remains historical. Codespaces manual forwarded-browser composition is unsupported unless separately implemented.
 
 ## Local integration target
 
@@ -142,20 +176,15 @@ The current controlled set contains 8 behavioral claims for the group-equipment 
 
 Festival behavior claims remain normative for expected application behavior. Source independence/classification belongs to Demo.
 
-## Known M4C cross-repository semantic follow-ups
+## Resolved M4C cross-repository semantics
 
-Before the final demo relies on authorization/conflict edge cases:
-
-1. Demo currently labels contradict-only compatible evidence `Conflicted` even if there is no supporting observation.
-2. Demo currently treats `verifier_result` containing `denied_mutation` as `Blocked` before evaluating a supporting assessment. Festival authorization claims intentionally treat database-enforced denial as positive evidence that permission enforcement worked.
-
-These are Demo reconciliation implementation follow-ups. Do not weaken Festival authorization behavior or rewrite the claim catalog to hide them.
+Compatible contradict-only evidence intentionally derives `Conflicted`. An expected database-enforced `denied_mutation` may support a permission claim; `Blocked` requires an explicit blocked assessment. These semantics are implemented and covered by Demo tests; Festival authorization behavior and the claim catalog remain unchanged.
 
 ## Next milestone
 
-**M4D — Shared Build Validation / Evidence Ledger UI** in Demo.
+**M5A — Information-Value Router V0** in Demo.
 
-The UI should consume Demo's M4C API rather than recompute evidence classifications.
+The implemented M4D UI consumes Demo's M4C API rather than recomputing evidence classifications.
 
 The eventual accelerator sequence remains:
 

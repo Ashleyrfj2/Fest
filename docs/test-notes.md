@@ -4,6 +4,17 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ## Outstanding Issues
 
+### Session Update (August 24, 2026 — Current Browser-Branch Status)
+
+- Gate 1–3 and M4A–M4D are PASS; M5A is NEXT. The August 23 Gate 3 receipt remains historical evidence and was not rerun at the final browser-branch tips.
+- Browser branch commits through `4c766e2` add local-env/process/export safety and deterministic artifact identity. Fest Actions Lint run #49 (`32741534261`) is green.
+- Producer identity is schema `1`, service `festnest-browser-export`, build `festnest-demo-001`, scenario `equipment-handoff-v1`, controlled camp-grid route, and `artifactId` `sha256:<64 lowercase hex characters>`.
+- Festival owns the listener lifecycle; Demo never stops it. Merge the Fest producer before the Demo strict consumer.
+- No Supabase reset/seed, live browser, repeated workflow, native-WSL replay, or live Festival → extension → Demo API → PostgreSQL composition was executed at the final implementation tips.
+- Native WSL remains unverified. Codespaces manual forwarded-browser composition is unsupported unless separately implemented.
+
+The dated August 22 sections below are preserved as historical receipts and do not override this current update.
+
 ### Session Update (August 22, 2026 - Gate Audit Corrected, Gate 2 Verified, Gate 3 Composed)
 - **Gate 2 PostgreSQL lifecycle integration coverage**: PASS. Demo PR #6 merged full lifecycle coverage in `postgres_integration_test.go` against isolated throwaway databases (run creation idempotency, conflict rejection, run isolation, freeze idempotency, database-enforced post-freeze rejection on writes and corrections, snapshot immutability triggers, and store restart durability).
 - **Gate 3 proxy/composed test coverage**: PASS (HTTP/RPC layer). Festival PR #8 merged the composed stale proxy with the live two-session equipment test (`equipment-handoff.spec.ts`), verifying application-layer and proxy-layer isolation against local Supabase.

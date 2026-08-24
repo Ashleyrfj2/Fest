@@ -1,6 +1,6 @@
 # Docs Index
 
-Last synchronized with Demo: 2026-08-23 18:04 CDT
+Last synchronized with Demo: 2026-08-24 CDT
 
 ## Latest thesis-demo status
 
@@ -23,6 +23,38 @@ Current Demo milestone commits:
 31a5a18 feat: add evidence reconciliation v0
 4d75c1f feat: add M4D evidence ledger UI (#9)
 ```
+
+## Browser-branch remediation status — August 24, 2026
+
+Current implementation branch: `fix/browser-test-reliability`.
+
+Implementation commits after `main`:
+
+```text
+afb3715  fix: harden browser workflow across macOS and WSL
+d96d8e0  chore: align devcontainer with browser workflow
+9b8e4cb  fix: harden browser workflow lifecycle
+595d153  test: preserve browser secret-removal contract
+e09b4db  test: retain ambient Supabase source guard
+4c766e2  fix: bind browser identity to exported artifact
+```
+
+`4c766e295ec957b5d77c34649deb7ecf3bfd5532` is the executable implementation tip immediately before the documentation-only reconciliation commit containing this section.
+
+Fest Actions **Lint run #49** (`32741534261`) completed successfully at `4c766e2`. The branch adds local-environment validation, bounded owned-process cleanup, fail-closed export readiness, ambient Supabase-source protection, and a deterministic export receipt.
+
+Strict producer identity:
+
+```text
+schemaVersion    1
+service          festnest-browser-export
+buildId          festnest-demo-001
+scenarioId       equipment-handoff-v1
+controlledRoute  /trips/10000000-0000-4000-8000-000000000001/camp-grid
+artifactId       sha256:<64 lowercase hex characters>
+```
+
+Festival owns the export process and cleanup. Demo is a strict consumer and never stops an existing listener. If these branches are merged, merge this Fest producer before the Demo consumer. No Supabase reset or seed, live browser run, repeated workflow, native-WSL replay, or live Festival → extension → Demo API → PostgreSQL composition was executed at the final implementation tips. The August 23 Gate 3 receipt remains historical. Codespaces manual forwarded-browser composition is unsupported unless separately implemented.
 
 M4C was verified before commit with **25/25 backend integration tests** and **7/7 Gate 3 preflight checks**.
 
