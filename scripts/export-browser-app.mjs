@@ -73,7 +73,15 @@ try {
     abortSignal: abortController.signal,
     captureOutput: true,
   });
-  const verifiedSupabase = resolveVerifiedLocalSupabaseEnvironment(statusResult.stdout, process.env);
+  const ambientSupabaseEnvironment = {
+    ...process.env,
+    EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
+    EXPO_PUBLIC_SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+  };
+  const verifiedSupabase = resolveVerifiedLocalSupabaseEnvironment(
+    statusResult.stdout,
+    ambientSupabaseEnvironment
+  );
 
   outputDir = explicitOutputDir
     ? validateExplicitBrowserExportDirectory({
