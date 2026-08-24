@@ -63,16 +63,22 @@ process before retrying. Each machine has independent local databases and test s
 The supported composed-workflow shell is Bash on macOS or inside WSL. Native
 PowerShell remains supported only for repository branch-hygiene checks.
 
-## Identity, merge order, and current evidence boundary
+## Identity and current evidence boundary
+
+The cross-platform browser workflow is merged to `main` in both repositories:
+
+```text
+Fest PR #10  ->  681b8c94c5dfa881c9631dbfaefb3ef32ea3cee7
+Demo PR #14  ->  28bb48c855f2bdaf5cd9fe7d6be5d54152c59487
+```
 
 The Festival export produces schema `1`, service `festnest-browser-export`, build
 `festnest-demo-001`, scenario `equipment-handoff-v1`, the controlled camp-grid route,
 and an `artifactId` matching `sha256:<64 lowercase hex characters>`. Festival owns the
-listener and cleanup; Demo never stops it. Merge the Fest producer before the Demo
-strict consumer.
+listener and cleanup; Demo never stops it.
 
-Fest Actions Lint run #49 is green at implementation tip `4c766e2`. No Supabase
-reset/seed, live browser run, repeated workflow, native-WSL replay, or live composed
-Festival → Demo runtime was executed at the final implementation tips. Native WSL
-therefore remains unverified. Manual composition through a Codespaces forwarded browser
-is unsupported unless separately implemented.
+Both PRs passed their final branch checks before merge. No new exact-tip live browser,
+repeated workflow, native-WSL replay, or live Festival -> Demo composed-runtime replay
+has been recorded on the merged `main` trees. Native WSL therefore remains unverified.
+Manual composition through a Codespaces forwarded browser is unsupported unless separately
+implemented.
