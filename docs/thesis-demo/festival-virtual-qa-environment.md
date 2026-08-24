@@ -19,24 +19,14 @@ M5A     NEXT
 
 Festival remains the controlled application/evidence source. Demo owns claim identity, evidence contexts, observation linkage, reconciliation, routing, corrections, UI evidence semantics, and experiment metrics.
 
-## Browser-branch remediation status — August 24, 2026
-
-Current implementation branch: `fix/browser-test-reliability`.
-
-Implementation commits after `main`:
+## Cross-platform browser workflow — merged August 24, 2026
 
 ```text
-afb3715  fix: harden browser workflow across macOS and WSL
-d96d8e0  chore: align devcontainer with browser workflow
-9b8e4cb  fix: harden browser workflow lifecycle
-595d153  test: preserve browser secret-removal contract
-e09b4db  test: retain ambient Supabase source guard
-4c766e2  fix: bind browser identity to exported artifact
+Fest PR #10  ->  681b8c94c5dfa881c9631dbfaefb3ef32ea3cee7
+Demo PR #14  ->  28bb48c855f2bdaf5cd9fe7d6be5d54152c59487
 ```
 
-`4c766e295ec957b5d77c34649deb7ecf3bfd5532` is the executable implementation tip immediately before the documentation-only reconciliation commit containing this section.
-
-Fest Actions **Lint run #49** (`32741534261`) completed successfully at `4c766e2`. The branch adds local-environment validation, bounded owned-process cleanup, fail-closed export readiness, ambient Supabase-source protection, and a deterministic export receipt.
+Both PRs passed their final branch checks before merge, and the merge trees matched the audited PR-head trees. Festival now has local-environment validation, bounded owned-process cleanup, fail-closed export readiness, ambient Supabase-source protection, and deterministic export identity.
 
 Strict producer identity:
 
@@ -49,20 +39,20 @@ controlledRoute  /trips/10000000-0000-4000-8000-000000000001/camp-grid
 artifactId       sha256:<64 lowercase hex characters>
 ```
 
-Festival owns the export process and cleanup. Demo is a strict consumer and never stops an existing listener. If these branches are merged, merge this Fest producer before the Demo consumer. No Supabase reset or seed, live browser run, repeated workflow, native-WSL replay, or live Festival → extension → Demo API → PostgreSQL composition was executed at the final implementation tips. The August 23 Gate 3 receipt remains historical. Codespaces manual forwarded-browser composition is unsupported unless separately implemented.
+Festival owns the export process and cleanup. Demo is a strict consumer and never stops an existing listener. No new exact-tip live browser, repeated workflow, native-WSL replay, or live Festival -> extension -> Demo API -> PostgreSQL composition has been recorded on the merged `main` trees. The August 23 Gate 3 receipt remains historical. Codespaces manual forwarded-browser composition remains unsupported unless separately implemented.
 
-Historical Gate 3 verification (August 23 receipt; not rerun at final browser-branch tips):
+Historical Gate 3 verification (August 23 receipt; not rerun on the merged browser-workflow `main` trees):
 
 ```text
 Festival rendered DOM
-→ unpacked Demo Chrome MV3 extension
-→ normalized ValidationEvent
-→ durable queue
-→ authenticated Demo Go API
-→ candidate-scope canonicalization
-→ Demo PostgreSQL persistence
-→ exact session/event correlation
-→ queue drain to zero
+-> unpacked Demo Chrome MV3 extension
+-> normalized ValidationEvent
+-> durable queue
+-> authenticated Demo Go API
+-> candidate-scope canonicalization
+-> Demo PostgreSQL persistence
+-> exact session/event correlation
+-> queue drain to zero
 ```
 
 Final receipt:
