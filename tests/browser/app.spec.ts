@@ -187,7 +187,7 @@ test('the exported app starts and renders the welcome screen', async ({ page }) 
 });
 
 test('malformed and repeated route parameters fail closed', async ({ page }) => {
-  await installFixtureBackend(page);
+  await installFixtureBackend(page, true);
 
   await page.goto('/trips/not-a-uuid');
   await expect(page.getByText('Trip not found', { exact: true })).toBeVisible();
