@@ -4,13 +4,14 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ## Outstanding Issues
 
-### Session Update (August 25, 2026 — Test-Suite Reliability Fixes)
+### Session Update (August 25, 2026 — Test-Suite Reliability Fixes Merged)
 
-- On local branch `fix/test-suite-reliability`, the malformed authenticated trip-route browser fixture now uses an authenticated session. The formerly flaky case passes 5/5 repetitions and the full browser suite passes 5/5.
+- Festival PR #12 merged these fixes to `main` as `9365daf`; sibling Demo PR #15 merged as `19b014a10788644f558c78a9d2cc72039063c281` after all required checks passed.
+- The malformed authenticated trip-route browser fixture now uses an authenticated session. The formerly flaky case passes 5/5 repetitions and the full browser suite passes 5/5.
 - Replaced the undeclared raw-Node encryption scratch script with an injectable AES-GCM/key-store core and six assertion-based tests in the declared suite; `npm test` passes 49/49.
 - Whole-repository TypeScript passes. Lint has 0 errors and three pre-existing warnings in `scripts/live-authorization-matrix.mjs`.
 - The encryption algorithm and Expo adapter build path are verified, but native iOS/Android SecureStore behavior remains unverified.
-- No database, Supabase, seed, dependency, credential, or production-data state changed. No commit, push, PR, or merge was performed.
+- No database, Supabase, seed, dependency, credential, or production-data state changed. Both merges used normal protected-branch workflows without an administrator bypass.
 - Full receipt: `docs/sessions/session-notes-2026-08-25.md` and sibling Demo `docs/agent-logs/entries/2026-08-25.md`.
 
 ### Session Update (August 24, 2026 — Current Browser-Branch Status)
