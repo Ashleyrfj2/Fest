@@ -4,6 +4,15 @@ Use this file to capture things you want to add, adjust, or fix while testing th
 
 ## Outstanding Issues
 
+### Session Update (August 25, 2026 — Test-Suite Reliability Fixes)
+
+- On local branch `fix/test-suite-reliability`, the malformed authenticated trip-route browser fixture now uses an authenticated session. The formerly flaky case passes 5/5 repetitions and the full browser suite passes 5/5.
+- Replaced the undeclared raw-Node encryption scratch script with an injectable AES-GCM/key-store core and six assertion-based tests in the declared suite; `npm test` passes 49/49.
+- Whole-repository TypeScript passes. Lint has 0 errors and three pre-existing warnings in `scripts/live-authorization-matrix.mjs`.
+- The encryption algorithm and Expo adapter build path are verified, but native iOS/Android SecureStore behavior remains unverified.
+- No database, Supabase, seed, dependency, credential, or production-data state changed. No commit, push, PR, or merge was performed.
+- Full receipt: `docs/sessions/session-notes-2026-08-25.md` and sibling Demo `docs/agent-logs/entries/2026-08-25.md`.
+
 ### Session Update (August 24, 2026 — Current Browser-Branch Status)
 
 - Gate 1–3 and M4A–M4D are PASS; M5A is NEXT. The August 23 Gate 3 receipt remains historical evidence and was not rerun at the final browser-branch tips.

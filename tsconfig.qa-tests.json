@@ -17,6 +17,7 @@
     "lib/packingTypes.ts",
     "lib/supplyTypes.ts",
     "lib/approvalQueueValidation.ts",
-    "lib/campGridSync.ts"
+    "lib/campGridSync.ts",
+    "lib/crypto/safetyEncryptionCore.ts"
   ]
 }
