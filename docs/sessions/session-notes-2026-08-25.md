@@ -34,3 +34,11 @@
 - The shared encryption algorithm is exercised with Node WebCrypto and an in-memory key store; TypeScript and the Festival static browser export validate the Expo adapter's build compatibility.
 - Native iOS/Android `expo-secure-store` and `expo-crypto` behavior was not exercised. This receipt is not device-runtime encryption proof.
 - No commit, push, pull request, or merge was performed.
+
+## 16:41 CDT — Protected merge receipt
+
+- Festival implementation commit `47170b9` was published in PR #12.
+- Festival PR #12 passed its workflow, including lint, typecheck, 49 deterministic tests, browser-harness checks, whitespace checks, and the static web export.
+- Festival PR #12 squash-merged normally to `main` as `9365daf69212812cc3555274e09018b872cd84c0`.
+- Sibling Demo PR #15 passed branch hygiene and both Go CI checks after resolving one accurate documentation-review finding, then squash-merged normally to `main` as `19b014a10788644f558c78a9d2cc72039063c281`.
+- No administrator bypass was used. Both implementation branches were deleted remotely after merge.
