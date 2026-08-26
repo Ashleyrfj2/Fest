@@ -1,12 +1,17 @@
 # Feature Handoff Index
 
-## Current Update (August 24, 2026)
+## Current Update (August 26, 2026)
 
-- Gate 1–3 and M4A–M4D are PASS; M5A is NEXT. The August 23 Gate 3 receipt remains historical.
-- The hardened browser workflow is merged to `main`: Fest PR #10 at `681b8c94` and Demo PR #14 at `28bb48c8`, in producer-first order.
-- The merged workflow hardens local environment validation, owned-process cleanup, export readiness, Supabase-source guarding, and deterministic `sha256:<64 lowercase hex characters>` artifact identity.
-- Both PRs passed their final branch checks before merge, and the merge trees matched the audited PR-head trees.
-- No new exact-tip live browser, repeated workflow, native-WSL, or Festival -> Demo composed-runtime replay has been recorded on the merged `main` trees. Those manual/live checks remain outstanding. The dated April and August 22 sections below remain historical context.
+- Gate 1–3, M4A–M4D, and M5A are PASS. M5A is **test-verified and merged** in Demo; M5B recommendation feedback / explicit alternative-claim override is NEXT.
+- Demo M5A is merged through PR #17 as `b354de9`; PR #18 records the merge receipt.
+- M5A preserves exact feature-flag-aware recommendation scope, deterministic evidence-snapshot identity, immutable recommendation persistence, and explainable factor/rationale output. Existing accept/dismiss behavior remains; explicit alternative-claim override + reason belongs to M5B.
+- Browser workflow hardening is merged to `main`: Fest PR #10 at `681b8c94` and Demo PR #14 at `28bb48c8`, in producer-first order.
+- Test-suite reliability hardening is merged: Fest PR #12 at `9365daf` and Demo PR #15 at `19b014a`.
+- Festival's current declared baseline is **49/49 deterministic tests**, **5/5 browser tests**, TypeScript PASS, lint 0 errors / 3 pre-existing warnings.
+- The August 23 Gate 3 receipt remains historical. No new exact-tip live Festival → unpacked Demo extension → Demo API → PostgreSQL composed replay has been recorded after the latest merges. Repeated live workflow and native WSL composition remain outstanding.
+- Preferred next step: fresh exact-tip composed runtime verification, then M5B on its own Demo milestone branch.
+
+The dated April/August sections below remain historical context and are not current thesis status.
 
 ## Recently Completed (April 9, 2026)
 - Added a new workspace custom agent: Senior QA Engineer.
@@ -90,5 +95,5 @@
 
 ## Notes
 - Keep this index aligned to the current docs and session notes.
-- Session notes are the source of truth for implementation state between major handoff document revisions.
-- All core modules are now in place; focus next work on Safety reliability hardening, regression coverage, and final QA closure.
+- For thesis status, sibling Demo `docs/agent-logs/CURRENT.md` is authoritative.
+- Historical session notes remain point-in-time receipts and should not be rewritten as current status.

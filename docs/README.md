@@ -1,6 +1,6 @@
 # Docs Index
 
-Last synchronized with Demo: 2026-08-24 CDT
+Last synchronized with Demo: 2026-08-26 CDT
 
 ## Latest thesis-demo status
 
@@ -9,32 +9,43 @@ The sibling Demo repository is currently at:
 ```text
 Gate 1  PASS  Evidence Authority
 Gate 2  PASS  Lifecycle & PostgreSQL Enforcement
-Gate 3  PASS  Live Browser Extension Ingestion
+Gate 3  PASS  Live Browser Extension Ingestion — historical live receipt from Aug 23
 M4A     PASS  Claim vocabulary/model semantics
 M4B     PASS  Claim ledger persistence
 M4C     PASS  Evidence Reconciliation V0
 M4D     PASS  Shared Build Validation / Evidence Ledger UI
-M5A     NEXT  Information-value router V0
+M5A     PASS  Transparent Information-Value Router V0 — test-verified and merged
+M5B     NEXT  Recommendation feedback / explicit override
 ```
 
-Current Demo milestone commits:
+Current Demo milestone commits include:
 
 ```text
 31a5a18 feat: add evidence reconciliation v0
 4d75c1f feat: add M4D evidence ledger UI (#9)
 28bb48c Fix/cross platform browser workflow (#14)
+b354de9 feat: implement transparent information-value router v0 (M5A) (#17)
 ```
 
-## Cross-platform browser workflow — merged August 24, 2026
+M5A passed Demo's complete local validation, PostgreSQL integration **19/19**, frontend **12/12** plus production build, backend unit **29/29**, and extension/contract/safety/trust-boundary checks.
 
-The browser hardening work is merged to `main` in both repositories:
+## Current merged cross-repository baseline
+
+Browser hardening is merged to `main` in both repositories:
 
 ```text
 Fest PR #10  ->  681b8c94c5dfa881c9631dbfaefb3ef32ea3cee7
 Demo PR #14  ->  28bb48c855f2bdaf5cd9fe7d6be5d54152c59487
 ```
 
-Both PRs passed their final branch checks before merge, and the merge trees matched the audited PR-head trees. Festival now has local-environment validation, bounded owned-process cleanup, fail-closed export readiness, ambient Supabase-source protection, and deterministic artifact identity.
+Declared test-suite reliability hardening is also merged:
+
+```text
+Fest PR #12  ->  9365daf69212812cc3555274e09018b872cd84c0
+Demo PR #15  ->  19b014a10788644f558c78a9d2cc72039063c281
+```
+
+Festival's current declared baseline is **49/49 deterministic tests**, **5/5 browser tests**, TypeScript PASS, and lint 0 errors with 3 pre-existing warnings.
 
 Strict producer identity:
 
@@ -47,9 +58,11 @@ controlledRoute  /trips/10000000-0000-4000-8000-000000000001/camp-grid
 artifactId       sha256:<64 lowercase hex characters>
 ```
 
-Festival owns the export process and cleanup. Demo is a strict consumer and never stops an existing listener. No new exact-tip live browser, repeated workflow, native-WSL replay, or Festival -> Demo composed-runtime replay has been recorded on the merged `main` trees. The August 23 Gate 3 receipt remains historical. Codespaces manual forwarded-browser composition remains unsupported unless separately implemented.
+Festival owns the export process and cleanup. Demo is a strict consumer and never stops an existing listener.
 
-M4C was verified before commit with **25/25 backend integration tests** and **7/7 Gate 3 preflight checks**.
+## Current runtime evidence boundary
+
+The August 23 Gate 3 receipt remains historical. No new exact-tip live Festival → unpacked Demo extension → Demo API → PostgreSQL composed-runtime replay has been recorded after the latest merges. Repeated live workflow and native WSL composition remain outstanding. Codespaces manual forwarded-browser composition remains unsupported unless separately implemented.
 
 ## Product framing
 
@@ -74,7 +87,9 @@ Layer 3 — Evidence Reconciliation
 Layer 4 — Information-Value Router
 ```
 
-Layers 1–3 and the M4D evidence-ledger UI are implemented in Demo. M5A, the router, remains the next milestone.
+All four layers now have an implemented MVP foundation in Demo. M5B is the next product milestone.
+
+M5A preserves exact feature-flag-aware recommendation scope, deterministic snapshot identity, immutable recommendation persistence, and explainable reason/factor output. Existing accept/dismiss behavior remains; explicit alternative-claim override + reason belongs to M5B.
 
 ## Current controlled Festival claim catalog
 
@@ -84,7 +99,7 @@ Use:
 docs/thesis-demo/FESTIVAL_CLAIM_CATALOG.md
 ```
 
-The current catalog contains 8 controlled behavioral claims for the group-equipment handoff scenario. Source independence is an evidence-reconciliation concern in Demo, not a Festival behavior claim.
+The current catalog contains 8 controlled behavioral claims for the group-equipment handoff scenario. Source independence and recommendation ranking are Demo concerns, not Festival behavior claims.
 
 ## Accelerator-demo direction
 
@@ -94,18 +109,11 @@ Target sequence:
 2. Demo records the observation and the claim remains **Weak**;
 3. deeper Playwright/agent/backend verification adds stronger evidence;
 4. claim becomes **Solid** or meaningful disagreement becomes **Conflicted**;
-5. the router later recommends a high-value unresolved claim with explicit rationale;
-6. late-arriving human accepts or overrides;
+5. M5A recommends a high-value unresolved claim with explicit rationale;
+6. M5B lets the late-arriving human accept, dismiss, or explicitly override to another claim with a reason;
 7. evidence ledger and recommendation order update.
 
 Primary UI language should be **Build Validation**, **Validation Evidence**, or **Evidence Ledger**.
-
-## Cross-repository evidence semantics
-
-Demo's reconciled semantics intentionally classify contradict-only compatible evidence as
-`Conflicted`. An expected database-enforced `denied_mutation` may positively support a
-permission claim; `Blocked` requires an explicit blocked assessment. The Festival claim
-catalog remains the normative description of expected Festival behavior.
 
 ## Where to read first
 
@@ -113,7 +121,7 @@ For thesis-demo work:
 
 1. Demo `docs/agent-logs/CURRENT.md` — authoritative implementation status.
 2. Demo `docs/CANONICAL_MVP.md` — current product/MVP definition.
-3. Demo `docs/architecture.md` — architecture and M4C semantics.
+3. Demo `docs/architecture.md` — current architecture and M4C/M5A semantics.
 4. Demo `docs/festival-virtual-qa-environment.md` — Demo-side runbook.
 5. Demo `docs/EXPERIMENT_METRICS.md` — experiment definitions.
 6. Festival `docs/QA_PLATFORM_INTEGRATION.md` — cross-repository boundary.

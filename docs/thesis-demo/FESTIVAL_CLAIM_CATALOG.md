@@ -1,6 +1,6 @@
 # Festival Thesis Demo — Claim Catalog
 
-Last synchronized with Demo: 2026-08-24 CDT
+Last synchronized with Demo: 2026-08-26 CDT
 
 This file defines the controlled behavioral claims used by the Festival accelerator demo. It is product/experiment ground truth for the demo, not a universal model of Festival and not a tester-facing checklist.
 
@@ -23,46 +23,32 @@ A source observation may support, weaken, contradict, invalidate, or explicitly 
 
 ## Current Demo implementation status
 
-The sibling Demo repository has completed M4A, M4B, M4C, and M4D. Claim persistence, Evidence Reconciliation V0, and the Build Validation / Evidence Ledger UI are implemented; M5A Information-Value Router V0 is next.
+The sibling Demo repository has completed M4A, M4B, M4C, M4D, and M5A. Claim persistence, Evidence Reconciliation V0, the Build Validation / Evidence Ledger UI, and the transparent Information-Value Router V0 are implemented. **M5B Recommendation Feedback / explicit alternative-claim override is next.**
 
-Current Demo milestone commits on `main`:
+Current Demo milestone commits on `main` include:
 
 ```text
 31a5a18 feat: add evidence reconciliation v0
 4d75c1f feat: add M4D evidence ledger UI (#9)
 28bb48c Fix/cross platform browser workflow (#14)
+b354de9 feat: implement transparent information-value router v0 (M5A) (#17)
 ```
 
-The catalog below remains the normative description of expected Festival behavior. Demo reconciliation must adapt to these claims; Festival behavior should not be rewritten to accommodate implementation quirks.
+M5A is test-verified and merged. It preserves exact run/build/environment/scenario/device/region/**feature-flag**/actor/role recommendation scope, deterministic evidence-snapshot identity, immutable recommendation persistence, and explainable factor/rationale output. Existing accept/dismiss behavior is preserved; explicit alternative-claim override + reason remains M5B.
+
+The catalog below remains the normative description of expected Festival behavior. Demo reconciliation/routing must adapt to these claims; Festival behavior should not be rewritten to accommodate implementation quirks.
 
 Resolved semantics relevant to this catalog:
 
 1. compatible contradict-only evidence intentionally derives `Conflicted`, including without a supporting observation;
-2. expected database-enforced `denied_mutation` may support claims 05/06/08; `Blocked` requires an explicit blocked assessment.
+2. expected database-enforced `denied_mutation` may support claims 05/06/08; `Blocked` requires an explicit blocked assessment;
+3. incompatible feature-flag configurations must not be blended into one recommendation scope.
 
-These semantics are implemented and covered by Demo tests.
+## Current runtime evidence boundary
 
-## Cross-platform browser workflow — merged August 24, 2026
+Browser workflow hardening and declared test-suite reliability fixes are merged in both repositories. Festival's current declared baseline is **49/49 deterministic tests**, **5/5 browser tests**, TypeScript PASS, and lint 0 errors / 3 pre-existing warnings.
 
-```text
-Fest PR #10  ->  681b8c94c5dfa881c9631dbfaefb3ef32ea3cee7
-Demo PR #14  ->  28bb48c855f2bdaf5cd9fe7d6be5d54152c59487
-```
-
-Both PRs passed their final branch checks before merge, and the merge trees matched the audited PR-head trees.
-
-Strict producer identity:
-
-```text
-schemaVersion    1
-service          festnest-browser-export
-buildId          festnest-demo-001
-scenarioId       equipment-handoff-v1
-controlledRoute  /trips/10000000-0000-4000-8000-000000000001/camp-grid
-artifactId       sha256:<64 lowercase hex characters>
-```
-
-Festival owns the export process and cleanup. Demo is a strict consumer and never stops an existing listener. No new exact-tip live browser, repeated workflow, native-WSL replay, or live Festival -> extension -> Demo API -> PostgreSQL composition has been recorded on the merged `main` trees. The August 23 Gate 3 receipt remains historical. Codespaces manual forwarded-browser composition remains unsupported unless separately implemented.
+The August 23 Gate 3 live receipt remains historical. A fresh exact-tip Festival → unpacked Demo extension → Demo API → PostgreSQL composed replay has not yet been recorded after the latest merges.
 
 ## Verification-depth scale
 
@@ -97,8 +83,8 @@ Recommended visible sequence:
 1. Start with `FEST-CLAIM-04` as **Weak** after a human performs the pack action but persistence has not been verified.
 2. Run Playwright/backend verification. If persisted state survives refresh, move the claim toward **Solid**; if authoritative evidence meaningfully disagrees, show **Conflicted**.
 3. Keep `FEST-CLAIM-05`, `FEST-CLAIM-07`, or `FEST-CLAIM-08` **Untouched** or uncertain at the start.
-4. Let the future information-value router recommend the higher-value remaining claim with explicit rationale.
-5. Let `late-tester-d` accept or override the recommendation and record the reason.
+4. Let M5A recommend the higher-value remaining claim with explicit rationale.
+5. M5B should let `late-tester-d` accept, dismiss, or explicitly override to an alternative claim with a required reason.
 6. Update the ledger and recommendation order from the resulting observation.
 
 ## Classification guardrails
@@ -136,13 +122,13 @@ Potentially correlated observations:
 
 ## Business-risk guidance for V0 routing
 
-Use explicit/manual weights for the demo. Suggested relative ordering:
+M5A uses explicit/versioned manual weights for the demo. Suggested relative ordering remains:
 
 1. **High** — permission/ownership enforcement, persistence correctness, stale/reconciliation correctness.
 2. **Medium** — normal create/claim/pack transitions and useful independent corroboration.
 3. **Low** — shallow cosmetic behavior not required for the core demo.
 
-The V0 router should recommend claims/areas, not click scripts.
+The router recommends claims/areas, not click scripts.
 
 ## Controlled environment identifiers
 
