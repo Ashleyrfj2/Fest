@@ -185,6 +185,8 @@ These actions are sources of observations attached to claims, not the claim mode
 
 ## Deterministic Festival setup
 
+A fresh browser-test run requires local Supabase to be running and reset before `npm run test:browser`; the browser exporter fails closed if the expected local Supabase environment is absent.
+
 ```bash
 cd "$FESTIVAL_REPO_ROOT"
 nvm install
@@ -194,10 +196,10 @@ npm run workspace:check
 npm run lint -- --no-cache
 npx tsc --noEmit
 npm test
-npm run test:browser
 ./scripts/demo/start-local-supabase.sh
 npx supabase status
 ./scripts/demo/reset-demo.sh
+npm run test:browser
 ```
 
 Festival local ports:
