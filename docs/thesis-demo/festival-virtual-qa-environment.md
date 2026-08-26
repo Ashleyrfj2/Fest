@@ -1,6 +1,6 @@
 # Festival Virtual QA Environment — Festival-Side Runbook
 
-Last synchronized with Demo: 2026-08-24 CDT
+Last synchronized with Demo: 2026-08-26 CDT
 
 Use this with the sibling Demo repository's `docs/agent-logs/CURRENT.md`, `docs/architecture.md`, and `docs/festival-virtual-qa-environment.md`.
 
@@ -9,24 +9,41 @@ Use this with the sibling Demo repository's `docs/agent-logs/CURRENT.md`, `docs/
 ```text
 Gate 1  PASS
 Gate 2  PASS
-Gate 3  PASS
+Gate 3  PASS  historical live receipt from Aug 23
 M4A     PASS
 M4B     PASS
 M4C     PASS
 M4D     PASS
-M5A     NEXT
+M5A     PASS  test-verified and merged in Demo
+M5B     NEXT
 ```
 
-Festival remains the controlled application/evidence source. Demo owns claim identity, evidence contexts, observation linkage, reconciliation, routing, corrections, UI evidence semantics, and experiment metrics.
+Festival remains the controlled application/evidence source. Demo owns claim identity, evidence contexts, observation linkage, reconciliation, routing, corrections, UI evidence semantics, recommendation feedback, and experiment metrics.
 
-## Cross-platform browser workflow — merged August 24, 2026
+## Current merged baseline
+
+Browser workflow hardening:
 
 ```text
 Fest PR #10  ->  681b8c94c5dfa881c9631dbfaefb3ef32ea3cee7
 Demo PR #14  ->  28bb48c855f2bdaf5cd9fe7d6be5d54152c59487
 ```
 
-Both PRs passed their final branch checks before merge, and the merge trees matched the audited PR-head trees. Festival now has local-environment validation, bounded owned-process cleanup, fail-closed export readiness, ambient Supabase-source protection, and deterministic export identity.
+Declared test-suite reliability hardening:
+
+```text
+Fest PR #12  ->  9365daf69212812cc3555274e09018b872cd84c0
+Demo PR #15  ->  19b014a10788644f558c78a9d2cc72039063c281
+```
+
+Demo M5A:
+
+```text
+Demo PR #17  ->  b354de9 feat: implement transparent information-value router v0 (M5A)
+Demo PR #18  ->  merge receipt
+```
+
+Festival's current declared baseline is **49/49 deterministic tests**, **5/5 browser tests**, TypeScript PASS, and lint 0 errors with 3 pre-existing warnings.
 
 Strict producer identity:
 
@@ -39,9 +56,11 @@ controlledRoute  /trips/10000000-0000-4000-8000-000000000001/camp-grid
 artifactId       sha256:<64 lowercase hex characters>
 ```
 
-Festival owns the export process and cleanup. Demo is a strict consumer and never stops an existing listener. No new exact-tip live browser, repeated workflow, native-WSL replay, or live Festival -> extension -> Demo API -> PostgreSQL composition has been recorded on the merged `main` trees. The August 23 Gate 3 receipt remains historical. Codespaces manual forwarded-browser composition remains unsupported unless separately implemented.
+Festival owns the export process and cleanup. Demo is a strict consumer and never stops an existing listener.
 
-Historical Gate 3 verification (August 23 receipt; not rerun on the merged browser-workflow `main` trees):
+## Current runtime evidence boundary
+
+Historical Gate 3 verification from August 23:
 
 ```text
 Festival rendered DOM
@@ -55,12 +74,14 @@ Festival rendered DOM
 -> queue drain to zero
 ```
 
-Final receipt:
+Receipt:
 
 ```text
 session = session-gate3-final-1787473951348
 event   = 6671ec3f-a50e-4ab0-9d7f-701701ed17ea
 ```
+
+No new exact-tip live Festival → extension → Demo API → PostgreSQL composition has been recorded after the latest browser/test-hardening and M5A merges. Repeated live workflow and native WSL composition remain unverified. Codespaces manual forwarded-browser composition remains unsupported unless separately implemented.
 
 ## Controlled V1 scope
 
@@ -96,24 +117,15 @@ Observation = validator result linked to a claim/context/run
 
 A Festival state visit or click is not automatically proof that a behavioral claim is valid.
 
-## Demo claim ledger/reconciliation now implemented
+## Demo claim ledger/reconciliation — implemented
 
-M4A/M4B/M4C are no longer future work in the sibling Demo repository.
+Demo has persisted claim definitions, evidence contexts, observations, backend evidence reconciliation, derived `Solid / Weak / Stale / Conflicted / Untouched / Blocked` classes, context/freshness/depth/source-independence/conflict handling, deterministic reason text, and read API:
 
-Demo now has:
+```text
+GET /api/v1/claims/evidence
+```
 
-- persisted claim definitions;
-- persisted evidence contexts;
-- persisted observations;
-- backend evidence reconciliation;
-- derived `Solid / Weak / Stale / Conflicted / Untouched / Blocked` classes;
-- context/freshness/depth/source-independence/conflict handling;
-- deterministic reason text;
-- read API `GET /api/v1/claims/evidence`.
-
-The next primary Demo milestone is **M5A — transparent information-value router V0**.
-
-## Verification depth
+Verification depth:
 
 ```text
 1  surface / DOM
@@ -124,12 +136,24 @@ The next primary Demo milestone is **M5A — transparent information-value route
 
 A shallow successful click should generally remain Weak when the claim requires persistence/backend proof.
 
+## Demo Information-Value Router V0 — implemented
+
+M5A ranks eligible claims using:
+
+```text
+ΔUncertainty × BusinessRisk × DiffImpact × SmoothedFailurePrior ÷ ExpectedCost
+```
+
+Current properties include versioned manual policy, novelty floor, role filtering, deterministic tie-breaking, exact feature-flag-aware scope, deterministic evidence-snapshot identity, immutable recommendation persistence, and reason/factor display in the Demo UI.
+
+Existing accept/dismiss behavior is preserved. Explicit alternative-claim override + reason is M5B.
+
 ## Cross-repository evidence semantics
 
-Demo intentionally labels contradict-only compatible evidence as `Conflicted`.
-An expected database-enforced `denied_mutation` may positively support a permission
-claim; `Blocked` requires an explicit blocked assessment. Festival behavior must remain
-aligned with the controlled claim catalog.
+- Demo intentionally labels contradict-only compatible evidence as `Conflicted`.
+- An expected database-enforced `denied_mutation` may positively support a permission claim; `Blocked` requires an explicit blocked assessment.
+- Incompatible feature-flag contexts must not be blended into one M5A recommendation scope.
+- Festival behavior must remain aligned with the controlled claim catalog; do not modify product behavior merely to satisfy Demo ranking assumptions.
 
 ## Canonical accelerator story
 
@@ -138,11 +162,11 @@ aligned with the controlled claim catalog.
 3. Demo attaches the observation to a controlled claim and shows **Weak** evidence.
 4. Playwright/agent/backend verification provides deeper evidence.
 5. Claim becomes **Solid** or meaningful disagreement becomes **Conflicted**.
-6. The future information-value router recommends a high-value unresolved claim with explicit reason.
-7. `late-tester-d` accepts or overrides.
+6. M5A recommends a high-value unresolved claim with explicit reason.
+7. M5B lets `late-tester-d` accept, dismiss, or explicitly override to another claim with a reason.
 8. Ledger and recommendation order update.
 
-M4D is implemented. The information-value router remains the next milestone, M5A.
+Preferred immediate next step: fresh exact-tip composed runtime verification before M5B behavior is added.
 
 ## Controlled Festival scenario
 
@@ -170,6 +194,7 @@ npm run workspace:check
 npm run lint -- --no-cache
 npx tsc --noEmit
 npm test
+npm run test:browser
 ./scripts/demo/start-local-supabase.sh
 npx supabase status
 ./scripts/demo/reset-demo.sh
@@ -196,19 +221,9 @@ Controlled Gate 3 route:
 /trips/10000000-0000-4000-8000-000000000001/camp-grid
 ```
 
-Verified natural interaction target: `Start Building`.
-
 ## Seed/reset requirements
 
-The controlled environment should preserve:
-
-- four confirmed synthetic accounts;
-- role matrix `leader=leader`, `editor-a=editor`, `viewer-b=viewer`, `late-tester-d=editor`;
-- stable thesis-demo trip/scenario identity;
-- controlled Supply List items including the canopy;
-- synthetic activity only;
-- ignored generated manifest;
-- deterministic reset verification.
+The controlled environment should preserve four confirmed synthetic accounts, the deterministic role matrix, stable thesis-demo trip/scenario identity, controlled Supply List items, synthetic activity only, ignored generated manifest, and deterministic reset verification.
 
 Reset/seed tooling must refuse unsafe remote destinations unless the explicit approved guard is supplied.
 
@@ -236,8 +251,8 @@ Use one deeper source in M6. Prefer persistence/backend/authorization verificati
 ## Remaining shared roadmap
 
 ```text
-M5A  Information-value router V0
-M5B  Recommendation feedback
+M5A  Transparent Information-Value Router V0 — PASS
+M5B  Recommendation feedback / explicit override — NEXT
 M6   Deeper Playwright/agent/backend source
 M7   Accelerator demo
 M8   Fixed-budget guided/control experiment
