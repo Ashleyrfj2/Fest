@@ -1,6 +1,6 @@
 # QA Platform Integration Guide
 
-Last synchronized with Demo: 2026-08-24 CDT
+Last synchronized with Demo: 2026-08-26 CDT
 
 This document describes how Festival integrates with the sibling Demo QA Platform.
 
@@ -26,36 +26,41 @@ A Festival route/state visit is not automatically proof that a behavior is valid
 ```text
 Gate 1  PASS
 Gate 2  PASS
-Gate 3  PASS
+Gate 3  PASS  historical live receipt from Aug 23
 M4A     PASS
 M4B     PASS
 M4C     PASS
 M4D     PASS
-M5A     NEXT
+M5A     PASS  test-verified and merged in Demo
+M5B     NEXT
 ```
 
-Current Demo milestone commits on `main`:
+Current Demo milestone commits include:
 
 ```text
 31a5a18 feat: add evidence reconciliation v0
 4d75c1f feat: add M4D evidence ledger UI (#9)
+28bb48c Fix/cross platform browser workflow (#14)
+b354de9 feat: implement transparent information-value router v0 (M5A) (#17)
 ```
 
-M4C verification before commit: **25/25 backend integration tests PASS** and **7/7 Gate 3 preflight checks PASS**.
+## Current merged browser/test status
 
-## Browser workflow merge status — August 24, 2026
-
-The cross-platform browser remediation is merged to `main` in the required producer-first order:
+Browser workflow hardening:
 
 ```text
-Fest PR #10  fix: harden browser workflow across macOS and WSL
-             merge 681b8c94c5dfa881c9631dbfaefb3ef32ea3cee7
-
-Demo PR #14  Fix/cross platform browser workflow
-             merge 28bb48c855f2bdaf5cd9fe7d6be5d54152c59487
+Fest PR #10  ->  681b8c94c5dfa881c9631dbfaefb3ef32ea3cee7
+Demo PR #14  ->  28bb48c855f2bdaf5cd9fe7d6be5d54152c59487
 ```
 
-The final Fest branch run passed the pinned toolchain gate, lint, typecheck, deterministic tests, browser-harness tests, whitespace checks, and static Expo export. Demo PR #14 passed CI, branch hygiene, Go tests, frontend build, extension tests, contract conformance, diagnostic-safety tests, and strict Festival identity tests before merge.
+Declared test-suite reliability hardening:
+
+```text
+Fest PR #12  ->  9365daf69212812cc3555274e09018b872cd84c0
+Demo PR #15  ->  19b014a10788644f558c78a9d2cc72039063c281
+```
+
+Festival's merged declared baseline is **49/49 deterministic tests**, **5/5 browser tests**, TypeScript PASS, and lint 0 errors / 3 pre-existing warnings.
 
 Strict producer identity:
 
@@ -68,25 +73,11 @@ controlledRoute  /trips/10000000-0000-4000-8000-000000000001/camp-grid
 artifactId       sha256:<64 lowercase hex characters>
 ```
 
-Festival owns the export process and cleanup. Demo is a strict consumer and never stops an existing listener. The August 23 Gate 3 receipt remains historical. No new exact-tip live Festival -> extension -> Demo API -> PostgreSQL composed replay, repeated browser workflow, or native-WSL replay has been recorded on the merged `main` trees. Codespaces manual forwarded-browser composition remains unsupported unless separately implemented.
+Festival owns the export process and cleanup. Demo is a strict consumer and never stops an existing listener.
 
-## Local integration target
+## Current runtime evidence boundary
 
-- Repository: `Ashleyrfj2/Fest`
-- Browser export:
-
-```bash
-cd "$FESTIVAL_REPO_ROOT"
-node scripts/export-browser-app.mjs
-```
-
-- Festival web: `http://127.0.0.1:4173`
-- Controlled route: `/trips/10000000-0000-4000-8000-000000000001/camp-grid`
-- Verified Gate 3 natural interaction: `Start Building`
-
-## Gate 3 verification
-
-Verified on 2026-08-23:
+Historical Gate 3 live verification from August 23:
 
 ```text
 Festival rendered DOM
@@ -101,14 +92,28 @@ Festival rendered DOM
 -> queue drain to 0
 ```
 
-Final receipt:
+Receipt:
 
 ```text
 session = session-gate3-final-1787473951348
 event   = 6671ec3f-a50e-4ab0-9d7f-701701ed17ea
 ```
 
-Gate 3 proves capture/provenance/delivery/persistence. It does not by itself prove the claim-level economic thesis.
+A new exact-tip live Festival → extension → Demo API → PostgreSQL composed replay has not yet been recorded after the latest browser/test-hardening and M5A merges. Repeated live workflow and native WSL composition remain unverified.
+
+## Local integration target
+
+- Repository: `Ashleyrfj2/Fest`
+- Browser export:
+
+```bash
+cd "$FESTIVAL_REPO_ROOT"
+node scripts/export-browser-app.mjs
+```
+
+- Festival web: `http://127.0.0.1:4173`
+- Controlled route: `/trips/10000000-0000-4000-8000-000000000001/camp-grid`
+- Historical Gate 3 natural interaction: `Start Building`
 
 ## Claim and evidence model
 
@@ -121,34 +126,21 @@ EvidenceContext = Build + Environment + Tenant/Data Context
 Observation = validator result linked to claim/context/run
 ```
 
-Festival provides application behavior and evidence sources. Demo decides evidence sufficiency/classification.
+Festival provides application behavior and evidence sources. Demo decides evidence sufficiency/classification and recommendation ranking.
 
-## M4A/M4B now implemented in Demo
+## Demo claim ledger/reconciliation — implemented
 
-Demo now persists claim definitions, evidence contexts, and observations. These are no longer future schema work.
-
-Important migration history:
-
-- Demo `0006_claim_evidence_ledger.sql` is empty in committed history.
-- Demo `0007_reconciliation_v0.sql` is the first reproducible migration containing the claim-ledger schema and includes a forward repair for pre-existing M4B observations constraints.
-
-Festival must not copy or apply Demo migrations.
-
-## M4C now implemented in Demo
-
-Demo exposes:
+Demo persists claim definitions, evidence contexts, and observations and exposes:
 
 ```text
 GET /api/v1/claims/evidence
 ```
 
-and computes backend-derived classifications:
+with backend-derived:
 
 ```text
 Solid / Weak / Stale / Conflicted / Untouched / Blocked
 ```
-
-The current summary includes verification depth, freshness/context, source/observation counts, conflicts, reason text, and a nullable non-probabilistic heuristic score.
 
 Verification depth:
 
@@ -159,6 +151,26 @@ Verification depth:
 4  cross-system/asynchronous
 ```
 
+Migration history relevant to integration:
+
+- Demo `0006_claim_evidence_ledger.sql` is empty in committed history.
+- Demo `0007_reconciliation_v0.sql` is the first reproducible claim-ledger migration and forward-repairs the M4B `blocked` constraint.
+- Demo `0008_information_value_router_v0.sql` is the M5A recommendation persistence/scope/immutability migration.
+
+Festival must not copy or apply Demo migrations.
+
+## Demo Information-Value Router V0 — implemented
+
+M5A ranks eligible claims with:
+
+```text
+ΔUncertainty × BusinessRisk × DiffImpact × SmoothedFailurePrior ÷ ExpectedCost
+```
+
+M5A includes versioned manual policy, novelty floor, role filtering, deterministic tie-breaking, exact run/build/environment/scenario/device/region/**feature-flag**/actor/role scope, deterministic evidence-snapshot identity, immutable recommendation persistence, and reason/factor display in the UI.
+
+Existing accept/dismiss behavior is preserved. Explicit alternative-claim override + reason remains M5B.
+
 ## Controlled Festival claim catalog
 
 Use:
@@ -167,26 +179,25 @@ Use:
 docs/thesis-demo/FESTIVAL_CLAIM_CATALOG.md
 ```
 
-The current controlled set contains 8 behavioral claims for the group-equipment handoff scenario.
+The current controlled set contains 8 behavioral claims for the group-equipment handoff scenario. Festival behavior claims remain normative; source independence/classification/ranking belong to Demo.
 
-Festival behavior claims remain normative for expected application behavior. Source independence/classification belongs to Demo.
+## Cross-repository semantics
 
-## Resolved M4C cross-repository semantics
-
-Compatible contradict-only evidence intentionally derives `Conflicted`. An expected database-enforced `denied_mutation` may support a permission claim; `Blocked` requires an explicit blocked assessment. These semantics are implemented and covered by Demo tests; Festival authorization behavior and the claim catalog remain unchanged.
+- Compatible contradict-only evidence intentionally derives `Conflicted`.
+- An expected database-enforced `denied_mutation` may support a permission claim; `Blocked` requires an explicit blocked assessment.
+- Incompatible feature-flag configurations must not be mixed into one M5A recommendation scope.
+- Festival should never be modified merely to satisfy Demo's ranking assumptions.
 
 ## Next milestone
 
-**M5A — Information-Value Router V0** in Demo.
+**M5B — Recommendation Feedback** in Demo, preferably after a fresh exact-tip composed runtime verification of the current merged trees.
 
-The implemented M4D UI consumes Demo's M4C API rather than recomputing evidence classifications.
-
-The eventual accelerator sequence remains:
+The intended accelerator sequence is:
 
 1. human shallow observation -> **Weak**;
 2. deeper verifier -> **Solid** or meaningful disagreement -> **Conflicted**;
-3. information-value router recommends a high-value unresolved claim with explicit rationale;
-4. late human accepts or overrides;
+3. M5A recommends a high-value unresolved claim with explicit rationale;
+4. M5B lets the late human accept, dismiss, or explicitly override to another claim with a reason;
 5. ledger and recommendation order update.
 
 ## Trust boundaries and ports
