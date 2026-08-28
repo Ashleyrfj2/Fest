@@ -168,14 +168,21 @@ Festival local ports:
 
 ## Browser workflow
 
-```bash
-# controlled browser export
-npm run browser:serve
+Choose either a standalone browser server for manual use or a self-hosted test command. Do not leave `browser:serve` running before either test command; the tests must own the configured browser port.
 
-# one demo browser test run
+For a standalone controlled browser export:
+
+```bash
+npm run browser:serve
+```
+
+Stop that server with `Ctrl+C` before running browser tests. Then choose one of:
+
+```bash
+# one self-hosted demo browser test run
 npm run test:demo-browser
 
-# three isolated runs with a reset before each run
+# or three self-hosted isolated runs with a reset before each run
 npm run test:demo-browser:repeat
 ```
 
