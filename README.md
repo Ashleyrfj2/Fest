@@ -101,7 +101,7 @@ Festival serves as the real rendered target application for the Demo QA-Platform
 - **Three-run Browser Workflow**: `npm run test:demo-browser:repeat`
 - **Browser Target**: `http://127.0.0.1:4173`
 - **Controlled Integration Target Route**: `/trips/10000000-0000-4000-8000-000000000001/camp-grid` (`Start Building` button)
-- **Verified Integration Status**: **Gate 3 PASS** (Verified August 23, 2026)
+- **Verified Integration Status**: **Gate 3 PASS + live M5B override/progression PASS** (fresh composed receipts August 27, 2026)
 
 ### Database Isolation & Trust Boundaries
 - Festival local Supabase runs on port `54321` and must remain running for the rendered application.

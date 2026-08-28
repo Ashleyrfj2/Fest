@@ -1,15 +1,15 @@
 # Feature Handoff Index
 
-## Current Update (August 26, 2026)
+## Current Update (August 27, 2026)
 
-- Gate 1–3, M4A–M4D, and M5A are PASS. M5A is **test-verified and merged** in Demo; M5B recommendation feedback / explicit alternative-claim override is NEXT.
+- Gate 1–3 and M4A–M5B are PASS. M5B is **test-verified and merged** in Demo, and its live override/progression composed proof is PASS.
 - Demo M5A is merged through PR #17 as `b354de9`; PR #18 records the merge receipt.
-- M5A preserves exact feature-flag-aware recommendation scope, deterministic evidence-snapshot identity, immutable recommendation persistence, and explainable factor/rationale output. Existing accept/dismiss behavior remains; explicit alternative-claim override + reason belongs to M5B.
+- M5B preserves M5A's exact feature-flag-aware scope and adds backend-approved alternatives, explicit override + reason, immutable progression snapshots, and promotion linkage.
 - Browser workflow hardening is merged to `main`: Fest PR #10 at `681b8c94` and Demo PR #14 at `28bb48c8`, in producer-first order.
 - Test-suite reliability hardening is merged: Fest PR #12 at `9365daf` and Demo PR #15 at `19b014a`.
 - Festival's current declared baseline is **49/49 deterministic tests**, **5/5 browser tests**, TypeScript PASS, lint 0 errors / 3 pre-existing warnings.
-- The August 23 Gate 3 receipt remains historical. No new exact-tip live Festival → unpacked Demo extension → Demo API → PostgreSQL composed replay has been recorded after the latest merges. Repeated live workflow and native WSL composition remain outstanding.
-- Preferred next step: fresh exact-tip composed runtime verification, then M5B on its own Demo milestone branch.
+- The August 23 Gate 3 receipt remains historical evidence; fresh August 27 Gate 3 and live M5B composed receipts are current. Native WSL composition remains outstanding.
+- Next implementation milestone: M6 deeper Playwright/agent/backend evidence source. It has not started.
 
 The dated April/August sections below remain historical context and are not current thesis status.
 

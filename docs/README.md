@@ -9,13 +9,14 @@ The sibling Demo repository is currently at:
 ```text
 Gate 1  PASS  Evidence Authority
 Gate 2  PASS  Lifecycle & PostgreSQL Enforcement
-Gate 3  PASS  Live Browser Extension Ingestion — historical live receipt from Aug 23
+Gate 3  PASS  Live Browser Extension Ingestion — fresh exact-tip receipt Aug 27
 M4A     PASS  Claim vocabulary/model semantics
 M4B     PASS  Claim ledger persistence
 M4C     PASS  Evidence Reconciliation V0
 M4D     PASS  Shared Build Validation / Evidence Ledger UI
 M5A     PASS  Transparent Information-Value Router V0 — test-verified and merged
-M5B     NEXT  Recommendation feedback / explicit override
+M5B     PASS  Recommendation feedback / explicit override — merged in Demo
+Live M5B PASS Override/retry/restart/frozen composed receipt Aug 27
 ```
 
 Current Demo milestone commits include:
@@ -62,7 +63,7 @@ Festival owns the export process and cleanup. Demo is a strict consumer and neve
 
 ## Current runtime evidence boundary
 
-The August 23 Gate 3 receipt remains historical. No new exact-tip live Festival → unpacked Demo extension → Demo API → PostgreSQL composed-runtime replay has been recorded after the latest merges. Repeated live workflow and native WSL composition remain outstanding. Codespaces manual forwarded-browser composition remains unsupported unless separately implemented.
+The August 23 Gate 3 receipt remains valid historical evidence, but fresh August 27 receipts now prove the current exact-tip Festival → unpacked Demo extension → authenticated Demo API → PostgreSQL spine and the live M5B override/progression workflow through exact retry, API restart, and frozen receipt reconstruction. Native WSL composition remains outstanding. Codespaces manual forwarded-browser composition remains unsupported unless separately implemented.
 
 ## Product framing
 
@@ -87,9 +88,9 @@ Layer 3 — Evidence Reconciliation
 Layer 4 — Information-Value Router
 ```
 
-All four layers now have an implemented MVP foundation in Demo. M5B is the next product milestone.
+All four layers now have an implemented and composed-runtime-verified MVP foundation through M5B. M6 is next and has not started.
 
-M5A preserves exact feature-flag-aware recommendation scope, deterministic snapshot identity, immutable recommendation persistence, and explainable reason/factor output. Existing accept/dismiss behavior remains; explicit alternative-claim override + reason belongs to M5B.
+M5B preserves M5A's exact feature-flag-aware recommendation scope and adds immutable accept/dismiss/override feedback, backend-approved alternatives, progression snapshots, and promotion linkage. The live proof exercised explicit alternative-claim override + reason without changing Festival-owned routing semantics.
 
 ## Current controlled Festival claim catalog
 

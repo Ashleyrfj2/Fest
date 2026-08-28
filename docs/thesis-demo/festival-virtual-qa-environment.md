@@ -9,13 +9,14 @@ Use this with the sibling Demo repository's `docs/agent-logs/CURRENT.md`, `docs/
 ```text
 Gate 1  PASS
 Gate 2  PASS
-Gate 3  PASS  historical live receipt from Aug 23
+Gate 3  PASS  fresh exact-tip runtime receipt Aug 27
 M4A     PASS
 M4B     PASS
 M4C     PASS
 M4D     PASS
 M5A     PASS  test-verified and merged in Demo
-M5B     NEXT
+M5B     PASS  merged in Demo (#20)
+Live M5B PASS override/retry/restart/frozen receipt Aug 27
 ```
 
 Festival remains the controlled application/evidence source. Demo owns claim identity, evidence contexts, observation linkage, reconciliation, routing, corrections, UI evidence semantics, recommendation feedback, and experiment metrics.
@@ -60,7 +61,7 @@ Festival owns the export process and cleanup. Demo is a strict consumer and neve
 
 ## Current runtime evidence boundary
 
-Historical Gate 3 verification from August 23:
+The August 23 receipt remains historical evidence. Fresh exact-tip Gate 3 and live M5B composed verification from August 27 are the current runtime truth:
 
 ```text
 Festival rendered DOM
@@ -74,14 +75,28 @@ Festival rendered DOM
 -> queue drain to zero
 ```
 
-Receipt:
+Historical August 23 receipt:
 
 ```text
 session = session-gate3-final-1787473951348
 event   = 6671ec3f-a50e-4ab0-9d7f-701701ed17ea
 ```
 
-No new exact-tip live Festival → extension → Demo API → PostgreSQL composition has been recorded after the latest browser/test-hardening and M5A merges. Repeated live workflow and native WSL composition remain unverified. Codespaces manual forwarded-browser composition remains unsupported unless separately implemented.
+Current August 27 composed receipt:
+
+```text
+run       festival-runtime-replay-1787868328744-48e763
+session   session-runtime-replay-1787868328744-48e763
+event     511142f2-f6b1-4402-94e7-8a27ffec6dce
+A         FEST-CLAIM-04
+override  FEST-CLAIM-04 -> FEST-CLAIM-08
+B         FEST-CLAIM-08
+retry     HTTP 200; no duplicate progression
+restart   same promoted progression reconstructed
+freeze    b8cfb075e1dd55189e342dbd91dfe43ce61e84e2526ed2c565a33ff466911f9a
+```
+
+Native WSL composition remains unverified. Codespaces manual forwarded-browser composition remains unsupported unless separately implemented.
 
 ## Controlled V1 scope
 
@@ -146,7 +161,7 @@ M5A ranks eligible claims using:
 
 Current properties include versioned manual policy, novelty floor, role filtering, deterministic tie-breaking, exact feature-flag-aware scope, deterministic evidence-snapshot identity, immutable recommendation persistence, and reason/factor display in the Demo UI.
 
-Existing accept/dismiss behavior is preserved. Explicit alternative-claim override + reason is M5B.
+M5B preserves accept/dismiss behavior and adds explicit alternative-claim override + reason, backend-approved alternatives, immutable progression, and promotion linkage.
 
 ## Cross-repository evidence semantics
 
@@ -166,7 +181,7 @@ Existing accept/dismiss behavior is preserved. Explicit alternative-claim overri
 7. M5B lets `late-tester-d` accept, dismiss, or explicitly override to another claim with a reason.
 8. Ledger and recommendation order update.
 
-Preferred immediate next step: fresh exact-tip composed runtime verification before M5B behavior is added.
+The live M5B proof is complete. M6 is the next implementation milestone and has not started.
 
 ## Controlled Festival scenario
 
@@ -254,7 +269,8 @@ Use one deeper source in M6. Prefer persistence/backend/authorization verificati
 
 ```text
 M5A  Transparent Information-Value Router V0 — PASS
-M5B  Recommendation feedback / explicit override — NEXT
+M5B  Recommendation feedback / explicit override — PASS
+      Live override/retry/restart/frozen receipt — PASS
 M6   Deeper Playwright/agent/backend source
 M7   Accelerator demo
 M8   Fixed-budget guided/control experiment
