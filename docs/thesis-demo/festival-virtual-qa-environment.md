@@ -1,6 +1,6 @@
 # Festival Virtual QA Environment — Festival-Side Runbook
 
-Last synchronized with Demo: 2026-08-26 CDT
+Last synchronized with Demo: 2026-08-27 CDT
 
 Use this with the sibling Demo repository's `docs/agent-logs/CURRENT.md`, `docs/architecture.md`, and `docs/festival-virtual-qa-environment.md`.
 
@@ -127,7 +127,7 @@ ClaimDefinition = Target + StateSignature + ActorContext + ValidationIntent
 EvidenceContext = Build + Environment + Tenant/Data Context
                 + Feature Flags + optional Device/Region + time
 
-Observation = validator result linked to a claim/context/run
+Observation = validator result linked to claim/context/run
 ```
 
 A Festival state visit or click is not automatically proof that a behavioral claim is valid.
