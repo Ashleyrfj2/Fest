@@ -1,6 +1,6 @@
 # QA Platform Integration Guide
 
-Last synchronized with Demo: 2026-08-26 CDT
+Last synchronized with Demo: 2026-08-27 CDT
 
 This document describes how Festival integrates with the sibling Demo QA Platform.
 
