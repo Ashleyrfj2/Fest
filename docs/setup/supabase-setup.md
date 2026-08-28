@@ -11,7 +11,7 @@ FestNest uses Supabase for:
 
 ## Browser-workflow verification boundary
 
-The hardened browser workflow is merged to `main` in Fest PR #10 (`681b8c94`) and Demo PR #14 (`28bb48c8`). Fresh August 27 Gate 3 and live M5B composed receipts now verify the current local Festival → extension → Demo API → PostgreSQL path. Native WSL replay remains outstanding.
+The hardened browser workflow is merged to `main` in Fest PR #10 (`681b8c94`) and Demo PR #14 (`28bb48c8`). Fresh August 27 Gate 3, live M5B, and M6 composed receipts now verify the current local Festival → extension → Demo API → PostgreSQL path and the independent Playwright/backend depth-3 verifier path. Native WSL replay remains outstanding.
 
 ## Quick Start
 
@@ -156,8 +156,9 @@ The tracked migration `20260829000000_enable_supply_realtime.sql` idempotently a
 
 1. ✅ Deterministic local reset, synthetic seed, and role verification are tracked.
 2. ✅ Supply List realtime and database-authoritative workflow/denial behavior are tracked and verified in focused Gate 1 checks.
-3. ✅ Gate 2, Gate 3, and live M5B composition are accepted milestones; fresh exact-tip receipts were recorded August 27.
-4. ⬜ Storage bucket provisioning remains outside this tracked local setup until it receives migrations and validation.
+3. ✅ Gate 2, Gate 3, live M5B composition, and M6 deeper heterogeneous verification are accepted milestones; fresh exact-tip receipts were recorded August 27.
+4. ⬜ M7 accelerator-demo recording is next; it does not require a new database milestone.
+5. ⬜ Storage bucket provisioning remains outside this tracked local setup until it receives migrations and validation.
 
 ## Useful SQL Queries
 

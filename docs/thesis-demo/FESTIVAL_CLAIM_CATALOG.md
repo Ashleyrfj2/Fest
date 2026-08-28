@@ -23,7 +23,7 @@ A source observation may support, weaken, contradict, invalidate, or explicitly 
 
 ## Current Demo implementation status
 
-The sibling Demo repository has completed M4A through M5B. Claim persistence, Evidence Reconciliation V0, the Build Validation / Evidence Ledger UI, the transparent Information-Value Router V0, and immutable recommendation feedback/progression are implemented. The live M5B composed proof is also complete.
+The sibling Demo repository has completed M4A through M6. Claim persistence, Evidence Reconciliation V0, the Build Validation / Evidence Ledger UI, the transparent Information-Value Router V0, immutable recommendation feedback/progression, and the deeper heterogeneous verifier path are implemented. The live M5B and M6 composed proofs are complete.
 
 Current Demo milestone commits on `main` include:
 
@@ -33,9 +33,12 @@ Current Demo milestone commits on `main` include:
 28bb48c Fix/cross platform browser workflow (#14)
 b354de9 feat: implement transparent information-value router v0 (M5A) (#17)
 25574015 feat: add recommendation feedback and override flow (M5B) (#20)
+cebce76 feat: add deeper heterogeneous verifier evidence (M6) (#23)
 ```
 
 M5B is test-verified and merged. It preserves M5A's exact run/build/environment/scenario/device/region/**feature-flag**/actor/role recommendation scope and adds backend-approved alternatives, explicit override + reason, immutable progression snapshots, and promotion linkage.
+
+M6 is merged and live-verified on `FEST-CLAIM-04`: a real Festival action created depth-1 human evidence and `Weak`; independent Playwright reload plus authoritative Festival Supabase verification created depth-3 agent evidence and `Solid`; restart reconstruction, fail-closed verifier failure, and a controlled `Conflicted` result also passed. The verifier contributes evidence but does not set the final class.
 
 The catalog below remains the normative description of expected Festival behavior. Demo reconciliation/routing must adapt to these claims; Festival behavior should not be rewritten to accommodate implementation quirks.
 
@@ -49,7 +52,7 @@ Resolved semantics relevant to this catalog:
 
 Browser workflow hardening and declared test-suite reliability fixes are merged in both repositories. Festival's current declared baseline is **49/49 deterministic tests**, **5/5 browser tests**, TypeScript PASS, and lint 0 errors / 3 pre-existing warnings.
 
-The August 23 Gate 3 live receipt remains historical evidence. Fresh August 27 receipts prove the exact-tip Festival → unpacked Demo extension → authenticated Demo API → PostgreSQL path and `FEST-CLAIM-04` → override to backend-approved `FEST-CLAIM-08` → promoted `FEST-CLAIM-08`, including exact retry idempotency, API restart reconstruction, and frozen receipt reconstruction.
+The August 23 Gate 3 live receipt remains historical evidence. Fresh August 27 receipts prove the exact-tip Festival → unpacked Demo extension → authenticated Demo API → PostgreSQL path; `FEST-CLAIM-04` → override to backend-approved `FEST-CLAIM-08` → promoted `FEST-CLAIM-08`, including exact retry idempotency, API restart reconstruction, and frozen receipt reconstruction; and the M6 `FEST-CLAIM-04` depth-1 `Weak` → depth-3 `Solid` path with fail-closed/conflict controls.
 
 ## Verification-depth scale
 

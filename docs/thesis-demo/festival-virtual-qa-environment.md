@@ -17,6 +17,8 @@ M4D     PASS
 M5A     PASS  test-verified and merged in Demo
 M5B     PASS  merged in Demo (#20)
 Live M5B PASS override/retry/restart/frozen receipt Aug 27
+M6      PASS  deeper heterogeneous Playwright/backend verifier — merged/live-verified
+NEXT    M7 accelerator-demo recording
 ```
 
 Festival remains the controlled application/evidence source. Demo owns claim identity, evidence contexts, observation linkage, reconciliation, routing, corrections, UI evidence semantics, recommendation feedback, and experiment metrics.
@@ -42,6 +44,8 @@ Demo M5A:
 ```text
 Demo PR #17  ->  b354de9 feat: implement transparent information-value router v0 (M5A)
 Demo PR #18  ->  merge receipt
+Demo PR #20  ->  25574015 feat: add recommendation feedback and override flow (M5B)
+Demo PR #23  ->  cebce76 feat: add deeper heterogeneous verifier evidence (M6)
 ```
 
 Festival's current declared baseline is **49/49 deterministic tests**, **5/5 browser tests**, TypeScript PASS, and lint 0 errors with 3 pre-existing warnings.
@@ -97,6 +101,22 @@ freeze    b8cfb075e1dd55189e342dbd91dfe43ce61e84e2526ed2c565a33ff466911f9a
 ```
 
 Native WSL composition remains unverified. Codespaces manual forwarded-browser composition remains unsupported unless separately implemented.
+
+Current M6 composed proof:
+
+```text
+late-tester-d packs the controlled canopy
+-> human/chrome-mv3 depth-1 supports
+-> Weak
+-> independent Playwright reload assertion
+-> authoritative Festival Supabase REST assertion
+-> agent/playwright depth-3 supports
+-> Solid
+-> Demo API restart
+-> same Solid reconstruction
+```
+
+The negative guard proves failed authoritative verification submits no deeper observation; a controlled contradictory verifier observation derives `Conflicted`.
 
 ## Controlled V1 scope
 
@@ -181,7 +201,7 @@ M5B preserves accept/dismiss behavior and adds explicit alternative-claim overri
 7. M5B lets `late-tester-d` accept, dismiss, or explicitly override to another claim with a reason.
 8. Ledger and recommendation order update.
 
-The live M5B proof is complete. M6 is the next implementation milestone and has not started.
+The live M5B and M6 proofs are complete. **M7 accelerator-demo recording is next.** M7 packages and records this existing proof rather than inventing another backend milestone.
 
 ## Controlled Festival scenario
 
@@ -256,7 +276,7 @@ Festival activity/audit records and database-owned authorization denials can pro
 
 ### Playwright/agent verifier
 
-Use one deeper source in M6. Prefer persistence/backend/authorization verification over repeating the same DOM oracle.
+M6 uses Playwright reload plus authoritative Festival Supabase verification for `FEST-CLAIM-04`. The deeper observation is submitted only after both assertions pass. Preserve that fail-closed boundary and prefer persistence/backend/authorization verification over repeating the same DOM oracle.
 
 ## Trust boundaries
 
@@ -271,8 +291,8 @@ Use one deeper source in M6. Prefer persistence/backend/authorization verificati
 M5A  Transparent Information-Value Router V0 — PASS
 M5B  Recommendation feedback / explicit override — PASS
       Live override/retry/restart/frozen receipt — PASS
-M6   Deeper Playwright/agent/backend source
-M7   Accelerator demo
+M6   Deeper Playwright/agent/backend source — PASS, merged/live-verified
+M7   Accelerator demo recording — NEXT
 M8   Fixed-budget guided/control experiment
 M9   Explicit build invalidation V0
 ```

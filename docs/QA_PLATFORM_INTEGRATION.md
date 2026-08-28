@@ -34,6 +34,8 @@ M4D     PASS
 M5A     PASS  test-verified and merged in Demo
 M5B     PASS  merged in Demo (#20)
 Live M5B PASS override/retry/restart/frozen receipt Aug 27
+M6      PASS  deeper heterogeneous Playwright/backend verifier — merged/live-verified
+NEXT    M7 accelerator-demo recording
 ```
 
 Current Demo milestone commits include:
@@ -43,6 +45,8 @@ Current Demo milestone commits include:
 4d75c1f feat: add M4D evidence ledger UI (#9)
 28bb48c Fix/cross platform browser workflow (#14)
 b354de9 feat: implement transparent information-value router v0 (M5A) (#17)
+25574015 feat: add recommendation feedback and override flow (M5B) (#20)
+cebce76 feat: add deeper heterogeneous verifier evidence (M6) (#23)
 ```
 
 ## Current merged browser/test status
@@ -115,6 +119,21 @@ freeze    b8cfb075e1dd55189e342dbd91dfe43ce61e84e2526ed2c565a33ff466911f9a
 ```
 
 Native WSL composition remains unverified.
+
+The current M6 proof uses the same controlled Festival environment:
+
+```text
+late-tester-d packs the controlled canopy
+-> Demo records human/chrome-mv3 depth-1 supports
+-> reconciliation = Weak
+-> Playwright reload asserts the rendered state
+-> authoritative Festival Supabase REST asserts persisted state
+-> Demo records agent/playwright depth-3 supports
+-> reconciliation = Solid
+-> Demo API restart reconstructs the same Solid result
+```
+
+Failed authoritative verification submits no deeper observation, and a controlled contradictory verifier observation derives `Conflicted`. Festival supplies evidence; Demo remains classification authority.
 
 ## Local integration target
 
@@ -205,7 +224,7 @@ The current controlled set contains 8 behavioral claims for the group-equipment 
 
 ## Next milestone
 
-**M6 — Deeper Playwright/agent/backend evidence source** in Demo. Gate 3 and the live M5B override/progression composition are complete; M6 has not started.
+**M7 — Accelerator-demo recording.** Gate 3, live M5B override/progression composition, and M6 deeper heterogeneous verification are complete. M7 packages and records the existing proof; it is not another backend milestone.
 
 The intended accelerator sequence is:
 

@@ -17,6 +17,8 @@ M4D     PASS  Shared Build Validation / Evidence Ledger UI
 M5A     PASS  Transparent Information-Value Router V0 — test-verified and merged
 M5B     PASS  Recommendation feedback / explicit override — merged in Demo
 Live M5B PASS Override/retry/restart/frozen composed receipt Aug 27
+M6      PASS  Deeper heterogeneous Playwright/backend verifier — merged/live-verified
+NEXT    M7 accelerator-demo recording
 ```
 
 Current Demo milestone commits include:
@@ -26,6 +28,8 @@ Current Demo milestone commits include:
 4d75c1f feat: add M4D evidence ledger UI (#9)
 28bb48c Fix/cross platform browser workflow (#14)
 b354de9 feat: implement transparent information-value router v0 (M5A) (#17)
+25574015 feat: add recommendation feedback and override flow (M5B) (#20)
+cebce76 feat: add deeper heterogeneous verifier evidence (M6) (#23)
 ```
 
 M5A passed Demo's complete local validation, PostgreSQL integration **19/19**, frontend **12/12** plus production build, backend unit **29/29**, and extension/contract/safety/trust-boundary checks.
@@ -63,7 +67,7 @@ Festival owns the export process and cleanup. Demo is a strict consumer and neve
 
 ## Current runtime evidence boundary
 
-The August 23 Gate 3 receipt remains valid historical evidence, but fresh August 27 receipts now prove the current exact-tip Festival → unpacked Demo extension → authenticated Demo API → PostgreSQL spine and the live M5B override/progression workflow through exact retry, API restart, and frozen receipt reconstruction. Native WSL composition remains outstanding. Codespaces manual forwarded-browser composition remains unsupported unless separately implemented.
+The August 23 Gate 3 receipt remains valid historical evidence, but fresh August 27 receipts now prove the current exact-tip Festival → unpacked Demo extension → authenticated Demo API → PostgreSQL spine, the live M5B override/progression workflow through exact retry, API restart, and frozen receipt reconstruction, and the M6 human-depth-1 → `Weak` → independent Playwright/backend-depth-3 → `Solid` proof. M6 also verified restart reconstruction, fail-closed verifier failure, and a controlled `Conflicted` result. Native WSL composition remains outstanding. Codespaces manual forwarded-browser composition remains unsupported unless separately implemented.
 
 ## Product framing
 
@@ -88,7 +92,7 @@ Layer 3 — Evidence Reconciliation
 Layer 4 — Information-Value Router
 ```
 
-All four layers now have an implemented and composed-runtime-verified MVP foundation through M5B. M6 is next and has not started.
+All four layers now have an implemented and composed-runtime-verified MVP foundation through M6. **M7 accelerator-demo recording is next.**
 
 M5B preserves M5A's exact feature-flag-aware recommendation scope and adds immutable accept/dismiss/override feedback, backend-approved alternatives, progression snapshots, and promotion linkage. The live proof exercised explicit alternative-claim override + reason without changing Festival-owned routing semantics.
 
@@ -122,7 +126,7 @@ For thesis-demo work:
 
 1. Demo `docs/agent-logs/CURRENT.md` — authoritative implementation status.
 2. Demo `docs/CANONICAL_MVP.md` — current product/MVP definition.
-3. Demo `docs/architecture.md` — current architecture and M4C/M5A semantics.
+3. Demo `docs/architecture.md` — current architecture and M4C–M6 semantics.
 4. Demo `docs/festival-virtual-qa-environment.md` — Demo-side runbook.
 5. Demo `docs/EXPERIMENT_METRICS.md` — experiment definitions.
 6. Festival `docs/QA_PLATFORM_INTEGRATION.md` — cross-repository boundary.

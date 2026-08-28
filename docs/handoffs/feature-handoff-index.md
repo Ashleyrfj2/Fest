@@ -2,14 +2,15 @@
 
 ## Current Update (August 27, 2026)
 
-- Gate 1–3 and M4A–M5B are PASS. M5B is **test-verified and merged** in Demo, and its live override/progression composed proof is PASS.
+- Gate 1–3 and M4A–M6 are PASS. M5B is **test-verified and merged** in Demo, its live override/progression composed proof is PASS, and M6 is merged/live-verified through Demo PR #23.
 - Demo M5A is merged through PR #17 as `b354de9`; PR #18 records the merge receipt.
 - M5B preserves M5A's exact feature-flag-aware scope and adds backend-approved alternatives, explicit override + reason, immutable progression snapshots, and promotion linkage.
+- M6 verifies `FEST-CLAIM-04` moving depth-1 human evidence `Weak` → independent Playwright/backend depth-3 evidence `Solid`, plus restart reconstruction, fail-closed verifier failure, and a controlled `Conflicted` result.
 - Browser workflow hardening is merged to `main`: Fest PR #10 at `681b8c94` and Demo PR #14 at `28bb48c8`, in producer-first order.
 - Test-suite reliability hardening is merged: Fest PR #12 at `9365daf` and Demo PR #15 at `19b014a`.
 - Festival's current declared baseline is **49/49 deterministic tests**, **5/5 browser tests**, TypeScript PASS, lint 0 errors / 3 pre-existing warnings.
-- The August 23 Gate 3 receipt remains historical evidence; fresh August 27 Gate 3 and live M5B composed receipts are current. Native WSL composition remains outstanding.
-- Next implementation milestone: M6 deeper Playwright/agent/backend evidence source. It has not started.
+- The August 23 Gate 3 receipt remains historical evidence; fresh August 27 Gate 3, live M5B, and M6 composed receipts are current. Native WSL composition remains outstanding.
+- Next milestone: M7 accelerator-demo recording.
 
 The dated April/August sections below remain historical context and are not current thesis status.
 

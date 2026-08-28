@@ -22,19 +22,24 @@ Before an agent installs project dependencies, Riley should verify:
    docker compose version
    ```
 
-3. GitHub authentication works **inside WSL** for both private repositories:
+3. Base Linux tooling is present:
 
    ```bash
+   sudo apt update
+   sudo apt install -y build-essential ca-certificates curl gh git make
+   ```
+
+4. GitHub authentication works **inside WSL** for both private repositories:
+
+   ```bash
+   gh auth login --hostname github.com --git-protocol https --web
+   gh auth setup-git
+   gh auth status
    git ls-remote https://github.com/Ashleyrfj2/Fest.git HEAD
    git ls-remote https://github.com/Ashleyrfj2/Demo.git HEAD
    ```
 
-4. Base Linux tooling is present:
-
-   ```bash
-   sudo apt update
-   sudo apt install -y build-essential ca-certificates curl git make
-   ```
+   Complete browser/device authorization as Riley. `gh auth setup-git` binds HTTPS Git operations to the WSL GitHub credential rather than a Windows credential helper.
 
 Do not install a second hidden Docker daemon in WSL when Docker Desktop integration is the chosen runtime. Do not copy another developer's GitHub token or checkout to bypass private-repository authentication.
 
@@ -105,6 +110,9 @@ nvm use
 npm ci
 npx playwright install --with-deps chromium
 npm run workspace:check
+npm run lint -- --no-cache
+npx tsc --noEmit
+npm test
 ```
 
 `workspace:check` fails on the wrong Node/npm version, a `/mnt/*` WSL checkout, CRLF in guarded shell scripts, missing packages, or missing Playwright Chromium.
@@ -142,6 +150,12 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=<local anon key>
 ```
 
 Never copy Ashley's `.env`, service-role key, Supabase volume, or seeded state.
+
+After the local `.env` values are set, verify the full browser suite:
+
+```bash
+npm run test:browser
+```
 
 Festival local ports:
 
