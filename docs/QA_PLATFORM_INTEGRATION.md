@@ -1,6 +1,6 @@
 # QA Platform Integration Guide
 
-Last synchronized with Demo: 2026-08-26 CDT
+Last synchronized with Demo: 2026-08-27 CDT
 
 This document describes how Festival integrates with the sibling Demo QA Platform.
 
@@ -26,13 +26,14 @@ A Festival route/state visit is not automatically proof that a behavior is valid
 ```text
 Gate 1  PASS
 Gate 2  PASS
-Gate 3  PASS  historical live receipt from Aug 23
+Gate 3  PASS  fresh exact-tip runtime receipt Aug 27
 M4A     PASS
 M4B     PASS
 M4C     PASS
 M4D     PASS
 M5A     PASS  test-verified and merged in Demo
-M5B     NEXT
+M5B     PASS  merged in Demo (#20)
+Live M5B PASS override/retry/restart/frozen receipt Aug 27
 ```
 
 Current Demo milestone commits include:
@@ -77,7 +78,7 @@ Festival owns the export process and cleanup. Demo is a strict consumer and neve
 
 ## Current runtime evidence boundary
 
-Historical Gate 3 live verification from August 23:
+The August 23 receipt remains historical evidence. Fresh exact-tip Gate 3 and live M5B composed verification from August 27 now supersede it as current runtime truth:
 
 ```text
 Festival rendered DOM
@@ -92,14 +93,28 @@ Festival rendered DOM
 -> queue drain to 0
 ```
 
-Receipt:
+Historical August 23 receipt:
 
 ```text
 session = session-gate3-final-1787473951348
 event   = 6671ec3f-a50e-4ab0-9d7f-701701ed17ea
 ```
 
-A new exact-tip live Festival → extension → Demo API → PostgreSQL composed replay has not yet been recorded after the latest browser/test-hardening and M5A merges. Repeated live workflow and native WSL composition remain unverified.
+Current August 27 composed receipt:
+
+```text
+run       festival-runtime-replay-1787868328744-48e763
+session   session-runtime-replay-1787868328744-48e763
+event     511142f2-f6b1-4402-94e7-8a27ffec6dce
+A         FEST-CLAIM-04
+override  FEST-CLAIM-04 -> FEST-CLAIM-08
+B         FEST-CLAIM-08
+retry     HTTP 200; no duplicate progression
+restart   same promoted progression reconstructed
+freeze    b8cfb075e1dd55189e342dbd91dfe43ce61e84e2526ed2c565a33ff466911f9a
+```
+
+Native WSL composition remains unverified.
 
 ## Local integration target
 
@@ -113,7 +128,7 @@ node scripts/export-browser-app.mjs
 
 - Festival web: `http://127.0.0.1:4173`
 - Controlled route: `/trips/10000000-0000-4000-8000-000000000001/camp-grid`
-- Historical Gate 3 natural interaction: `Start Building`
+- Gate 3 natural interaction: `Start Building` (freshly replayed August 27)
 
 ## Claim and evidence model
 
@@ -169,7 +184,7 @@ M5A ranks eligible claims with:
 
 M5A includes versioned manual policy, novelty floor, role filtering, deterministic tie-breaking, exact run/build/environment/scenario/device/region/**feature-flag**/actor/role scope, deterministic evidence-snapshot identity, immutable recommendation persistence, and reason/factor display in the UI.
 
-Existing accept/dismiss behavior is preserved. Explicit alternative-claim override + reason remains M5B.
+M5B preserves accept/dismiss behavior and adds explicit alternative-claim override + required reason, backend-approved alternatives, immutable progression, and promotion linkage.
 
 ## Controlled Festival claim catalog
 
@@ -190,7 +205,7 @@ The current controlled set contains 8 behavioral claims for the group-equipment 
 
 ## Next milestone
 
-**M5B — Recommendation Feedback** in Demo, preferably after a fresh exact-tip composed runtime verification of the current merged trees.
+**M6 — Deeper Playwright/agent/backend evidence source** in Demo. Gate 3 and the live M5B override/progression composition are complete; M6 has not started.
 
 The intended accelerator sequence is:
 

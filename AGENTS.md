@@ -1,6 +1,6 @@
 # Agent Operating Guide — Festival / FestNest
 
-Last thesis synchronization: 2026-08-26 CDT
+Last thesis synchronization: 2026-08-27 CDT
 
 This file is required reading for agent work in `Ashleyrfj2/Fest`.
 
@@ -29,13 +29,14 @@ Do not redo these shared milestones:
 ```text
 Gate 1  PASS
 Gate 2  PASS
-Gate 3  PASS  historical live receipt from Aug 23
+Gate 3  PASS  fresh exact-tip runtime receipt Aug 27
 M4A     PASS
 M4B     PASS
 M4C     PASS
 M4D     PASS
 M5A     PASS  test-verified and merged in Demo
-M5B     NEXT
+M5B     PASS  merged in Demo (#20)
+Live M5B PASS frozen composed-runtime receipt Aug 27
 ```
 
 Current Demo milestone commits on `main` include:
@@ -45,11 +46,13 @@ Current Demo milestone commits on `main` include:
 4d75c1f feat: add M4D evidence ledger UI (#9)
 28bb48c Fix/cross platform browser workflow (#14)
 b354de9 feat: implement transparent information-value router v0 (M5A) (#17)
+25574015 feat: add recommendation feedback and override flow (M5B) (#20)
+73defc4 chore: harden and verify Gate 3 exact-tip runtime replay (#21)
 ```
 
-M5A passed Demo's complete local validation, PostgreSQL integration **19/19**, frontend **12/12** plus production build, backend unit **29/29**, and extension/contract/safety/trust-boundary checks.
+M5B passed Demo's complete validation, all **22 PostgreSQL integration tests**, frontend **14/14** plus production build, extension **6/6**, and browser/diagnostic safety **21/21**.
 
-The August 23 Gate 3 runtime receipt remains historical. A fresh exact-tip live Festival → extension → Demo API → PostgreSQL composition has not yet been recorded after the latest merges.
+Gate 3 has a fresh August 27 exact-tip Festival → unpacked Demo extension → authenticated Demo API → PostgreSQL receipt. The live M5B proof continued through the same spine and verified `FEST-CLAIM-04` → explicit override to backend-approved `FEST-CLAIM-08` → promoted `FEST-CLAIM-08`, exact retry idempotency, API restart reconstruction, and frozen receipt reconstruction.
 
 ## Current thesis model
 
@@ -94,15 +97,14 @@ Do not use Safety/Emergency data in the thesis demo.
 
 ## Next shared milestone
 
-**M5B — Recommendation Feedback** is next in Demo after a preferred fresh exact-tip composed runtime verification.
-
-M5B should add explicit accept / dismiss / alternative-claim override + reason while preserving M5A ranking semantics.
+**M6 — Deeper Playwright/agent/backend evidence source** is next in Demo. The live M5B proof is complete; M6 has not started.
 
 Remaining roadmap:
 
 ```text
 M5A  Transparent information-value router V0 — PASS
-M5B  Recommendation feedback / explicit override — NEXT
+M5B  Recommendation feedback / explicit override — PASS
+      Live override/retry/restart/frozen receipt — PASS
 M6   Deeper Playwright/agent/backend source
 M7   Accelerator demo
 M8   Fixed-budget guided/control experiment

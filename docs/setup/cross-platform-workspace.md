@@ -77,8 +77,8 @@ The Festival export produces schema `1`, service `festnest-browser-export`, buil
 and an `artifactId` matching `sha256:<64 lowercase hex characters>`. Festival owns the
 listener and cleanup; Demo never stops it.
 
-Both PRs passed their final branch checks before merge. No new exact-tip live browser,
-repeated workflow, native-WSL replay, or live Festival -> Demo composed-runtime replay
-has been recorded on the merged `main` trees. Native WSL therefore remains unverified.
-Manual composition through a Codespaces forwarded browser is unsupported unless separately
-implemented.
+Both PRs passed their final branch checks before merge. Fresh August 27 receipts now
+verify the local exact-tip Festival browser -> unpacked Demo extension -> authenticated
+Demo API -> PostgreSQL path and the live M5B override/retry/restart/freeze progression.
+Native WSL remains unverified. Manual composition through a Codespaces forwarded browser
+is unsupported unless separately implemented.

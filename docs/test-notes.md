@@ -2,6 +2,13 @@
 
 Use this file to capture things you want to add, adjust, or fix while testing the app.
 
+### Session Update (August 27, 2026 — Gate 3 and live M5B current runtime receipts)
+
+- Gate 1–3 and M4A–M5B are PASS. Gate 3 has a fresh exact-tip August 27 receipt; it is no longer historical-only.
+- The live M5B proof reused the Festival browser → unpacked Demo extension → authenticated Demo API → PostgreSQL spine, then verified `FEST-CLAIM-04` → explicit override to backend-approved `FEST-CLAIM-08` → promoted `FEST-CLAIM-08`, exact retry idempotency, API restart reconstruction, and frozen receipt reconstruction.
+- The sibling Demo durable receipt is `docs/receipts/live-m5b-composed-proof-2026-08-27.json`. M6 is next and was not started.
+- Dated sections below remain point-in-time receipts and are not rewritten by this update.
+
 ## Outstanding Issues
 
 ### Session Update (August 25, 2026 — Test-Suite Reliability Fixes Merged)

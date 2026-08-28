@@ -1,6 +1,6 @@
 # Festival Thesis Demo — Claim Catalog
 
-Last synchronized with Demo: 2026-08-26 CDT
+Last synchronized with Demo: 2026-08-27 CDT
 
 This file defines the controlled behavioral claims used by the Festival accelerator demo. It is product/experiment ground truth for the demo, not a universal model of Festival and not a tester-facing checklist.
 
@@ -23,7 +23,7 @@ A source observation may support, weaken, contradict, invalidate, or explicitly 
 
 ## Current Demo implementation status
 
-The sibling Demo repository has completed M4A, M4B, M4C, M4D, and M5A. Claim persistence, Evidence Reconciliation V0, the Build Validation / Evidence Ledger UI, and the transparent Information-Value Router V0 are implemented. **M5B Recommendation Feedback / explicit alternative-claim override is next.**
+The sibling Demo repository has completed M4A through M5B. Claim persistence, Evidence Reconciliation V0, the Build Validation / Evidence Ledger UI, the transparent Information-Value Router V0, and immutable recommendation feedback/progression are implemented. The live M5B composed proof is also complete.
 
 Current Demo milestone commits on `main` include:
 
@@ -32,9 +32,10 @@ Current Demo milestone commits on `main` include:
 4d75c1f feat: add M4D evidence ledger UI (#9)
 28bb48c Fix/cross platform browser workflow (#14)
 b354de9 feat: implement transparent information-value router v0 (M5A) (#17)
+25574015 feat: add recommendation feedback and override flow (M5B) (#20)
 ```
 
-M5A is test-verified and merged. It preserves exact run/build/environment/scenario/device/region/**feature-flag**/actor/role recommendation scope, deterministic evidence-snapshot identity, immutable recommendation persistence, and explainable factor/rationale output. Existing accept/dismiss behavior is preserved; explicit alternative-claim override + reason remains M5B.
+M5B is test-verified and merged. It preserves M5A's exact run/build/environment/scenario/device/region/**feature-flag**/actor/role recommendation scope and adds backend-approved alternatives, explicit override + reason, immutable progression snapshots, and promotion linkage.
 
 The catalog below remains the normative description of expected Festival behavior. Demo reconciliation/routing must adapt to these claims; Festival behavior should not be rewritten to accommodate implementation quirks.
 
@@ -48,7 +49,7 @@ Resolved semantics relevant to this catalog:
 
 Browser workflow hardening and declared test-suite reliability fixes are merged in both repositories. Festival's current declared baseline is **49/49 deterministic tests**, **5/5 browser tests**, TypeScript PASS, and lint 0 errors / 3 pre-existing warnings.
 
-The August 23 Gate 3 live receipt remains historical. A fresh exact-tip Festival → unpacked Demo extension → Demo API → PostgreSQL composed replay has not yet been recorded after the latest merges.
+The August 23 Gate 3 live receipt remains historical evidence. Fresh August 27 receipts prove the exact-tip Festival → unpacked Demo extension → authenticated Demo API → PostgreSQL path and `FEST-CLAIM-04` → override to backend-approved `FEST-CLAIM-08` → promoted `FEST-CLAIM-08`, including exact retry idempotency, API restart reconstruction, and frozen receipt reconstruction.
 
 ## Verification-depth scale
 
@@ -84,7 +85,7 @@ Recommended visible sequence:
 2. Run Playwright/backend verification. If persisted state survives refresh, move the claim toward **Solid**; if authoritative evidence meaningfully disagrees, show **Conflicted**.
 3. Keep `FEST-CLAIM-05`, `FEST-CLAIM-07`, or `FEST-CLAIM-08` **Untouched** or uncertain at the start.
 4. Let M5A recommend the higher-value remaining claim with explicit rationale.
-5. M5B should let `late-tester-d` accept, dismiss, or explicitly override to an alternative claim with a required reason.
+5. M5B lets `late-tester-d` accept, dismiss, or explicitly override to a backend-approved alternative claim with a required reason.
 6. Update the ledger and recommendation order from the resulting observation.
 
 ## Classification guardrails
