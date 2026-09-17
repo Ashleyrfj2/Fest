@@ -1,0 +1,69 @@
+name: Lint
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Enforce pinned Node and npm toolchain
+        run: node scripts/check-workspace.mjs --toolchain-only
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run app typecheck
+        run: npx tsc --noEmit
+
+      - name: Run deterministic tests
+        run: npm test
+
+      - name: Test browser harness lifecycle
+        run: npm run test:browser-harness
+
+      - name: Check patch whitespace
+        run: git diff --check
+
+      - name: Export web bundle
+        env:
+          # Static rendering initializes the Supabase client. These are
+          # deliberately non-production values; this job does not contact a
+          # database or exercise authorization behavior.
+          EXPO_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-static-export-placeholder
+        run: |
+          export_dir="$RUNNER_TEMP/festnest-web-export"
+          npx expo export --platform web --output-dir "$export_dir"
+          echo "Web export size: $(du -sh "$export_dir" | cut -f1)"
+          echo "Web export files: $(find "$export_dir" -type f | wc -l | tr -d ' ')"
+
+      - name: Publish coverage boundaries
+        if: always()
+        run: |
+          {
+            echo "## QA coverage boundaries"
+            echo "- **Static/unit:** pinned toolchain, lint, app typecheck, deterministic tests, browser harness, patch whitespace, and web export run in this job."
+            echo "- **Database integration:** not run; requires an isolated Supabase target and secret-backed configuration."
+            echo "- **Browser E2E:** not run in this static gate; run the separate Playwright suite with npm run test:browser."
+            echo "- **Native/manual:** not run; iOS/Android map and device behavior require simulator or device replay."
+          } >> "$GITHUB_STEP_SUMMARY"

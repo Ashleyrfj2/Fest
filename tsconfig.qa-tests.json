@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "target": "ES2022",
+    "outDir": "/tmp/festnest-qa-tests",
+    "noEmit": false,
+    "types": ["node"],
+    "skipLibCheck": true
+  },
+  "include": [
+    "tests/**/*.ts",
+    "lib/routing/routeParams.ts",
+    "lib/budgetSettlements.ts",
+    "lib/budgetTypes.ts",
+    "lib/packingTypes.ts",
+    "lib/supplyTypes.ts",
+    "lib/approvalQueueValidation.ts",
+    "lib/campGridSync.ts",
+    "lib/crypto/safetyEncryptionCore.ts"
+  ]
+}
